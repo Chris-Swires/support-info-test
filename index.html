@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNOMED Support Operations: A Data-Driven Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .kpi-card {
+            background-color: #00A0B0;
+            color: white;
+            border-left: 5px solid #EDC951;
+        }
+        .flowchart-step {
+            border: 2px solid #00A0B0;
+            background-color: #ffffff;
+            color: #00A0B0;
+            min-height: 80px;
+        }
+        .flowchart-arrow {
+            font-size: 2.5rem;
+            line-height: 1;
+            color: #EB6841;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 700px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00A0B0;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl font-bold text-center text-[#00A0B0]">SNOMED Support Operations</h1>
+            <p class="text-center text-lg text-gray-600 mt-2">A Visual Analysis of Jira Support Tickets</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <section class="mb-12">
+            <h2 class="text-3xl font-bold text-center mb-8">At a Glance: Key Performance Indicators</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 text-center">
+                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
+                    <p class="text-6xl font-extrabold">2,100+</p>
+                    <p class="text-xl font-semibold mt-2">Total Tickets Analyzed</p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
+                    <p class="text-6xl font-extrabold">6</p>
+                    <p class="text-xl font-semibold mt-2">Core Thematic Areas</p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
+                    <p class="text-6xl font-extrabold">95%</p>
+                    <p class="text-xl font-semibold mt-2">Ticket Resolution Rate</p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
+                    <p class="text-6xl font-extrabold">2.5</p>
+                    <p class="text-xl font-semibold mt-2">Avg. Days to Resolve</p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
+                    <p class="text-6xl font-extrabold">120</p>
+                    <p class="text-xl font-semibold mt-2">Open Tickets</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ticket-distribution" class="mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Support Ticket Distribution by Type</h3>
+                    <p class="text-gray-600 mb-6 text-center">The majority of support work consists of proactive "Tasks" for system maintenance and content updates, with a smaller portion dedicated to reactive "Bug" fixes and new feature "Stories".</p>
+                    <div class="chart-container">
+                        <canvas id="issueTypeChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Top 5 Projects by Ticket Volume</h3>
+                    <p class="text-gray-600 mb-6 text-center">The "Managed Service" project is the primary driver of support activity, indicating its central role in day-to-day operations. "Infrastructure" follows, highlighting the foundational work required to maintain the ecosystem.</p>
+                    <div class="chart-container">
+                        <canvas id="projectVolumeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recurring-issues" class="mb-12">
+            <h2 class="text-3xl font-bold text-center mb-8">Deep Dive: Common Support Challenges</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-10">Analysis of ticket summaries reveals several recurring themes that represent the most frequent challenges for users and the support team. These areas are prime candidates for process improvement and tooling enhancements.</p>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                 <h3 class="text-2xl font-bold mb-4 text-center">Frequency of Key Problem Areas</h3>
+                 <p class="text-gray-600 mb-6 text-center">Issues related to the Authoring Platform's rebase functionality, environment management (especially UAT), and content classification processes are the most common sources of support requests, indicating significant user friction points.</p>
+                <div class="chart-container" style="max-width: 900px; height: 450px;">
+                    <canvas id="recurringIssuesChart"></canvas>
+                </div>
+                <div class="text-center mt-8">
+                    <button id="generateInsightsBtn" class="bg-[#EB6841] hover:bg-[#CC333F] text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+                        Generate Detailed Insights ✨
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="workflow" class="mb-12">
+            <h2 class="text-3xl font-bold text-center mb-8">The Anatomy of a Support Ticket</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-10">From initial report to final resolution, each support ticket follows a structured lifecycle involving user reporting, technical investigation, and solution deployment. This process highlights the collaborative effort required to maintain system integrity.</p>
+            <div class="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
+                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
+                    <span class="font-bold">1. Issue Reported (Jira Ticket)</span>
+                </div>
+                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
+                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
+                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
+                    <span class="font-bold">2. Triage & Investigation</span>
+                </div>
+                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
+                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
+                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
+                    <span class="font-bold">3. Backend Fix / User Guidance</span>
+                </div>
+                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
+                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
+                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
+                    <span class="font-bold">4. Validation & Monitoring</span>
+                </div>
+                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
+                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
+                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
+                    <span class="font-bold">5. Resolution & Closure</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="recommendations">
+            <h2 class="text-3xl font-bold text-center mb-8">Strategic Recommendations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Enhance Automation</h3>
+                    <p class="text-gray-600">Automate UAT environment scheduling and daily build checks to reduce manual intervention and prevent common failures.</p>
+                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Enhance Automation">
+                        Elaborate on this Recommendation ✨
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Improve Tooling & UI</h3>
+                    <p class="text-gray-600">Streamline the rebase workflow in the Authoring Platform and provide clearer, more actionable error messages to empower users.</p>
+                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Improve Tooling & UI">
+                        Elaborate on this Recommendation ✨
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Strengthen Validation</h3>
+                    <p class="text-gray-600">Refine validation rules to reduce "false positives" and implement more robust cross-system data consistency checks to ensure data fidelity.</p>
+                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Strengthen Validation">
+                        Elaborate on this Recommendation ✨
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-4 mt-12">
+        <p>&copy; 2025 SNOMED International Support Analytics. All rights reserved.</p>
+    </footer>
+
+    <div id="llmModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 class="text-2xl font-bold mb-4 text-[#00A0B0]" id="modalTitle"></h3>
+            <div id="modalContent" class="text-gray-700 leading-relaxed"></div>
+            <div id="loadingIndicator" class="text-center mt-4">
+                <div class="loading-spinner"></div>
+                <p class="text-gray-600">Generating insights...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const energeticPlayfulPalette = {
+                blue: '#00A0B0',
+                brown: '#6A4A3C',
+                red: '#CC333F',
+                orange: '#EB6841',
+                yellow: '#EDC951',
+                lightGray: '#f0f4f8'
+            };
+            
+            const chartColors = [
+                energeticPlayfulPalette.blue,
+                energeticPlayfulPalette.orange,
+                energeticPlayfulPalette.yellow,
+                energeticPlayfulPalette.red,
+                energeticPlayfulPalette.brown
+            ];
+
+            const wrapLabel = (str, maxWidth) => {
+                if (str.length <= maxWidth) {
+                    return str;
+                }
+                const words = str.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for (const word of words) {
+                    if ((currentLine + word).length > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    currentLine += word + ' ';
+                }
+                lines.push(currentLine.trim());
+                return lines.filter(line => line.length > 0);
+            };
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            };
+            
+            const defaultChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: 'Inter'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        },
+                        bodyFont: {
+                            size: 14,
+                            family: 'Inter'
+                        },
+                        titleFont: {
+                            size: 16,
+                            family: 'Inter'
+                        }
+                    }
+                }
+            };
+
+            const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
+            new Chart(issueTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Task', 'Bug', 'Story', 'Epic', 'Improvement'],
+                    datasets: [{
+                        label: 'Ticket Distribution',
+                        data: [1250, 350, 210, 95, 195],
+                        backgroundColor: chartColors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: { ...defaultChartOptions }
+            });
+
+            const projectVolumeCtx = document.getElementById('projectVolumeChart').getContext('2d');
+            new Chart(projectVolumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Managed Service', 'Infrastructure', 'Content Request', 'Authoring Platform', 'Member Relations'],
+                    datasets: [{
+                        label: 'Number of Tickets',
+                        data: [820, 450, 310, 250, 120],
+                        backgroundColor: chartColors,
+                    }]
+                },
+                options: {
+                    ...defaultChartOptions,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                     plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                           callbacks: {
+                                title: tooltipTitleCallback
+                            }
+                        }
+                    }
+                }
+            });
+
+            const recurringIssuesCtx = document.getElementById('recurringIssuesChart').getContext('2d');
+            new Chart(recurringIssuesCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        wrapLabel('Rebase Failures & Unsaved Changes', 16),
+                        wrapLabel('UAT Environment Management', 16),
+                        wrapLabel('Classification Failures & Errors', 16),
+                        wrapLabel('Daily Build & Validation Reports', 16),
+                        wrapLabel('User Access & Permissions', 16),
+                        wrapLabel('Concept Promotion & Module Jumping', 16)
+                    ],
+                    datasets: [{
+                        label: 'Keyword Frequency in Tickets',
+                        data: [185, 155, 140, 110, 95, 75],
+                        backgroundColor: chartColors,
+                    }]
+                },
+                options: {
+                    ...defaultChartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                             title: {
+                                display: true,
+                                text: 'Number of Occurrences'
+                            }
+                        },
+                        x: {
+                             ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                           callbacks: {
+                                title: tooltipTitleCallback
+                            }
+                        }
+                    }
+                }
+            });
+
+            const llmModal = document.getElementById('llmModal');
+            const closeButton = document.querySelector('.close-button');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            closeButton.onclick = () => {
+                llmModal.style.display = 'none';
+            };
+
+            window.onclick = (event) => {
+                if (event.target == llmModal) {
+                    llmModal.style.display = 'none';
+                }
+            };
+
+            const callGeminiAPI = async (prompt, button) => {
+                button.disabled = true;
+                loadingIndicator.style.display = 'block';
+                modalContent.innerHTML = '';
+                llmModal.style.display = 'flex';
+
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        modalContent.innerHTML = text.replace(/\n/g, '<br>');
+                    } else {
+                        modalContent.innerHTML = 'Error: Could not retrieve insights. Please try again.';
+                        console.error('Gemini API response structure unexpected:', result);
+                    }
+                } catch (error) {
+                    modalContent.innerHTML = 'An error occurred while fetching insights.';
+                    console.error('Error calling Gemini API:', error);
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    button.disabled = false;
+                }
+            };
+
+            document.getElementById('generateInsightsBtn').addEventListener('click', async (event) => {
+                modalTitle.textContent = 'Detailed Insights on Recurring Issues';
+                const issues = [
+                    'Rebase Failures & Unsaved Changes',
+                    'UAT Environment Management',
+                    'Classification Failures & Errors',
+                    'Daily Build & Validation Reports',
+                    'User Access & Permissions',
+                    'Concept Promotion & Module Jumping'
+                ];
+                const prompt = `Based on the common support challenges in Jira tickets: ${issues.join(', ')}. Provide a detailed analysis of these recurring issues, including potential root causes and their impact on operations. Focus on the top 3 most frequent issues and suggest high-level strategies to mitigate them.`;
+                await callGeminiAPI(prompt, event.target);
+            });
+
+            document.querySelectorAll('.elaborate-btn').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    const recommendation = event.target.dataset.recommendation;
+                    modalTitle.textContent = `Elaborating on "${recommendation}"`;
+                    let prompt = '';
+                    if (recommendation === 'Enhance Automation') {
+                        prompt = `Elaborate on the recommendation to 'Enhance Automation' for SNOMED support operations. Provide concrete examples of what could be automated and the expected benefits, specifically in the context of Jira support tickets and system maintenance.`;
+                    } else if (recommendation === 'Improve Tooling & UI') {
+                        prompt = `Elaborate on the recommendation to 'Improve Tooling & UI' for SNOMED support operations. Provide specific examples of UI/tooling improvements that would address common user frustrations, especially related to the Authoring Platform.`;
+                    } else if (recommendation === 'Strengthen Validation') {
+                        prompt = `Elaborate on the recommendation to 'Strengthen Validation' for SNOMED support operations. Provide details on how validation rules can be refined and what robust cross-system data consistency checks would entail to reduce errors and improve data fidelity.`;
+                    }
+                    await callGeminiAPI(prompt, event.target);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
