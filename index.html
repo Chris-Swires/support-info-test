@@ -16,21 +16,18 @@
         /* Custom styles for the timeline grid */
         .timeline-grid {
             display: grid;
-            /* 150px for task labels, 1fr for the main timeline area */
-            grid-template-columns: 150px 1fr;
-            /* Adjust column count based on dates (Aug 28 to Sep 23 = 27 days) */
+            grid-template-columns: 180px 1fr; /* Wider labels */
             grid-auto-flow: dense;
         }
-        .timeline-dates {
+        .timeline-header, .timeline-body {
             display: grid;
             grid-column: 2 / -1;
-            /* 27 date columns */
-            grid-template-columns: repeat(27, minmax(40px, 1fr));
         }
         .task-bar {
             grid-column-start: var(--start-day);
             grid-column-end: span var(--duration);
             grid-row: var(--row);
+            align-self: center;
         }
         /* Simple animation for modal */
         @keyframes fadeIn {
@@ -47,6 +44,11 @@
         .modal-slide-in {
             animation: slideIn 0.3s ease-out;
         }
+        /* Styles for active toggle button */
+        .toggle-btn-active {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -58,28 +60,24 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto p-4 md:p-8">
+    <main class="max-w-screen-2xl mx-auto p-4 md:p-8">
 
         <!-- Key Info Cards Section -->
         <section class="mb-12">
             <h2 class="text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">Key Milestones</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Key Date Card 1 -->
                 <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-red-500">
                     <h3 class="font-bold text-lg mb-1">Account Freeze</h3>
                     <p class="text-gray-600">No new accounts or permissions from <strong class="text-gray-900">4:00 PM, Fri 29 Aug</strong>.</p>
                 </div>
-                <!-- Key Date Card 2 -->
                 <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-yellow-500">
                     <h3 class="font-bold text-lg mb-1">Content Freeze</h3>
                     <p class="text-gray-600">Confluence/Jira read-only from <strong class="text-gray-900">Wed 3 Sep</strong> (TBC).</p>
                 </div>
-                <!-- Key Date Card 3 -->
                 <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
                     <h3 class="font-bold text-lg mb-1">Migration Weekend</h3>
                     <p class="text-gray-600">Core migration on <strong class="text-gray-900">Sat 6 Sep - Sun 7 Sep</strong>.</p>
                 </div>
-                <!-- Key Date Card 4 -->
                 <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-green-500">
                     <h3 class="font-bold text-lg mb-1">Go-Live</h3>
                     <p class="text-gray-600">New Cloud environment & IMS live on <strong class="text-gray-900">Mon 8 Sep</strong>.</p>
@@ -88,83 +86,21 @@
         </section>
 
         <!-- Interactive Timeline Section -->
-        <section class="bg-white p-6 rounded-lg shadow-lg mb-12 overflow-x-auto">
-            <h2 class="text-2xl font-bold mb-6 pb-2 border-b-2 border-gray-200">Interactive Project Timeline</h2>
-            <div class="timeline-grid">
-                <!-- This container holds the timeline headers and dates -->
-                <div class="col-start-2 col-span-1">
-                    <!-- Grid for the Month Headers -->
-                    <div class="grid" style="grid-template-columns: repeat(27, minmax(40px, 1fr));">
-                        <div class="text-base font-bold text-center py-2" style="grid-column: 1 / span 4;">AUG '25</div>
-                        <div class="text-base font-bold text-center py-2 border-l border-gray-200" style="grid-column: 5 / span 23;">SEP '25</div>
-                    </div>
-                    <!-- Grid for the Date Markers -->
-                    <div class="timeline-dates border-b-2 border-gray-300" style="grid-column: 1 / -1;">
-                        <!-- Aug -->
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">28</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">29</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">30</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">31</div></div>
-                        <!-- Sep -->
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">1</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">2</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">3</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">4</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">5</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">6</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">7</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">8</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">9</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">10</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">11</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">12</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">13</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">14</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">15</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">16</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">17</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">18</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">19</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">20</div></div>
-                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">21</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">22</div></div>
-                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">23</div></div>
-                    </div>
+        <section class="bg-white p-6 rounded-lg shadow-lg mb-12">
+            <div class="flex justify-between items-center mb-6 pb-2 border-b-2 border-gray-200">
+                <h2 class="text-2xl font-bold">Interactive Project Plan</h2>
+                <div class="flex rounded-lg p-1 bg-gray-200">
+                    <button id="timeline-view-btn" class="toggle-btn-active px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">Timeline View</button>
+                    <button id="board-view-btn" class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">Board View</button>
                 </div>
-
-                <!-- Timeline Rows and Bars -->
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 3;">Full Migration</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 3;"><div class="task-bar bg-purple-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 10; --duration: 15; --row: 1;" data-task-id="full-migration"></div></div>
-                
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 4;">New RMP</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 4;"><div class="task-bar bg-orange-500 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 6; --duration: 9;" data-task-id="new-rmp">Doc migration</div></div>
-                
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 5;">Trial to Cloud</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 5;"><div class="task-bar bg-yellow-500 text-gray-800 text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 1; --duration: 10;" data-task-id="trial">Fixing Confluence source</div></div>
-                
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 6;">JIRA Workflow</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 6;"><div class="task-bar bg-red-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 3; --duration: 8;" data-task-id="jira-workflow">Agree on JSM</div></div>
-                
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 7;">Keycloak Conv.</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 7;"><div class="task-bar bg-red-800 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 4; --duration: 13;" data-task-id="keycloak-conversion">IMS conversion</div></div>
-                
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 8;">Comms & Setup</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 8;">
-                    <div class="task-bar bg-cyan-500 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 8; --duration: 2;" data-task-id="comms-wave-1">First Comms</div>
-                    <div class="task-bar bg-cyan-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 13; --duration: 2;" data-task-id="comms-wave-2">Second Comms</div>
-                </div>
-
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 9;">Prod Workflows</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 9;">
-                    <div class="task-bar bg-amber-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 7; --duration: 12;" data-task-id="prod-workflows">Migration & Switch-off</div>
-                </div>
-
-                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 10;">Go Live Prep</div>
-                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 10;">
-                    <div class="task-bar bg-green-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 16; --duration: 3;" data-task-id="go-live-comms">Go Live Comms</div>
-                    <div class="task-bar bg-green-700 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 19; --duration: 2;" data-task-id="go-live-deploy">Deploy IMS</div>
-                    <div class="task-bar bg-green-800 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 21; --duration: 5;" data-task-id="go-live-final">Go Live</div>
-                </div>
+            </div>
+            
+            <div id="timeline-container" class="timeline-grid overflow-x-auto">
+                <!-- Timeline will be dynamically generated here -->
+            </div>
+            
+            <div id="kanban-container" class="hidden">
+                <!-- Kanban board will be dynamically generated here -->
             </div>
         </section>
 
@@ -172,7 +108,6 @@
         <section>
             <h2 class="text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">Project Details & Actions</h2>
             <div id="accordion-container" class="space-y-4">
-                <!-- Accordion Item 1 -->
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
                         <span>Confluence Migration Details</span>
@@ -191,7 +126,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Accordion Item 2 -->
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
                         <span>JIRA Migration Details</span>
@@ -208,7 +142,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Accordion Item 3 -->
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
                         <span>User Accounts & Login (Keycloak)</span>
@@ -225,8 +158,7 @@
                         </div>
                     </div>
                 </div>
-                 <!-- Accordion Item 4 -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
                     <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
                         <span>Communications Plan</span>
                         <svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -263,92 +195,259 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Modal Logic ---
+            // --- DATA SOURCE ---
+            const timelineData = `
+                2025-07-30 / 2025-09-15: Full Migration #project
+                2025-07-30 / 2025-09-05: Document migration to GitBook #documents
+                2025-08-01 / 2025-08-27: New RMP #software
+                2025-07-30 / 2025-08-04: Trial migration to Atlassian Cloud #atlassian
+                2025-08-05 / 2025-09-04: Fixing Confluence source #atlassian
+                2025-08-05 / 2025-08-12: Agree on support JIRA workflow with JSM #atlassian
+                2025-08-01 / 2025-09-01: IMS conversion to Keycloak #software
+                2025-07-30 / 2025-08-05: Set up dev, uat, prod keycloak boxes #devops
+                2025-08-01 / 2025-08-05: Groups setup #devops
+                2025-08-01: First comms messages #comms
+                2025-08-06: SMT walkthrough #comms
+                2025-08-13: Screenshots for comms message #comms
+                2025-08-14: Second comms messages #comms
+                2025-08-28 / 2025-08-29: EPS guide migration #devops
+                2025-08-27: Q3 Software Release #software
+                2025-08-27: MF Meeting demo #comms
+                2025-08-05 / 2025-08-28: Prod-workflow migration #software
+                2025-08-29: Prod-workflow switch off #software
+                2025-09-01 / 2025-09-03: Account migration to keycloak #devops
+                2025-09-06 / 2025-09-07: Migration to Atlassian cloud #devops
+                2025-09-07: Go Live comms message #comms
+                2025-09-08: Deploy IMS #software
+                2025-09-08: Go Live #project
+                2025-09-05 / 2025-09-15: Current RMP Closed #software
+                2025-09-08 / 2025-09-11: RMP data migration #software
+                2025-09-15: New RMP Go Live #software
+            `;
+
+            // --- PARSING AND SETUP ---
+            const tasks = timelineData.trim().split('\n').map((line, index) => {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) return null;
+                const [datePart, rest] = trimmedLine.split(': ');
+                const [name, category] = rest.split(' #');
+                const dates = datePart.split(' / ');
+                const startDate = new Date(dates[0] + 'T00:00:00Z');
+                const endDate = dates.length > 1 ? new Date(dates[1] + 'T00:00:00Z') : startDate;
+                return { id: index, name, category: category || 'general', startDate, endDate };
+            }).filter(Boolean);
+
+            const colorMap = {
+                project: 'blue-600',
+                software: 'orange-500',
+                comms: 'green-500',
+                devops: 'red-600',
+                documents: 'purple-600',
+                atlassian: 'yellow-500',
+                general: 'gray-500'
+            };
+            const borderMap = {
+                project: 'border-blue-600',
+                software: 'border-orange-500',
+                comms: 'border-green-500',
+                devops: 'border-red-600',
+                documents: 'border-purple-600',
+                atlassian: 'border-yellow-500',
+                general: 'border-gray-500'
+            };
+
+            const timelineStartDate = new Date('2025-07-30T00:00:00Z');
+            const timelineEndDate = new Date('2025-09-15T00:00:00Z');
+
+            // --- DYNAMIC TIMELINE GENERATION ---
+            const timelineContainer = document.getElementById('timeline-container');
+            
+            function generateTimeline() {
+                timelineContainer.innerHTML = ''; // Clear previous content
+                const days = [];
+                let currentDate = new Date(timelineStartDate);
+                while (currentDate <= timelineEndDate) {
+                    days.push(new Date(currentDate));
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                }
+
+                const headerContainer = document.createElement('div');
+                headerContainer.className = 'timeline-header';
+                headerContainer.style.gridTemplateColumns = `repeat(${days.length}, minmax(45px, 1fr))`;
+                
+                let monthHeaders = {};
+                days.forEach((day, index) => {
+                    const month = day.toLocaleString('default', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+                    if (!monthHeaders[month]) {
+                        monthHeaders[month] = { start: index + 1, count: 0 };
+                    }
+                    monthHeaders[month].count++;
+                    
+                    const dateCell = document.createElement('div');
+                    dateCell.className = 'text-center text-xs p-1 border-r';
+                    const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+                    if (['Sat', 'Sun'].includes(dayOfWeek)) dateCell.classList.add('bg-gray-100');
+                    dateCell.innerHTML = `<div class="text-gray-500">${dayOfWeek}</div><div class="font-medium mt-1">${day.getUTCDate()}</div>`;
+                    headerContainer.appendChild(dateCell);
+                });
+
+                const monthHeaderRow = document.createElement('div');
+                monthHeaderRow.className = 'col-start-2 col-span-1 grid';
+                monthHeaderRow.style.gridTemplateColumns = `repeat(${days.length}, minmax(45px, 1fr))`;
+                Object.keys(monthHeaders).forEach(month => {
+                    const monthCell = document.createElement('div');
+                    monthCell.className = 'text-base font-bold text-center py-2 border-r';
+                    monthCell.style.gridColumn = `${monthHeaders[month].start} / span ${monthHeaders[month].count}`;
+                    monthCell.textContent = month.toUpperCase();
+                    monthHeaderRow.appendChild(monthCell);
+                });
+                
+                timelineContainer.appendChild(monthHeaderRow);
+                timelineContainer.appendChild(headerContainer);
+
+                const diffTime = (date2, date1) => Math.ceil(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
+                
+                tasks.forEach((task, index) => {
+                    const taskLabel = document.createElement('div');
+                    taskLabel.className = 'text-sm font-medium text-right pr-4 py-3 border-b';
+                    taskLabel.textContent = task.name;
+                    taskLabel.style.gridRow = index + 3;
+
+                    const taskRow = document.createElement('div');
+                    taskRow.className = 'col-start-2 col-span-full py-2 border-b grid';
+                    taskRow.style.gridTemplateColumns = `repeat(${days.length}, minmax(45px, 1fr))`;
+                    taskRow.style.gridRow = index + 3;
+
+                    const startDay = diffTime(task.startDate, timelineStartDate) + 1;
+                    const duration = diffTime(task.endDate, task.startDate) + 1;
+
+                    const taskBar = document.createElement('div');
+                    taskBar.className = `task-bar text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80 transition-opacity truncate bg-${colorMap[task.category]}`;
+                    taskBar.style.setProperty('--start-day', startDay);
+                    taskBar.style.setProperty('--duration', duration);
+                    taskBar.textContent = task.name;
+                    taskBar.dataset.taskId = task.id;
+
+                    taskRow.appendChild(taskBar);
+                    timelineContainer.appendChild(taskLabel);
+                    timelineContainer.appendChild(taskRow);
+                });
+            }
+
+            // --- DYNAMIC KANBAN BOARD GENERATION ---
+            const kanbanContainer = document.getElementById('kanban-container');
+
+            function generateKanbanBoard() {
+                kanbanContainer.innerHTML = ''; // Clear previous content
+                const categories = Object.keys(colorMap);
+                const board = document.createElement('div');
+                board.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+                
+                categories.forEach(category => {
+                    const column = document.createElement('div');
+                    column.className = 'bg-gray-100 rounded-lg p-4';
+                    
+                    const header = document.createElement('h3');
+                    header.className = `text-lg font-bold mb-4 capitalize text-${colorMap[category]}`;
+                    header.textContent = category;
+                    column.appendChild(header);
+
+                    const cardContainer = document.createElement('div');
+                    cardContainer.className = 'space-y-4';
+                    column.appendChild(cardContainer);
+                    
+                    board.appendChild(column);
+                });
+
+                kanbanContainer.appendChild(board);
+                
+                const dateOptions = { timeZone: 'UTC', day: 'numeric', month: 'short' };
+
+                tasks.forEach(task => {
+                    const column = board.querySelector(`h3.text-${colorMap[task.category]}`).parentElement.querySelector('.space-y-4');
+                    const card = document.createElement('div');
+                    card.className = `bg-white p-4 rounded-lg shadow border-l-4 ${borderMap[task.category]} cursor-pointer hover:shadow-md`;
+                    card.dataset.taskId = task.id;
+                    
+                    const taskName = document.createElement('p');
+                    taskName.className = 'font-semibold text-gray-800';
+                    taskName.textContent = task.name;
+                    
+                    const taskDates = document.createElement('p');
+                    taskDates.className = 'text-sm text-gray-500 mt-1';
+                    const startDateStr = task.startDate.toLocaleDateString('en-GB', dateOptions);
+                    const endDateStr = task.endDate.toLocaleDateString('en-GB', dateOptions);
+                    taskDates.textContent = startDateStr === endDateStr ? startDateStr : `${startDateStr} - ${endDateStr}`;
+
+                    card.appendChild(taskName);
+                    card.appendChild(taskDates);
+                    column.appendChild(card);
+                });
+            }
+
+            // --- INITIALIZE VIEWS ---
+            generateTimeline();
+            generateKanbanBoard();
+
+            // --- VIEW TOGGLE LOGIC ---
+            const timelineBtn = document.getElementById('timeline-view-btn');
+            const boardBtn = document.getElementById('board-view-btn');
+
+            timelineBtn.addEventListener('click', () => {
+                timelineContainer.classList.remove('hidden');
+                kanbanContainer.classList.add('hidden');
+                timelineBtn.classList.add('toggle-btn-active');
+                boardBtn.classList.remove('toggle-btn-active');
+            });
+
+            boardBtn.addEventListener('click', () => {
+                timelineContainer.classList.add('hidden');
+                kanbanContainer.classList.remove('hidden');
+                boardBtn.classList.add('toggle-btn-active');
+                timelineBtn.classList.remove('toggle-btn-active');
+            });
+
+            // --- MODAL AND ACCORDION LOGIC ---
             const modal = document.getElementById('taskModal');
             const modalTitle = document.getElementById('modal-title');
             const modalBody = document.getElementById('modal-body');
             const closeModalButton = document.getElementById('close-modal-button');
-            const taskBars = document.querySelectorAll('.task-bar');
 
-            // Data for each task
-            const taskDetails = {
-                'full-migration': {
-                    title: 'Full Atlassian Cloud Migration',
-                    details: `<p class="mb-4">This is the core migration event for Confluence and Jira to the Atlassian Cloud environment.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Timing:</strong> Planned for the weekend of Sat 6th - Sun 7th September 2025.</li><li><strong>Goal:</strong> All tooling in maintenance mode. Final switch-over to the new cloud platform.</li><li><strong>Assumption:</strong> Will be done during working hours for best staff coverage. Plan for 3 days, communicate if finished early.</li><li><strong>Post-Migration:</strong> Go-Live is scheduled for Monday 8th September.</li></ul>`
-                },
-                'new-rmp': {
-                    title: 'New RMP Project',
-                    details: `<p class="mb-4">The RMP (Request Management Portal) is being migrated to a new system.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Status:</strong> RMP is moving to 'Request', mitigating this dependency by the Q3 deployment.</li><li><strong>Timeline:</strong> RMP to stay in maintenance mode after the main go-live (with a static landing page).</li><li><strong>Go-Live:</strong> A week or two after the main Atlassian go-live (Chris S to confirm).</li><li><strong>Action:</strong> Create a static maintenance page for RMP. RMP data migration to occur post-go-live.</li></ul>`
-                },
-                'trial': {
-                    title: 'Trial Migration to Atlassian Cloud',
-                    details: `<p class="mb-4">This phase involves testing the migration process and fixing preliminary issues.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Key Activity:</strong> Fixing Confluence source links and content.</li><li><strong>Dependencies:</strong> Reviewing all application links, system accounts, and macros (e.g., easyBI).</li><li><strong>Outcome:</strong> Informs the final migration plan and helps identify unforeseen issues.</li></ul>`
-                },
-                'jira-workflow': {
-                    title: 'JIRA Workflow Migration',
-                    details: `<p class="mb-4">The internal Jira workflow is being replaced as part of the Q3 deployment, prior to the cloud migration.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Agreement:</strong> Support for the new workflow will be handled with JSM (Jira Service Management).</li><li><strong>Timeline:</strong> Must be fully migrated by end of Friday 29th August.</li><li><strong>Decisions:</strong> A new name for JIRA is suggested. Cross-team agreement on support workflows is needed.</li><li><strong>Action:</strong> Decommission tasks for the old workflow, potentially turning it off to the public once read-only.</li></ul>`
-                },
-                'keycloak-conversion': {
-                    title: 'IMS Conversion to Keycloak',
-                    details: `<p class="mb-4">The Identity Management System (IMS) is being converted from Crowd to Keycloak.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Strategy:</strong> Lift and shift of users/groups. At go-live, Keycloak becomes the source of truth for Confluence/Jira users.</li><li><strong>User Impact:</strong> Users will receive an automated email to set their password via a new account landing page.</li><li><strong>Go-Live:</strong> Coincides with the main go-live on Monday 8th September.</li><li><strong>Impact:</strong> Requires many systems (CIS, RT2, Rundeck etc.) to be updated to point to Keycloak instead of Crowd. Extensive testing required.</li></ul>`
-                },
-                'comms-wave-1': {
-                    title: 'First Communications Wave',
-                    details: `<p class="mb-4">The initial round of communications to announce the upcoming changes.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Audience:</strong> External stakeholders (MB, GA, MF, AGs, etc.).</li><li><strong>Content:</strong> "Exciting changes incoming..." message.</li><li><strong>Timing:</strong> Week commencing 4th August.</li><li><strong>Follow-up:</strong> Internal webinar scheduled for 7th August.</li></ul>`
-                },
-                'comms-wave-2': {
-                    title: 'Second Communications Wave',
-                    details: `<p class="mb-4">A more detailed round of communications as the migration date approaches.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Timing:</strong> Mid-August.</li><li><strong>Content:</strong> More specific details about timelines, freezes, and user impact.</li><li><strong>Follow-up:</strong> Presentation at the MF meeting on 27th August.</li></ul>`
-                },
-                'prod-workflows': {
-                    title: 'Production Workflow Migration & Switch-off',
-                    details: `<p class="mb-4">Finalizing the migration of production workflows ahead of the main event.</p><ul class="list-disc pl-5 space-y-2"><li><strong>EPS AP:</strong> Workflow migration to be completed after its Q3 deployment but before Fri 29th Aug. Ian S to test.</li><li><strong>INT & US:</strong> Workflow migration scheduled for end of day 26th Aug.</li><li><strong>RMP:</strong> Moving to Request, mitigated by Q3 deployment.</li><li><strong>Account Switch-off:</strong> Account migration to Keycloak is a key step before the prod-workflow switch-off.</li></ul>`
-                },
-                'go-live-comms': { title: 'Go Live Communications', details: '<p>Final communications to be sent to all users announcing that the new systems are live. All communications will be in UTC with clear dates and times.</p>'},
-                'go-live-deploy': { title: 'Deploy IMS', details: '<p>The final deployment of the new Identity Management System (IMS) version that is fully integrated with Keycloak.</p>'},
-                'go-live-final': { title: 'Go Live', details: '<p>The official launch of the new Atlassian Cloud (Confluence & JIRA) environment and the new IMS. Scheduled for Monday 8th September.</p>'}
-            };
-
-            // Open modal
-            taskBars.forEach(bar => {
-                bar.addEventListener('click', () => {
-                    const taskId = bar.dataset.taskId;
-                    const data = taskDetails[taskId];
-                    if (data) {
-                        modalTitle.textContent = data.title;
-                        modalBody.innerHTML = data.details;
+            document.body.addEventListener('click', (event) => {
+                const target = event.target.closest('.task-bar, .bg-white[data-task-id]');
+                if (target) {
+                    const taskId = target.dataset.taskId;
+                    const task = tasks[taskId];
+                    if (task) {
+                        modalTitle.textContent = task.name;
+                        const options = { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' };
+                        const startDateStr = task.startDate.toLocaleDateString('en-GB', options);
+                        const endDateStr = task.endDate.toLocaleDateString('en-GB', options);
+                        modalBody.innerHTML = `
+                            <p class="mb-2"><strong>Category:</strong> <span class="capitalize">${task.category}</span></p>
+                            <p><strong>Start Date:</strong> ${startDateStr}</p>
+                            <p><strong>End Date:</strong> ${endDateStr}</p>
+                        `;
                         modal.classList.remove('hidden');
                     }
-                });
-            });
-
-            // Close modal
-            const closeModal = () => {
-                modal.classList.add('hidden');
-            };
-            closeModalButton.addEventListener('click', closeModal);
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    closeModal();
                 }
             });
 
-            // --- Accordion Logic ---
-            const accordionButtons = document.querySelectorAll('.accordion-button');
-            accordionButtons.forEach(button => {
+            const closeModal = () => modal.classList.add('hidden');
+            closeModalButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+
+            document.querySelectorAll('.accordion-button').forEach(button => {
                 button.addEventListener('click', () => {
                     const content = button.nextElementSibling;
                     const icon = button.querySelector('svg');
-
                     const isExpanded = content.style.maxHeight;
 
-                    // Close all accordions
-                    accordionButtons.forEach(otherButton => {
-                        otherButton.nextElementSibling.style.maxHeight = null;
-                        otherButton.querySelector('svg').style.transform = 'rotate(0deg)';
-                    });
+                    document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+                    document.querySelectorAll('.accordion-button svg').forEach(i => i.style.transform = 'rotate(0deg)');
 
-                    // Toggle current accordion
                     if (!isExpanded) {
                         content.style.maxHeight = content.scrollHeight + 'px';
                         icon.style.transform = 'rotate(180deg)';
