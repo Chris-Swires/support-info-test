@@ -3,509 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNOMED Support Operations: A Data-Driven Analysis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Atlassian Cloud Migration Project</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Use Inter font family */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 320px;
-            max-height: 400px;
+        /* Custom styles for the timeline grid */
+        .timeline-grid {
+            display: grid;
+            /* 150px for task labels, 1fr for the main timeline area */
+            grid-template-columns: 150px 1fr;
+            /* Adjust column count based on dates (Aug 28 to Sep 23 = 27 days) */
+            grid-auto-flow: dense;
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 400px;
-            }
+        .timeline-dates {
+            display: grid;
+            grid-column: 2 / -1;
+            /* 27 date columns */
+            grid-template-columns: repeat(27, minmax(40px, 1fr));
         }
-        .kpi-card {
-            background-color: #00A0B0;
-            color: white;
-            border-left: 5px solid #EDC951;
+        .task-bar {
+            grid-column-start: var(--start-day);
+            grid-column-end: span var(--duration);
+            grid-row: var(--row);
         }
-        .flowchart-step {
-            border: 2px solid #00A0B0;
-            background-color: #ffffff;
-            color: #00A0B0;
-            min-height: 80px;
+        /* Simple animation for modal */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .flowchart-arrow {
-            font-size: 2.5rem;
-            line-height: 1;
-            color: #EB6841;
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-            justify-content: center;
-            align-items: center;
+        .modal-fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 700px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #00A0B0;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .modal-slide-in {
+            animation: slideIn 0.3s ease-out;
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="bg-gray-100 text-gray-800">
 
-    <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-bold text-center text-[#00A0B0]">SNOMED Support Operations</h1>
-            <p class="text-center text-lg text-gray-600 mt-2">A Visual Analysis of Jira Support Tickets</p>
-        </div>
+    <!-- Header Section -->
+    <header class="bg-blue-800 text-white p-8 text-center shadow-lg">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2">Atlassian Cloud Migration Project</h1>
+        <p class="text-lg text-blue-200">An interactive overview of the project timeline, dependencies, and action items.</p>
     </header>
 
-    <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-4 md:p-8">
+
+        <!-- Key Info Cards Section -->
         <section class="mb-12">
-            <h2 class="text-3xl font-bold text-center mb-8">At a Glance: Key Performance Indicators</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 text-center">
-                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
-                    <p class="text-6xl font-extrabold">2,100+</p>
-                    <p class="text-xl font-semibold mt-2">Total Tickets Analyzed</p>
+            <h2 class="text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">Key Milestones</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Key Date Card 1 -->
+                <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-red-500">
+                    <h3 class="font-bold text-lg mb-1">Account Freeze</h3>
+                    <p class="text-gray-600">No new accounts or permissions from <strong class="text-gray-900">4:00 PM, Fri 29 Aug</strong>.</p>
                 </div>
-                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
-                    <p class="text-6xl font-extrabold">6</p>
-                    <p class="text-xl font-semibold mt-2">Core Thematic Areas</p>
+                <!-- Key Date Card 2 -->
+                <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-lg mb-1">Content Freeze</h3>
+                    <p class="text-gray-600">Confluence/Jira read-only from <strong class="text-gray-900">Wed 3 Sep</strong> (TBC).</p>
                 </div>
-                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
-                    <p class="text-6xl font-extrabold">95%</p>
-                    <p class="text-xl font-semibold mt-2">Ticket Resolution Rate</p>
+                <!-- Key Date Card 3 -->
+                <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-blue-500">
+                    <h3 class="font-bold text-lg mb-1">Migration Weekend</h3>
+                    <p class="text-gray-600">Core migration on <strong class="text-gray-900">Sat 6 Sep - Sun 7 Sep</strong>.</p>
                 </div>
-                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
-                    <p class="text-6xl font-extrabold">2.5</p>
-                    <p class="text-xl font-semibold mt-2">Avg. Days to Resolve</p>
-                </div>
-                <div class="kpi-card rounded-lg shadow-lg p-6 flex flex-col justify-center">
-                    <p class="text-6xl font-extrabold">120</p>
-                    <p class="text-xl font-semibold mt-2">Open Tickets</p>
+                <!-- Key Date Card 4 -->
+                <div class="bg-white p-5 rounded-lg shadow-md border-l-4 border-green-500">
+                    <h3 class="font-bold text-lg mb-1">Go-Live</h3>
+                    <p class="text-gray-600">New Cloud environment & IMS live on <strong class="text-gray-900">Mon 8 Sep</strong>.</p>
                 </div>
             </div>
         </section>
 
-        <section id="ticket-distribution" class="mb-12">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-2xl font-bold mb-4 text-center">Support Ticket Distribution by Type</h3>
-                    <p class="text-gray-600 mb-6 text-center">The majority of support work consists of proactive "Tasks" for system maintenance and content updates, with a smaller portion dedicated to reactive "Bug" fixes and new feature "Stories".</p>
-                    <div class="chart-container">
-                        <canvas id="issueTypeChart"></canvas>
+        <!-- Interactive Timeline Section -->
+        <section class="bg-white p-6 rounded-lg shadow-lg mb-12 overflow-x-auto">
+            <h2 class="text-2xl font-bold mb-6 pb-2 border-b-2 border-gray-200">Interactive Project Timeline</h2>
+            <div class="timeline-grid">
+                <!-- This container holds the timeline headers and dates -->
+                <div class="col-start-2 col-span-1">
+                    <!-- Grid for the Month Headers -->
+                    <div class="grid" style="grid-template-columns: repeat(27, minmax(40px, 1fr));">
+                        <div class="text-base font-bold text-center py-2" style="grid-column: 1 / span 4;">AUG '25</div>
+                        <div class="text-base font-bold text-center py-2 border-l border-gray-200" style="grid-column: 5 / span 23;">SEP '25</div>
+                    </div>
+                    <!-- Grid for the Date Markers -->
+                    <div class="timeline-dates border-b-2 border-gray-300" style="grid-column: 1 / -1;">
+                        <!-- Aug -->
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">28</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">29</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">30</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">31</div></div>
+                        <!-- Sep -->
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">1</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">2</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">3</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">4</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">5</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">6</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">7</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">8</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">9</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">10</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">11</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">12</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">13</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">14</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">15</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">16</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Wed</div><div class="font-medium mt-1">17</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Thu</div><div class="font-medium mt-1">18</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Fri</div><div class="font-medium mt-1">19</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sat</div><div class="font-medium text-gray-500 mt-1">20</div></div>
+                        <div class="text-center text-xs p-1 border-r bg-gray-100"><div class="text-gray-400">Sun</div><div class="font-medium text-gray-500 mt-1">21</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Mon</div><div class="font-medium mt-1">22</div></div>
+                        <div class="text-center text-xs p-1 border-r"><div class="text-gray-500">Tue</div><div class="font-medium mt-1">23</div></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-2xl font-bold mb-4 text-center">Top 5 Projects by Ticket Volume</h3>
-                    <p class="text-gray-600 mb-6 text-center">The "Managed Service" project is the primary driver of support activity, indicating its central role in day-to-day operations. "Infrastructure" follows, highlighting the foundational work required to maintain the ecosystem.</p>
-                    <div class="chart-container">
-                        <canvas id="projectVolumeChart"></canvas>
+
+                <!-- Timeline Rows and Bars -->
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 3;">Full Migration</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 3;"><div class="task-bar bg-purple-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 10; --duration: 15; --row: 1;" data-task-id="full-migration"></div></div>
+                
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 4;">New RMP</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 4;"><div class="task-bar bg-orange-500 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 6; --duration: 9;" data-task-id="new-rmp">Doc migration</div></div>
+                
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 5;">Trial to Cloud</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 5;"><div class="task-bar bg-yellow-500 text-gray-800 text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 1; --duration: 10;" data-task-id="trial">Fixing Confluence source</div></div>
+                
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 6;">JIRA Workflow</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 6;"><div class="task-bar bg-red-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 3; --duration: 8;" data-task-id="jira-workflow">Agree on JSM</div></div>
+                
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 7;">Keycloak Conv.</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 7;"><div class="task-bar bg-red-800 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 4; --duration: 13;" data-task-id="keycloak-conversion">IMS conversion</div></div>
+                
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 8;">Comms & Setup</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 8;">
+                    <div class="task-bar bg-cyan-500 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 8; --duration: 2;" data-task-id="comms-wave-1">First Comms</div>
+                    <div class="task-bar bg-cyan-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 13; --duration: 2;" data-task-id="comms-wave-2">Second Comms</div>
+                </div>
+
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 9;">Prod Workflows</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 9;">
+                    <div class="task-bar bg-amber-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 7; --duration: 12;" data-task-id="prod-workflows">Migration & Switch-off</div>
+                </div>
+
+                <div class="text-sm font-medium text-right pr-4 py-2 border-b" style="grid-row: 10;">Go Live Prep</div>
+                <div class="col-start-2 col-span-full py-2 border-b grid timeline-dates" style="grid-row: 10;">
+                    <div class="task-bar bg-green-600 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 16; --duration: 3;" data-task-id="go-live-comms">Go Live Comms</div>
+                    <div class="task-bar bg-green-700 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 19; --duration: 2;" data-task-id="go-live-deploy">Deploy IMS</div>
+                    <div class="task-bar bg-green-800 text-white text-xs p-1 rounded-md shadow cursor-pointer hover:opacity-80" style="--start-day: 21; --duration: 5;" data-task-id="go-live-final">Go Live</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Details Accordion Section -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">Project Details & Actions</h2>
+            <div id="accordion-container" class="space-y-4">
+                <!-- Accordion Item 1 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
+                        <span>Confluence Migration Details</span>
+                        <svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="accordion-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-5 border-t border-gray-200 text-gray-700">
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li><strong>Target Migration Date:</strong> 3rd September (subject to change).</li>
+                                <li><strong>Naming:</strong> A new name for the Confluence instance is required.</li>
+                                <li><strong>Gliffy Diagrams:</strong> Terance & Chris Morris are exploring automated conversion. Manual options are a fallback.</li>
+                                <li><strong>Discussions:</strong> Existing discussions will be made read-only. New/ongoing discussions must move to the Forums.</li>
+                                <li><strong>Briefing Notes:</strong> Process needs to be clearly explained.</li>
+                                <li><strong>Testing:</strong> A timeline is needed for when internal users can test the new environment.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="recurring-issues" class="mb-12">
-            <h2 class="text-3xl font-bold text-center mb-8">Deep Dive: Common Support Challenges</h2>
-            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-10">Analysis of ticket summaries reveals several recurring themes that represent the most frequent challenges for users and the support team. These areas are prime candidates for process improvement and tooling enhancements.</p>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                 <h3 class="text-2xl font-bold mb-4 text-center">Frequency of Key Problem Areas</h3>
-                 <p class="text-gray-600 mb-6 text-center">Issues related to the Authoring Platform's rebase functionality, environment management (especially UAT), and content classification processes are the most common sources of support requests, indicating significant user friction points.</p>
-                <div class="chart-container" style="max-width: 900px; height: 450px;">
-                    <canvas id="recurringIssuesChart"></canvas>
-                </div>
-                <div class="text-center mt-8">
-                    <button id="generateInsightsBtn" class="bg-[#EB6841] hover:bg-[#CC333F] text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
-                        Generate Detailed Insights ✨
+                <!-- Accordion Item 2 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
+                        <span>JIRA Migration Details</span>
+                        <svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
+                    <div class="accordion-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-5 border-t border-gray-200 text-gray-700">
+                           <ul class="list-disc pl-5 space-y-2">
+                                <li><strong>Target Migration Date:</strong> 3rd September (subject to change).</li>
+                                <li><strong>Naming:</strong> A new name is suggested for the JIRA instance.</li>
+                                <li><strong>Workflows:</strong> Cross-tech team agreement on support workflows is necessary.</li>
+                                <li><strong>Testing:</strong> Internal users, especially from content teams for trackers, will be needed for testing.</li>
+                           </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
-        
-        <section id="workflow" class="mb-12">
-            <h2 class="text-3xl font-bold text-center mb-8">The Anatomy of a Support Ticket</h2>
-            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-10">From initial report to final resolution, each support ticket follows a structured lifecycle involving user reporting, technical investigation, and solution deployment. This process highlights the collaborative effort required to maintain system integrity.</p>
-            <div class="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
-                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
-                    <span class="font-bold">1. Issue Reported (Jira Ticket)</span>
-                </div>
-                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
-                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
-                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
-                    <span class="font-bold">2. Triage & Investigation</span>
-                </div>
-                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
-                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
-                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
-                    <span class="font-bold">3. Backend Fix / User Guidance</span>
-                </div>
-                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
-                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
-                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
-                    <span class="font-bold">4. Validation & Monitoring</span>
-                </div>
-                <div class="flowchart-arrow text-center hidden md:block">&rarr;</div>
-                <div class="flowchart-arrow text-center md:hidden">&darr;</div>
-                <div class="flowchart-step rounded-lg p-4 text-center flex items-center justify-center">
-                    <span class="font-bold">5. Resolution & Closure</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="recommendations">
-            <h2 class="text-3xl font-bold text-center mb-8">Strategic Recommendations</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Enhance Automation</h3>
-                    <p class="text-gray-600">Automate UAT environment scheduling and daily build checks to reduce manual intervention and prevent common failures.</p>
-                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Enhance Automation">
-                        Elaborate on this Recommendation ✨
+                <!-- Accordion Item 3 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
+                        <span>User Accounts & Login (Keycloak)</span>
+                        <svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
+                    <div class="accordion-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-5 border-t border-gray-200 text-gray-700">
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li><strong>Password Reset:</strong> An automated email will be sent to users with instructions on how to set their new password.</li>
+                                <li><strong>Landing Page:</strong> A new "SNOMED International Account" landing page should be available in time for the migration.</li>
+                                <li><strong>Dual Accounts:</strong> For a short period (max 1 month), tooling users may have two accounts: one for Atlassian (Jira/Confluence) and one for other SNOMED tools.</li>
+                                <li><strong>Forums:</strong> Users will need to create an account on the Forums. This may later be integrated with Keycloak OIDC to remove the need for a separate signup. User groups on Forums are manually maintained for now.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Improve Tooling & UI</h3>
-                    <p class="text-gray-600">Streamline the rebase workflow in the Authoring Platform and provide clearer, more actionable error messages to empower users.</p>
-                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Improve Tooling & UI">
-                        Elaborate on this Recommendation ✨
+                 <!-- Accordion Item 4 -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <button class="accordion-button w-full p-5 text-left font-semibold text-lg flex justify-between items-center hover:bg-gray-50 transition">
+                        <span>Communications Plan</span>
+                        <svg class="w-6 h-6 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="font-bold text-xl mb-2 text-[#CC333F]">Strengthen Validation</h3>
-                    <p class="text-gray-600">Refine validation rules to reduce "false positives" and implement more robust cross-system data consistency checks to ensure data fidelity.</p>
-                    <button class="elaborate-btn bg-[#EDC951] hover:bg-[#EB6841] text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out mt-4" data-recommendation="Strengthen Validation">
-                        Elaborate on this Recommendation ✨
-                    </button>
+                    <div class="accordion-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-5 border-t border-gray-200 text-gray-700">
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li><strong>Aug 6:</strong> Agenda item at SMT meeting.</li>
+                                <li><strong>Aug 7:</strong> Internal Webinar.</li>
+                                <li><strong>w/c Aug 4:</strong> First external comms ("exciting changes incoming...").</li>
+                                <li><strong>Mid-August:</strong> Second, more detailed comms to be sent.</li>
+                                <li><strong>Aug 27:</strong> Presentation at MF meeting.</li>
+                                <li><strong>Target Audiences:</strong> Separate messaging for MB/GA, MF, and AGs/UGs/PGs.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-gray-800 text-white text-center py-4 mt-12">
-        <p>&copy; 2025 SNOMED International Support Analytics. All rights reserved.</p>
-    </footer>
-
-    <div id="llmModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3 class="text-2xl font-bold mb-4 text-[#00A0B0]" id="modalTitle"></h3>
-            <div id="modalContent" class="text-gray-700 leading-relaxed"></div>
-            <div id="loadingIndicator" class="text-center mt-4">
-                <div class="loading-spinner"></div>
-                <p class="text-gray-600">Generating insights...</p>
-            </div>
+    <!-- Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden modal-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto p-8 modal-slide-in">
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800">Task Details</h2>
+            <button id="close-modal-button" class="text-gray-500 hover:text-gray-800 transition-colors text-3xl leading-none">&times;</button>
         </div>
+        <div id="modal-body" class="text-gray-700">
+          <!-- Modal content will be injected here -->
+        </div>
+      </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Modal Logic ---
+            const modal = document.getElementById('taskModal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            const closeModalButton = document.getElementById('close-modal-button');
+            const taskBars = document.querySelectorAll('.task-bar');
 
-            const energeticPlayfulPalette = {
-                blue: '#00A0B0',
-                brown: '#6A4A3C',
-                red: '#CC333F',
-                orange: '#EB6841',
-                yellow: '#EDC951',
-                lightGray: '#f0f4f8'
-            };
-            
-            const chartColors = [
-                energeticPlayfulPalette.blue,
-                energeticPlayfulPalette.orange,
-                energeticPlayfulPalette.yellow,
-                energeticPlayfulPalette.red,
-                energeticPlayfulPalette.brown
-            ];
-
-            const wrapLabel = (str, maxWidth) => {
-                if (str.length <= maxWidth) {
-                    return str;
-                }
-                const words = str.split(' ');
-                const lines = [];
-                let currentLine = '';
-                for (const word of words) {
-                    if ((currentLine + word).length > maxWidth) {
-                        lines.push(currentLine.trim());
-                        currentLine = '';
-                    }
-                    currentLine += word + ' ';
-                }
-                lines.push(currentLine.trim());
-                return lines.filter(line => line.length > 0);
-            };
-
-            const tooltipTitleCallback = (tooltipItems) => {
-                const item = tooltipItems[0];
-                let label = item.chart.data.labels[item.dataIndex];
-                if (Array.isArray(label)) {
-                    return label.join(' ');
-                } else {
-                    return label;
-                }
-            };
-            
-            const defaultChartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: {
-                                size: 14,
-                                family: 'Inter'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: tooltipTitleCallback
-                        },
-                        bodyFont: {
-                            size: 14,
-                            family: 'Inter'
-                        },
-                        titleFont: {
-                            size: 16,
-                            family: 'Inter'
-                        }
-                    }
-                }
-            };
-
-            const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
-            new Chart(issueTypeCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Task', 'Bug', 'Story', 'Epic', 'Improvement'],
-                    datasets: [{
-                        label: 'Ticket Distribution',
-                        data: [1250, 350, 210, 95, 195],
-                        backgroundColor: chartColors,
-                        borderColor: '#ffffff',
-                        borderWidth: 2
-                    }]
+            // Data for each task
+            const taskDetails = {
+                'full-migration': {
+                    title: 'Full Atlassian Cloud Migration',
+                    details: `<p class="mb-4">This is the core migration event for Confluence and Jira to the Atlassian Cloud environment.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Timing:</strong> Planned for the weekend of Sat 6th - Sun 7th September 2025.</li><li><strong>Goal:</strong> All tooling in maintenance mode. Final switch-over to the new cloud platform.</li><li><strong>Assumption:</strong> Will be done during working hours for best staff coverage. Plan for 3 days, communicate if finished early.</li><li><strong>Post-Migration:</strong> Go-Live is scheduled for Monday 8th September.</li></ul>`
                 },
-                options: { ...defaultChartOptions }
+                'new-rmp': {
+                    title: 'New RMP Project',
+                    details: `<p class="mb-4">The RMP (Request Management Portal) is being migrated to a new system.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Status:</strong> RMP is moving to 'Request', mitigating this dependency by the Q3 deployment.</li><li><strong>Timeline:</strong> RMP to stay in maintenance mode after the main go-live (with a static landing page).</li><li><strong>Go-Live:</strong> A week or two after the main Atlassian go-live (Chris S to confirm).</li><li><strong>Action:</strong> Create a static maintenance page for RMP. RMP data migration to occur post-go-live.</li></ul>`
+                },
+                'trial': {
+                    title: 'Trial Migration to Atlassian Cloud',
+                    details: `<p class="mb-4">This phase involves testing the migration process and fixing preliminary issues.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Key Activity:</strong> Fixing Confluence source links and content.</li><li><strong>Dependencies:</strong> Reviewing all application links, system accounts, and macros (e.g., easyBI).</li><li><strong>Outcome:</strong> Informs the final migration plan and helps identify unforeseen issues.</li></ul>`
+                },
+                'jira-workflow': {
+                    title: 'JIRA Workflow Migration',
+                    details: `<p class="mb-4">The internal Jira workflow is being replaced as part of the Q3 deployment, prior to the cloud migration.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Agreement:</strong> Support for the new workflow will be handled with JSM (Jira Service Management).</li><li><strong>Timeline:</strong> Must be fully migrated by end of Friday 29th August.</li><li><strong>Decisions:</strong> A new name for JIRA is suggested. Cross-team agreement on support workflows is needed.</li><li><strong>Action:</strong> Decommission tasks for the old workflow, potentially turning it off to the public once read-only.</li></ul>`
+                },
+                'keycloak-conversion': {
+                    title: 'IMS Conversion to Keycloak',
+                    details: `<p class="mb-4">The Identity Management System (IMS) is being converted from Crowd to Keycloak.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Strategy:</strong> Lift and shift of users/groups. At go-live, Keycloak becomes the source of truth for Confluence/Jira users.</li><li><strong>User Impact:</strong> Users will receive an automated email to set their password via a new account landing page.</li><li><strong>Go-Live:</strong> Coincides with the main go-live on Monday 8th September.</li><li><strong>Impact:</strong> Requires many systems (CIS, RT2, Rundeck etc.) to be updated to point to Keycloak instead of Crowd. Extensive testing required.</li></ul>`
+                },
+                'comms-wave-1': {
+                    title: 'First Communications Wave',
+                    details: `<p class="mb-4">The initial round of communications to announce the upcoming changes.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Audience:</strong> External stakeholders (MB, GA, MF, AGs, etc.).</li><li><strong>Content:</strong> "Exciting changes incoming..." message.</li><li><strong>Timing:</strong> Week commencing 4th August.</li><li><strong>Follow-up:</strong> Internal webinar scheduled for 7th August.</li></ul>`
+                },
+                'comms-wave-2': {
+                    title: 'Second Communications Wave',
+                    details: `<p class="mb-4">A more detailed round of communications as the migration date approaches.</p><ul class="list-disc pl-5 space-y-2"><li><strong>Timing:</strong> Mid-August.</li><li><strong>Content:</strong> More specific details about timelines, freezes, and user impact.</li><li><strong>Follow-up:</strong> Presentation at the MF meeting on 27th August.</li></ul>`
+                },
+                'prod-workflows': {
+                    title: 'Production Workflow Migration & Switch-off',
+                    details: `<p class="mb-4">Finalizing the migration of production workflows ahead of the main event.</p><ul class="list-disc pl-5 space-y-2"><li><strong>EPS AP:</strong> Workflow migration to be completed after its Q3 deployment but before Fri 29th Aug. Ian S to test.</li><li><strong>INT & US:</strong> Workflow migration scheduled for end of day 26th Aug.</li><li><strong>RMP:</strong> Moving to Request, mitigated by Q3 deployment.</li><li><strong>Account Switch-off:</strong> Account migration to Keycloak is a key step before the prod-workflow switch-off.</li></ul>`
+                },
+                'go-live-comms': { title: 'Go Live Communications', details: '<p>Final communications to be sent to all users announcing that the new systems are live. All communications will be in UTC with clear dates and times.</p>'},
+                'go-live-deploy': { title: 'Deploy IMS', details: '<p>The final deployment of the new Identity Management System (IMS) version that is fully integrated with Keycloak.</p>'},
+                'go-live-final': { title: 'Go Live', details: '<p>The official launch of the new Atlassian Cloud (Confluence & JIRA) environment and the new IMS. Scheduled for Monday 8th September.</p>'}
+            };
+
+            // Open modal
+            taskBars.forEach(bar => {
+                bar.addEventListener('click', () => {
+                    const taskId = bar.dataset.taskId;
+                    const data = taskDetails[taskId];
+                    if (data) {
+                        modalTitle.textContent = data.title;
+                        modalBody.innerHTML = data.details;
+                        modal.classList.remove('hidden');
+                    }
+                });
             });
 
-            const projectVolumeCtx = document.getElementById('projectVolumeChart').getContext('2d');
-            new Chart(projectVolumeCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Managed Service', 'Infrastructure', 'Content Request', 'Authoring Platform', 'Member Relations'],
-                    datasets: [{
-                        label: 'Number of Tickets',
-                        data: [820, 450, 310, 250, 120],
-                        backgroundColor: chartColors,
-                    }]
-                },
-                options: {
-                    ...defaultChartOptions,
-                    indexAxis: 'y',
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    },
-                     plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                           callbacks: {
-                                title: tooltipTitleCallback
-                            }
-                        }
-                    }
+            // Close modal
+            const closeModal = () => {
+                modal.classList.add('hidden');
+            };
+            closeModalButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    closeModal();
                 }
             });
 
-            const recurringIssuesCtx = document.getElementById('recurringIssuesChart').getContext('2d');
-            new Chart(recurringIssuesCtx, {
-                type: 'bar',
-                data: {
-                    labels: [
-                        wrapLabel('Rebase Failures & Unsaved Changes', 16),
-                        wrapLabel('UAT Environment Management', 16),
-                        wrapLabel('Classification Failures & Errors', 16),
-                        wrapLabel('Daily Build & Validation Reports', 16),
-                        wrapLabel('User Access & Permissions', 16),
-                        wrapLabel('Concept Promotion & Module Jumping', 16)
-                    ],
-                    datasets: [{
-                        label: 'Keyword Frequency in Tickets',
-                        data: [185, 155, 140, 110, 95, 75],
-                        backgroundColor: chartColors,
-                    }]
-                },
-                options: {
-                    ...defaultChartOptions,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                             title: {
-                                display: true,
-                                text: 'Number of Occurrences'
-                            }
-                        },
-                        x: {
-                             ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                           callbacks: {
-                                title: tooltipTitleCallback
-                            }
-                        }
-                    }
-                }
-            });
+            // --- Accordion Logic ---
+            const accordionButtons = document.querySelectorAll('.accordion-button');
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const icon = button.querySelector('svg');
 
-            const llmModal = document.getElementById('llmModal');
-            const closeButton = document.querySelector('.close-button');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalContent = document.getElementById('modalContent');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+                    const isExpanded = content.style.maxHeight;
 
-            closeButton.onclick = () => {
-                llmModal.style.display = 'none';
-            };
-
-            window.onclick = (event) => {
-                if (event.target == llmModal) {
-                    llmModal.style.display = 'none';
-                }
-            };
-
-            const callGeminiAPI = async (prompt, button) => {
-                button.disabled = true;
-                loadingIndicator.style.display = 'block';
-                modalContent.innerHTML = '';
-                llmModal.style.display = 'flex';
-
-                try {
-                    let chatHistory = [];
-                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                    const payload = { contents: chatHistory };
-                    const apiKey = "";
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                    // Close all accordions
+                    accordionButtons.forEach(otherButton => {
+                        otherButton.nextElementSibling.style.maxHeight = null;
+                        otherButton.querySelector('svg').style.transform = 'rotate(0deg)';
                     });
-                    
-                    const result = await response.json();
 
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        modalContent.innerHTML = text.replace(/\n/g, '<br>');
-                    } else {
-                        modalContent.innerHTML = 'Error: Could not retrieve insights. Please try again.';
-                        console.error('Gemini API response structure unexpected:', result);
+                    // Toggle current accordion
+                    if (!isExpanded) {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        icon.style.transform = 'rotate(180deg)';
                     }
-                } catch (error) {
-                    modalContent.innerHTML = 'An error occurred while fetching insights.';
-                    console.error('Error calling Gemini API:', error);
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                    button.disabled = false;
-                }
-            };
-
-            document.getElementById('generateInsightsBtn').addEventListener('click', async (event) => {
-                modalTitle.textContent = 'Detailed Insights on Recurring Issues';
-                const issues = [
-                    'Rebase Failures & Unsaved Changes',
-                    'UAT Environment Management',
-                    'Classification Failures & Errors',
-                    'Daily Build & Validation Reports',
-                    'User Access & Permissions',
-                    'Concept Promotion & Module Jumping'
-                ];
-                const prompt = `Based on the common support challenges in Jira tickets: ${issues.join(', ')}. Provide a detailed analysis of these recurring issues, including potential root causes and their impact on operations. Focus on the top 3 most frequent issues and suggest high-level strategies to mitigate them.`;
-                await callGeminiAPI(prompt, event.target);
-            });
-
-            document.querySelectorAll('.elaborate-btn').forEach(button => {
-                button.addEventListener('click', async (event) => {
-                    const recommendation = event.target.dataset.recommendation;
-                    modalTitle.textContent = `Elaborating on "${recommendation}"`;
-                    let prompt = '';
-                    if (recommendation === 'Enhance Automation') {
-                        prompt = `Elaborate on the recommendation to 'Enhance Automation' for SNOMED support operations. Provide concrete examples of what could be automated and the expected benefits, specifically in the context of Jira support tickets and system maintenance.`;
-                    } else if (recommendation === 'Improve Tooling & UI') {
-                        prompt = `Elaborate on the recommendation to 'Improve Tooling & UI' for SNOMED support operations. Provide specific examples of UI/tooling improvements that would address common user frustrations, especially related to the Authoring Platform.`;
-                    } else if (recommendation === 'Strengthen Validation') {
-                        prompt = `Elaborate on the recommendation to 'Strengthen Validation' for SNOMED support operations. Provide details on how validation rules can be refined and what robust cross-system data consistency checks would entail to reduce errors and improve data fidelity.`;
-                    }
-                    await callGeminiAPI(prompt, event.target);
                 });
             });
         });
