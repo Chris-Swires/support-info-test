@@ -12,6 +12,8 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -2314,7 +2316,24 @@
                 const section = guideData.sections.find(s => s.id === guideData.currentSection);
                 if (!section) return;
 
-
+                // If the section is backed by a Markdown file, load and render it dynamically
+                if (section.mdFile) {
+                    fetch(section.mdFile)
+                        .then(res => res.text())
+                        .then(md => {
+                            let html = marked.parse(md);
+                            // Prefix relative image URLs so they resolve correctly from root page
+                            html = html.replace(/src="images\//g, 'src="output/images/');
+                            content.innerHTML = `<article class="prose max-w-none">${html}</article>`;
+                            // Refresh quick navigation highlighting for the new content
+                            this.setupQuickNav();
+                        })
+                        .catch(err => {
+                            console.error('Error loading markdown file', section.mdFile, err);
+                            content.innerHTML = `<p class="text-red-600">Failed to load content.</p>`;
+                        });
+                    return;
+                }
 
                 // Render various content types dynamically
                 const renderContentList = (items, title, icon = 'check_circle', bgColor = 'bg-blue-50') => {
@@ -4277,8 +4296,41 @@ Current: ${currentUrl}
 
         // Initialize the application when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            app.init();
+            (async () => {
+                await loadMarkdownSections();
+                app.init();
+                // Ensure sidebar reflects new sections
+                app.renderSidebar();
+            })();
         });
+
+        /* --------------------------------------
+           Dynamic Markdown Sections Loader
+           --------------------------------------*/
+        async function loadMarkdownSections() {
+            try {
+                const response = await fetch('output/file-list.json');
+                if (!response.ok) {
+                    console.warn('No additional markdown sections found');
+                    return;
+                }
+                const mdList = await response.json();
+                mdList.forEach(item => {
+                    // Skip if section id already exists
+                    if (guideData.sections.some(s => s.id === item.id)) return;
+
+                    guideData.sections.push({
+                        id: item.id,
+                        title: item.title,
+                        icon: 'article',
+                        description: '',
+                        mdFile: `output/${item.id}.md`
+                    });
+                });
+            } catch (e) {
+                console.error('Error loading markdown sections', e);
+            }
+        }
     </script>
 </body>
 </html>
