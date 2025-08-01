@@ -12,6 +12,11 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+<<<<<<< Updated upstream
+=======
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+>>>>>>> Stashed changes
     
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -2314,7 +2319,32 @@
                 const section = guideData.sections.find(s => s.id === guideData.currentSection);
                 if (!section) return;
 
+<<<<<<< Updated upstream
 
+=======
+                // If the section is backed by a Markdown file, load and render it dynamically
+                if (section.mdFile) {
+                    fetch(section.mdFile)
+                        .then(res => res.text())
+                        .then(md => {
+                            let html = marked.parse(md);
+                            // Prefix relative image URLs so they resolve correctly from root page
+                            html = html.replace(/src="images\//g, 'src="output/images/');
+                            
+                            // Apply consistent styling to match the rest of the application
+                            const styledContent = this.applyMarkdownStyling(html, section);
+                            content.innerHTML = styledContent;
+                            
+                            // Refresh quick navigation highlighting for the new content
+                            this.setupQuickNav();
+                        })
+                        .catch(err => {
+                            console.error('Error loading markdown file', section.mdFile, err);
+                            content.innerHTML = `<p class="text-red-600">Failed to load content.</p>`;
+                        });
+                    return;
+                }
+>>>>>>> Stashed changes
 
                 // Render various content types dynamically
                 const renderContentList = (items, title, icon = 'check_circle', bgColor = 'bg-blue-50') => {
@@ -3054,6 +3084,189 @@
                 `;
             },
 
+<<<<<<< Updated upstream
+=======
+            applyMarkdownStyling(html, section) {
+                // Wrap in the same container structure as other sections
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = html;
+                
+                // Apply consistent heading styles
+                const headings = wrapper.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                headings.forEach(heading => {
+                    const level = parseInt(heading.tagName.charAt(1));
+                    heading.className = level === 1 ? 
+                        'text-3xl font-bold text-gray-900 mb-6' :
+                        level === 2 ? 
+                        'text-2xl font-semibold text-gray-800 mb-4 mt-8' :
+                        level === 3 ?
+                        'text-xl font-semibold text-gray-800 mb-4 mt-6' :
+                        'text-lg font-medium text-gray-800 mb-3 mt-4';
+                });
+                
+                // Style paragraphs
+                const paragraphs = wrapper.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.className = 'text-gray-700 mb-4 leading-relaxed';
+                });
+                
+                // Style lists
+                const lists = wrapper.querySelectorAll('ul, ol');
+                lists.forEach(list => {
+                    if (list.tagName === 'UL') {
+                        list.className = 'list-disc list-inside space-y-2 mb-4 text-gray-700 ml-4';
+                    } else {
+                        list.className = 'list-decimal list-inside space-y-2 mb-4 text-gray-700 ml-4';
+                    }
+                });
+                
+                // Style list items
+                const listItems = wrapper.querySelectorAll('li');
+                listItems.forEach(li => {
+                    li.className = 'text-gray-700';
+                });
+                
+                // Style code blocks and inline code
+                const codeBlocks = wrapper.querySelectorAll('pre code');
+                codeBlocks.forEach(code => {
+                    code.parentElement.className = 'bg-gray-100 rounded-lg p-4 mb-4 overflow-x-auto';
+                    code.className = 'text-sm font-mono text-gray-800';
+                });
+                
+                const inlineCode = wrapper.querySelectorAll('code:not(pre code)');
+                inlineCode.forEach(code => {
+                    code.className = 'bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-mono';
+                });
+                
+                // Style blockquotes
+                const blockquotes = wrapper.querySelectorAll('blockquote');
+                blockquotes.forEach(quote => {
+                    quote.className = 'border-l-4 border-blue-400 bg-blue-50 p-4 mb-4 italic text-gray-700';
+                });
+                
+                // Style tables
+                const tables = wrapper.querySelectorAll('table');
+                tables.forEach(table => {
+                    table.className = 'min-w-full divide-y divide-gray-200 mb-6';
+                    
+                    const thead = table.querySelector('thead');
+                    if (thead) {
+                        thead.className = 'bg-gray-50';
+                        thead.querySelectorAll('th').forEach(th => {
+                            th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                        });
+                    }
+                    
+                    const tbody = table.querySelector('tbody');
+                    if (tbody) {
+                        tbody.className = 'bg-white divide-y divide-gray-200';
+                        tbody.querySelectorAll('td').forEach(td => {
+                            td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                        });
+                    }
+                });
+                
+                // Style images and figures with the concept-card treatment
+                const figures = wrapper.querySelectorAll('figure');
+                figures.forEach(figure => {
+                    figure.className = 'concept-card bg-white p-6 rounded-lg shadow-md border mb-6';
+                    
+                    const img = figure.querySelector('img');
+                    if (img) {
+                        img.className = 'max-w-full h-auto rounded-lg mx-auto';
+                    }
+                    
+                    const figcaption = figure.querySelector('figcaption');
+                    if (figcaption) {
+                        figcaption.className = 'text-sm text-gray-600 mt-3 text-center italic';
+                    }
+                });
+                
+                // Style standalone images
+                const images = wrapper.querySelectorAll('img:not(figure img)');
+                images.forEach(img => {
+                    img.className = 'max-w-full h-auto rounded-lg shadow-md mb-4';
+                    // Wrap standalone images in a figure-like container
+                    const wrapper_div = document.createElement('div');
+                    wrapper_div.className = 'concept-card bg-white p-6 rounded-lg shadow-md border mb-6 text-center';
+                    img.parentNode.insertBefore(wrapper_div, img);
+                    wrapper_div.appendChild(img);
+                });
+                
+                // Style links
+                const links = wrapper.querySelectorAll('a');
+                links.forEach(link => {
+                    link.className = 'concept-link text-blue-600 hover:text-blue-800 underline';
+                });
+                
+                // Style strong/bold text
+                const strongElements = wrapper.querySelectorAll('strong, b');
+                strongElements.forEach(strong => {
+                    strong.className = 'font-semibold text-gray-900';
+                });
+                
+                // Style emphasis/italic text
+                const emElements = wrapper.querySelectorAll('em, i');
+                emElements.forEach(em => {
+                    em.className = 'italic text-gray-700';
+                });
+                
+                // Create the final styled content with section header
+                return `
+                    <div class="animate-slide-in">
+                        <!-- Section Header -->
+                        <div class="mb-8">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="material-icons text-blue-600 text-3xl">${section.icon}</span>
+                                <h1 class="text-3xl font-bold text-gray-900">${section.title}</h1>
+                            </div>
+                            <div class="w-16 h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded"></div>
+                        </div>
+                        
+                        <!-- Markdown Content -->
+                        <div class="space-y-4">
+                            ${wrapper.innerHTML}
+                        </div>
+                        
+                        <!-- Cross References -->
+                        ${this.renderCrossReferences(section.id)}
+                    </div>
+                `;
+            },
+
+            renderCrossReferences(sectionId) {
+                const refs = crossReferences[sectionId];
+                if (!refs || refs.length === 0) return '';
+                
+                const refCards = refs.map(refId => {
+                    const refSection = guideData.sections.find(s => s.id === refId);
+                    if (!refSection) return '';
+                    
+                    return `
+                        <div class="cross-ref-link cursor-pointer p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                             onclick="app.navigateToSection('${refId}')">
+                            <div class="flex items-center space-x-2">
+                                <span class="material-icons text-blue-600 text-sm">${refSection.icon}</span>
+                                <span class="text-blue-800 font-medium">${refSection.title}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <div class="mt-12 pt-8 border-t border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="material-icons text-blue-600 mr-2">link</span>
+                            Related Sections
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${refCards}
+                        </div>
+                    </div>
+                `;
+            },
+
+>>>>>>> Stashed changes
             renderSearchResults() {
                 const content = document.getElementById('content');
                 const resultsHTML = guideData.searchResults.map(result => `
@@ -4277,8 +4490,83 @@ Current: ${currentUrl}
 
         // Initialize the application when the page loads
         document.addEventListener('DOMContentLoaded', () => {
+<<<<<<< Updated upstream
             app.init();
         });
+=======
+            (async () => {
+                await loadMarkdownSections();
+                app.init();
+                // Ensure sidebar reflects new sections
+                app.renderSidebar();
+            })();
+        });
+
+        /* --------------------------------------
+           Dynamic Markdown Sections Loader
+           --------------------------------------*/
+        async function loadMarkdownSections() {
+            try {
+                const response = await fetch('output/file-list.json');
+                if (!response.ok) {
+                    console.warn('No additional markdown sections found');
+                    return;
+                }
+                const mdList = await response.json();
+                
+                // Process each markdown file to add with better metadata
+                for (const item of mdList) {
+                    // Skip if section id already exists
+                    if (guideData.sections.some(s => s.id === item.id)) continue;
+
+                    // Determine appropriate icon based on content type
+                    let icon = 'article';
+                    const id = item.id.toLowerCase();
+                    if (id.includes('procedure') || id.includes('surgical')) icon = 'medical_services';
+                    else if (id.includes('clinical') || id.includes('finding') || id.includes('disorder')) icon = 'health_and_safety';
+                    else if (id.includes('substance') || id.includes('pharmaceutical') || id.includes('medicinal')) icon = 'medication';
+                    else if (id.includes('body') || id.includes('anatomical') || id.includes('structure')) icon = 'accessibility';
+                    else if (id.includes('organism') || id.includes('bacterial') || id.includes('viral')) icon = 'biotech';
+                    else if (id.includes('observable') || id.includes('measurement')) icon = 'analytics';
+                    else if (id.includes('specimen') || id.includes('sample')) icon = 'science';
+                    else if (id.includes('imaging') || id.includes('diagnostic')) icon = 'monitor_heart';
+                    else if (id.includes('dose') || id.includes('form')) icon = 'pill';
+                    else if (id.includes('concept') || id.includes('model') || id.includes('authoring')) icon = 'schema';
+                    else if (id.includes('guideline') || id.includes('convention') || id.includes('naming')) icon = 'rule';
+                    
+                    // Try to fetch a brief description from the first paragraph
+                    let description = '';
+                    try {
+                        const mdResponse = await fetch(`output/${item.id}.md`);
+                        if (mdResponse.ok) {
+                            const mdContent = await mdResponse.text();
+                            // Extract first paragraph as description
+                            const firstParagraph = mdContent.split('\n\n').find(line => 
+                                line.trim() && !line.startsWith('#') && !line.startsWith('|') && 
+                                line.length > 20 && line.length < 200
+                            );
+                            if (firstParagraph) {
+                                description = firstParagraph.trim().replace(/\n/g, ' ').substring(0, 150) + 
+                                            (firstParagraph.length > 150 ? '...' : '');
+                            }
+                        }
+                    } catch (e) {
+                        // Continue without description if fetch fails
+                    }
+
+                    guideData.sections.push({
+                        id: item.id,
+                        title: item.title,
+                        icon: icon,
+                        description: description || 'Editorial guidance and modeling conventions',
+                        mdFile: `output/${item.id}.md`
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading markdown sections', e);
+            }
+        }
+>>>>>>> Stashed changes
     </script>
 </body>
 </html>
