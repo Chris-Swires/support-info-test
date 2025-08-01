@@ -11,7 +11,7 @@ git clone <repository-url>
 cd support-info-test
 ```
 
-2. Open `index.html` directly in your browser **or** start a simple web server (Python example shown):
+2. Open `index.html` directly in your browser **or** start a simple web server (Python example shown): test
 
 ```bash
 python3 -m http.server
