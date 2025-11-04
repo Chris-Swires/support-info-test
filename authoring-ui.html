@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNOMED CT Codebase: An Interactive Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to complement Tailwind */
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 - Dark theme */
+            color: #e2e8f0; /* Slate 200 */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Horizontal slideshow container */
+        #slideshow-container {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Individual slides */
+        .slide {
+            min-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Slide content wrapper */
+        .slide-content {
+            min-height: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        
+        /* Allow content to overflow and scroll if needed */
+        .slide-content > * {
+            flex-shrink: 0;
+        }
+        
+        /* Better spacing for slide sections */
+        .slide section {
+            width: 100%;
+        }
+        
+        /* Ensure hover states work on diagrams */
+        .diagram-node {
+            cursor: pointer;
+        }
+        
+        .diagram-node:hover rect,
+        .diagram-node:hover circle {
+            filter: brightness(1.2);
+            transition: filter 0.2s ease;
+        }
+        
+        /* Custom tooltip for functionalities */
+        #functionality-tooltip {
+            position: fixed;
+            background: rgba(15, 23, 42, 0.98);
+            color: #e2e8f0;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            border: 2px solid #22d3ee;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 400px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        #functionality-tooltip.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Animation for elements fading in on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Bar chart animation */
+        .chart-bar-inner {
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        .chart.visible .chart-bar-inner {
+            width: var(--bar-width);
+        }
+
+        /* Gradient text for the hero section */
+        .gradient-text {
+            background: linear-gradient(45deg, #22d3ee, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            /* text-fill-color is non-standard; relying on -webkit-text-fill-color above */
+        }
+
+        /* Custom styling for the hero section background */
+        .hero-bg {
+             background: radial-gradient(circle at 10% 20%, #0f172a 0%, #1e293b 90.1%);
+        }
+
+        /* Custom card background */
+        .card-bg {
+            background-color: #1e293b; /* Slate 800 */
+        }
+        
+        /* SVG line and label animation */
+        .diagram-line, .diagram-label {
+            transition: opacity 1s ease-out 0.5s;
+            opacity: 0;
+        }
+        .reveal.visible .diagram-line, .reveal.visible .diagram-label {
+            opacity: 1;
+        }
+        .diagram-line.animated {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            transition: stroke-dashoffset 2s ease-out;
+        }
+        .reveal.visible .diagram-line.animated {
+            stroke-dashoffset: 0;
+        }
+
+
+        /* Diagram node animation */
+        .diagram-node {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .reveal.visible .diagram-node {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Audience view toggling */
+        .exec-only { display: block; }
+        .eng-only { display: block; }
+        .mode-exec .eng-only { display: none !important; }
+        .mode-eng .exec-only { display: none !important; }
+
+        /* Sticky sub-navigation */
+        .subnav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            background-color: rgba(15, 23, 42, 0.8); /* Slate 900 with alpha */
+        }
+        .subnav a.active {
+            color: #22d3ee; /* cyan-400 */
+            font-weight: 700;
+        }
+
+        /* Print styles */
+        @media print {
+            .subnav, .print-hidden { display: none !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            .card-bg { background: #ffffff !important; box-shadow: none !important; }
+        }
+
+        /* Story flow navigation */
+        .story-connector {
+            margin-top: 6rem;
+            margin-bottom: 6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .story-connector svg {
+            opacity: 0.6;
+        }
+        
+        .story-connector .next-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .story-connector .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+        }
+        
+        .story-connector path {
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: drawLine 1.5s ease-out forwards;
+        }
+        
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Increased section spacing */
+        section.reveal { 
+            scroll-margin-top: 100px;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        /* Navigation buttons */
+        .nav-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22d3ee, #a78bfa);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-button.prev {
+            left: 2rem;
+        }
+
+        .nav-button.next {
+            right: 2rem;
+        }
+
+        /* Slide indicator */
+        .slide-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .slide-indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(148, 163, 184, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator-dot.active {
+            background: linear-gradient(135deg, #22d3ee, #a78bfa);
+            transform: scale(1.3);
+        }
+
+        .slide-indicator-dot:hover {
+            background: rgba(148, 163, 184, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            padding: 0.75rem 1.25rem;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Hide story connectors in slideshow mode */
+        .story-connector {
+            display: none;
+        }
+
+        /* Hide sticky nav in slideshow mode */
+        .subnav {
+            display: none;
+        }
+
+        /* Print mode reverts to vertical scroll */
+        @media print {
+            html, body {
+                overflow: visible;
+                height: auto;
+            }
+            #slideshow-container {
+                display: block;
+                transform: none !important;
+            }
+            .slide {
+                min-width: 100%;
+                width: 100%;
+                height: auto;
+                page-break-after: always;
+            }
+            .nav-button, .slide-indicator, .slide-counter {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased mode-exec">
+
+    <!-- Navigation Buttons -->
+    <button id="prevBtn" class="nav-button prev print-hidden" aria-label="Previous slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+    
+    <button id="nextBtn" class="nav-button next print-hidden" aria-label="Next slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Slide Counter -->
+    <div id="slideCounter" class="slide-counter print-hidden">
+        <span id="currentSlide">1</span> / <span id="totalSlides">--</span>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div id="slideIndicator" class="slide-indicator print-hidden"></div>
+
+    <!-- Controls (audience toggle + print) -->
+    <div style="position: fixed; top: 2rem; left: 2rem; z-index: 100; display: flex; gap: 1rem;" class="print-hidden">
+        <div class="inline-flex rounded-xl overflow-hidden border border-slate-700" role="group" aria-label="Audience view toggle">
+            <button id="btnExec" class="px-4 py-2 text-sm font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700 focus:outline-none">Executive</button>
+            <button id="btnEng" class="px-4 py-2 text-sm font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600 focus:outline-none">Engineering</button>
+        </div>
+        <button id="btnPrint" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700">Print</button>
+    </div>
+
+    <!-- Custom Tooltip for Functionalities -->
+    <div id="functionality-tooltip"></div>
+
+    <!-- Slideshow Container -->
+    <div id="slideshow-container">
+        
+        <!-- Slide 1: Hero / Title -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+    <header class="hero-bg text-center py-16 md:py-24 px-4">
+        <div class="max-w-4xl mx-auto">
+                        <h1 class="text-4xl md:text-6xl font-black text-slate-100 mb-4 reveal visible">The <span class="gradient-text">Migration Challenge</span></h1>
+                        <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto reveal visible">
+                            An interactive summary of the SNOMED CT Authoring UI codebase and its proposed migration from AngularJS to Angular 20.
+                        </p>
+                        <p class="text-sm text-slate-500 mt-8 exec-only">Tip: Switch to Engineering view for deeper technical detail.</p>
+                        <p class="text-sm text-slate-400 mt-8">Use ← → arrow keys or buttons to navigate</p>
+        </div>
+    </header>
+            </div>
+        </div>
+
+        <!-- Slide 2: Scale & Size + Complexity -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <!-- Section: Scale & Size Metrics -->
+                        <section id="scale" class="reveal visible">
+                <h2 class="text-3xl font-bold text-center mb-4">"92,000 Lines of Legacy Code"</h2>
+                <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">The application is vast, with a heavy concentration in JavaScript and styling.</p>
+                <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">LoC spans JS, HTML, and styles; tests are underrepresented, indicating migration risks and refactoring needs.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="card-bg p-8 rounded-2xl shadow-lg">
+                        <h3 class="font-bold text-xl mb-6 text-center">Lines of Code Breakdown</h3>
+                        <div class="space-y-4 chart">
+                            <!-- JS -->
+                            <div class="flex items-center">
+                                <span class="w-28 text-sm font-semibold text-slate-300">JavaScript</span>
+                                <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="chart-bar-inner h-full rounded-full bg-cyan-500" style="--bar-width: 53%;"></div>
+                                </div>
+                                <span class="w-16 text-right text-sm font-bold">53%</span>
+                            </div>
+                            <!-- SCSS/CSS -->
+                             <div class="flex items-center">
+                                <span class="w-28 text-sm font-semibold text-slate-300">Stylesheets</span>
+                                <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="chart-bar-inner h-full rounded-full bg-purple-500" style="--bar-width: 35%;"></div>
+                                </div>
+                                <span class="w-16 text-right text-sm font-bold">35%</span>
+                            </div>
+                            <!-- HTML -->
+                             <div class="flex items-center">
+                                <span class="w-28 text-sm font-semibold text-slate-300">HTML</span>
+                                <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="chart-bar-inner h-full rounded-full bg-emerald-500" style="--bar-width: 11%;"></div>
+                                </div>
+                                <span class="w-16 text-right text-sm font-bold">11%</span>
+                            </div>
+                            <!-- Tests -->
+                             <div class="flex items-center">
+                                <span class="w-28 text-sm font-semibold text-slate-300">Tests</span>
+                                <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="chart-bar-inner h-full rounded-full bg-rose-500" style="--bar-width: 1%;"></div>
+                                </div>
+                                <span class="w-16 text-right text-sm font-bold">1%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6 text-center">
+                        <div class="card-bg p-6 rounded-2xl shadow-lg">
+                            <div class="stat-number text-5xl font-black gradient-text" data-target="107">0</div>
+                            <p class="font-semibold mt-2">JavaScript Files</p>
+                        </div>
+                        <div class="card-bg p-6 rounded-2xl shadow-lg">
+                            <div class="stat-number text-5xl font-black gradient-text" data-target="48">0</div>
+                            <p class="font-semibold mt-2">Distinct UI Elements</p>
+                        </div>
+                        <div class="card-bg p-6 rounded-2xl shadow-lg">
+                            <div class="stat-number text-5xl font-black gradient-text" data-target="10">0</div>
+                            <p class="font-semibold mt-2">Main Components</p>
+                        </div>
+                        <div class="card-bg p-6 rounded-2xl shadow-lg">
+                            <div class="stat-number text-5xl font-black gradient-text" data-target="20">0</div>
+                            <p class="font-semibold mt-2">Modal Dialogs</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Complexity Distribution -->
+            <section id="complexity" class="reveal">
+                <h2 class="text-3xl font-bold text-center mb-4">"Single File Contains 13.4% of Application"</h2>
+                <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">Code is highly concentrated in a few large files, increasing risk.</p>
+                <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">Top-10 files account for nearly half of all JS; monolith files raise change risk and hinder parallelization.</p>
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                     <h3 class="font-bold text-xl mb-6 text-center">Code Concentration (Top 5 Files)</h3>
+                     <div class="space-y-4 chart">
+                        <!-- conceptEdit.js -->
+                        <div class="flex items-center">
+                            <span class="w-48 text-sm font-semibold text-slate-300 truncate">1. conceptEdit.js</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-red-500" style="--bar-width: 100%;"></div>
+                            </div>
+                            <span class="w-24 text-right text-sm font-bold">6,530 lines</span>
+                        </div>
+                        <!-- terminologyServerService.js -->
+                        <div class="flex items-center">
+                            <span class="w-48 text-sm font-semibold text-slate-300 truncate">2. terminologyServer...</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-orange-500" style="--bar-width: 42.1%;"></div>
+                            </div>
+                            <span class="w-24 text-right text-sm font-bold">2,753 lines</span>
+                        </div>
+                        <!-- feedback.js -->
+                        <div class="flex items-center">
+                            <span class="w-48 text-sm font-semibold text-slate-300 truncate">3. feedback.js</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-orange-500" style="--bar-width: 37.6%;"></div>
+                            </div>
+                            <span class="w-24 text-right text-sm font-bold">2,460 lines</span>
+                        </div>
+                        <!-- edit.js -->
+                        <div class="flex items-center">
+                            <span class="w-48 text-sm font-semibold text-slate-300 truncate">4. edit.js</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-orange-500" style="--bar-width: 36.4%;"></div>
+                            </div>
+                            <span class="w-24 text-right text-sm font-bold">2,377 lines</span>
+                        </div>
+                        <!-- scaService.js -->
+                        <div class="flex items-center">
+                            <span class="w-48 text-sm font-semibold text-slate-300 truncate">5. scaService.js</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-yellow-500" style="--bar-width: 30.8%;"></div>
+                            </div>
+                            <span class="w-24 text-right text-sm font-bold">2,016 lines</span>
+                        </div>
+                     </div>
+                </div>
+            </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Tech Stack -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="tech" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-12">From Legacy to Leading-Edge</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-2xl mb-4 text-center text-rose-400">Current Stack (AngularJS)</h3>
+                    <ul class="space-y-3 list-disc list-inside text-slate-300">
+                        <li><span class="font-semibold">Framework:</span> AngularJS 1.4.14</li>
+                        <li><span class="font-semibold">Build Tools:</span> Grunt + Bower</li>
+                        <li><span class="font-semibold">UI Library:</span> Bootstrap 3.4.1</li>
+                        <li><span class="font-semibold">Dependencies:</span> jQuery, textAngular</li>
+                        <li><span class="font-semibold">Testing:</span> Karma/Jasmine & Cypress</li>
+                    </ul>
+                </div>
+                 <div class="card-bg p-8 rounded-2xl shadow-lg border-2 border-cyan-400">
+                    <h3 class="font-bold text-2xl mb-4 text-center text-cyan-400">Target Stack (Angular)</h3>
+                    <ul class="space-y-3 list-disc list-inside text-slate-300">
+                        <li><span class="font-semibold">Framework:</span> Angular 20</li>
+                        <li><span class="font-semibold">Build Tools:</span> Angular CLI</li>
+                        <li><span class="font-semibold">UI Library:</span> Angular Material / PrimeNG</li>
+                        <li><span class="font-semibold">Dependencies:</span> Modern TypeScript libraries</li>
+                        <li><span class="font-semibold">Testing:</span> Jest, Angular Testing & Cypress</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Architecture -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="architecture" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">System Architecture: Service Integrations</h2>
+            <p class="text-center text-slate-400 mb-4 text-sm exec-only">How the Authoring UI connects to core platform services.</p>
+            <p class="text-center text-slate-400 mb-4 text-sm eng-only">HTTP REST integrations from the UI to backend services. Primary flows: authoring workflow (SCA), terminology (Snowstorm), validation (RVF), classification, and reporting (CRS/CIS). Auth via SSO.</p>
+            <div class="w-full" style="height: calc(100vh - 180px);">
+                <svg viewBox="0 0 2000 1100" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
+                    <!-- Edges - repositioned for larger canvas -->
+                    <line class="diagram-line animated" style="transition-delay: 0.4s;" x1="1000" y1="550" x2="300" y2="550" stroke="#38bdf8" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.45s;" x1="1000" y1="550" x2="1700" y2="350" stroke="#22c55e" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.5s;" x1="1000" y1="550" x2="1700" y2="550" stroke="#f97316" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.55s;" x1="1000" y1="550" x2="1700" y2="750" stroke="#eab308" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.6s;" x1="1000" y1="550" x2="300" y2="750" stroke="#a78bfa" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.65s;" x1="1000" y1="550" x2="300" y2="350" stroke="#60a5fa" stroke-width="4"/>
+                    <line class="diagram-line animated" style="transition-delay: 0.7s;" x1="1000" y1="480" x2="1000" y2="180" stroke="#f43f5e" stroke-width="4"/>
+
+                    <!-- Edge Labels - larger text -->
+                    <text x="650" y="530" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.0s;">Authoring workflow (REST)</text>
+                    <text x="1350" y="430" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.05s;">Terminology APIs</text>
+                    <text x="1350" y="550" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.1s;">Classification triggers</text>
+                    <text x="1350" y="660" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.15s;">RVF/validation</text>
+                    <text x="650" y="660" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.2s;">Reporting & exports</text>
+                    <text x="650" y="430" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.25s;">Release notes / acceptance</text>
+                    <text x="1020" y="330" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="600" class="diagram-label" style="transition-delay: 1.3s;">SSO / Auth</text>
+
+                    <!-- Nodes - MUCH LARGER -->
+                    <!-- Center: Authoring UI -->
+                    <g transform="translate(1000,550)">
+                        <g class="diagram-node" style="transition-delay: 0.2s;">
+                            <rect x="-200" y="-70" width="400" height="140" rx="24" fill="#334155" stroke="#64748b" stroke-width="3"/>
+                            <g transform="translate(0,0)" fill="#ffffff" text-anchor="middle">
+                                <text font-weight="700" font-size="26" y="-10">Authoring UI</text>
+                                <text y="20" opacity="0.95" font-size="17">AngularJS client (this repo)</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Left: SCA Backend -->
+                    <g transform="translate(300,550)">
+                        <g class="diagram-node" style="transition-delay: 0.3s;">
+                            <rect x="-200" y="-60" width="400" height="120" rx="20" fill="#0ea5e9"/>
+                            <g transform="translate(0,0)" fill="#0b1220" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">SCA Backend</text>
+                                <text y="22" opacity="0.95" font-size="16">Authoring workflow API</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Top-right: Terminology Server (Snowstorm) -->
+                    <g transform="translate(1700,350)">
+                        <g class="diagram-node" style="transition-delay: 0.35s;">
+                            <rect x="-220" y="-60" width="440" height="120" rx="20" fill="#22c55e"/>
+                            <g transform="translate(0,0)" fill="#06281f" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">Terminology Server</text>
+                                <text y="22" opacity="0.95" font-size="16">Snowstorm (read/search)</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Right: Classification Service -->
+                    <g transform="translate(1700,550)">
+                        <g class="diagram-node" style="transition-delay: 0.4s;">
+                            <rect x="-220" y="-60" width="440" height="120" rx="20" fill="#f97316"/>
+                            <g transform="translate(0,0)" fill="#0b1220" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">Classification Service</text>
+                                <text y="22" opacity="0.95" font-size="16">Batch classification</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Bottom-right: RVF Validation -->
+                    <g transform="translate(1700,750)">
+                        <g class="diagram-node" style="transition-delay: 0.45s;">
+                            <rect x="-220" y="-60" width="440" height="120" rx="20" fill="#eab308"/>
+                            <g transform="translate(0,0)" fill="#0b1220" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">RVF Validation</text>
+                                <text y="22" opacity="0.95" font-size="16">Integrity checks</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Bottom-left: CRS / CIS Reporting -->
+                    <g transform="translate(300,750)">
+                        <g class="diagram-node" style="transition-delay: 0.5s;">
+                            <rect x="-200" y="-60" width="400" height="120" rx="20" fill="#a78bfa"/>
+                            <g transform="translate(0,0)" fill="#0b0f1a" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">CRS / CIS</text>
+                                <text y="22" opacity="0.95" font-size="16">Reporting & exports</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Top-left: AAG / Release Notes -->
+                    <g transform="translate(300,350)">
+                        <g class="diagram-node" style="transition-delay: 0.55s;">
+                            <rect x="-200" y="-60" width="400" height="120" rx="20" fill="#60a5fa"/>
+                            <g transform="translate(0,0)" fill="#0b1220" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">AAG / Release Notes</text>
+                                <text y="22" opacity="0.95" font-size="16">Acceptance & publication</text>
+                            </g>
+                        </g>
+                    </g>
+
+                    <!-- Top-center: SSO / Auth -->
+                    <g transform="translate(1000,180)">
+                        <g class="diagram-node" style="transition-delay: 0.6s;">
+                            <rect x="-180" y="-60" width="360" height="120" rx="20" fill="#f43f5e"/>
+                            <g transform="translate(0,0)" fill="#ffffff" text-anchor="middle">
+                                <text font-weight="700" font-size="24" y="-8">SSO / Auth</text>
+                                <text y="22" opacity="0.95" font-size="16">Login & roles</text>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <p class="text-center text-xs text-slate-500 mt-3">Note: Diagram focuses on core backend services used by the UI. AI-related services intentionally omitted.</p>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Major Functionalities -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="functionalities" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">Major Functionalities</h2>
+            <p class="text-center text-slate-400 mb-4 text-sm">High-level feature map. Hover any tile for details.</p>
+            <div class="w-full" style="height: calc(100vh - 180px);">
+                <svg viewBox="0 0 2600 1500" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
+                    <!-- Central: Concept Editing - VERY LARGE -->
+                    <g transform="translate(1300,700)">
+                        <g class="diagram-node" style="transition-delay: 0.1s;">
+                            <rect x="-280" y="-85" width="560" height="170" rx="24" fill="#f43f5e"/>
+                            <text fill="#fff" text-anchor="middle" font-weight="700" font-size="28" dominant-baseline="middle">
+                                <tspan x="0" dy="-0.4em">Concept Editing</tspan>
+                                <tspan x="0" dy="1.8em" font-size="19" opacity="0.95">Full SNOMED CT editor • views • DnD • keyboard • templates</tspan>
+                            </text>
+                            <title>Full SNOMED CT concept editor (axioms, descriptions, relationships), multiple edit views, drag-and-drop, keyboard shortcuts, template-driven creation.</title>
+                        </g>
+                    </g>
+
+                    <!-- TOP LEFT CLUSTER: Work Management -->
+                    <g transform="translate(300,180)"><g class="diagram-node" style="transition-delay: 0.15s;"><rect x="-230" y="-65" width="460" height="130" rx="20" fill="#f97316"/><text fill="#fff" text-anchor="middle" font-weight="700" font-size="23" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Project & Task Management</tspan><tspan x="0" dy="1.8em" font-size="17" opacity="0.95">Projects • tasks • assignment • statuses • branching</tspan></text><title>Projects and tasks, assignment, statuses (Draft/In Progress/Promoted/Completed), branching, task promotion queues.</title></g></g>
+                    
+                    <g transform="translate(300,380)"><g class="diagram-node" style="transition-delay: 0.18s;"><rect x="-220" y="-60" width="440" height="120" rx="20" fill="#fb923c"/><text fill="#111827" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Review Workflow</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Reviews • approvals • roles • feedback</tspan></text><title>Review tasks, approvals, reviewer roles, feedback handling.</title></g></g>
+                    
+                    <g transform="translate(300,570)"><g class="diagram-node" style="transition-delay: 0.21s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#eab308"/><text fill="#111827" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Batch Editing & Templates</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">CSV bulk updates • validation • progress</tspan></text><title>CSV-driven bulk updates, template slotting/transformations, validation, progress tracking.</title></g></g>
+
+                    <!-- TOP CENTER: Auth & Collaboration -->
+                    <g transform="translate(900,130)"><g class="diagram-node" style="transition-delay: 0.24s;"><rect x="-250" y="-60" width="500" height="120" rx="20" fill="#6366f1"/><text fill="#eef2ff" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Authentication & Authorization</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Login • logout • role-based permissions • routes</tspan></text><title>Login/logout, role-based permissions and guarded routes.</title></g></g>
+                    
+                    <g transform="translate(1300,300)"><g class="diagram-node" style="transition-delay: 0.27s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#06b6d4"/><text fill="#03202a" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Real-time Collaboration</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">WebSocket • live updates • editing context</tspan></text><title>WebSocket-driven live updates for tasks/status and editing context.</title></g></g>
+
+                    <!-- LEFT SIDE: Dashboards & Admin -->
+                    <g transform="translate(300,830)"><g class="diagram-node" style="transition-delay: 0.30s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#10b981"/><text fill="#06281f" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Dashboards</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Home • "My Tasks" • project views • listings</tspan></text><title>Home "My Tasks" dashboard; project dashboards and listings.</title></g></g>
+                    
+                    <g transform="translate(300,1040)"><g class="diagram-node" style="transition-delay: 0.33s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#34d399"/><text fill="#06281f" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Saved Lists & Task Detail</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Curated sets • detailed view • activity</tspan></text><title>Curate saved sets; detailed task view with activity/progress.</title></g></g>
+                    
+                    <g transform="translate(300,1280)"><g class="diagram-node" style="transition-delay: 0.36s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#06b6d4"/><text fill="#03202a" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Codesystem Management</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Manage codesystems • upgrades • metadata</tspan></text><title>Manage code systems and upgrades; view codesystem metadata.</title></g></g>
+
+                    <!-- CENTER: Model & Visualization -->
+                    <g transform="translate(800,470)"><g class="diagram-node" style="transition-delay: 0.39s;"><rect x="-230" y="-60" width="460" height="120" rx="20" fill="#fb7185"/><text fill="#fff" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Model Visualization</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Interactive diagrams • DnD • export</tspan></text><title>Interactive concept model diagrams (SVG), drag-and-drop editing, export.</title></g></g>
+                    
+                    <g transform="translate(900,1010)"><g class="diagram-node" style="transition-delay: 0.42s;"><rect x="-260" y="-60" width="520" height="120" rx="20" fill="#94a3b8"/><text fill="#0b1220" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Authoring Acceptance Criteria</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Quality controls • validation rules</tspan></text><title>Authoring acceptance criteria.</title></g></g>
+
+                    <!-- CENTER RIGHT: Navigation -->
+                    <g transform="translate(1800,540)"><g class="diagram-node" style="transition-delay: 0.45s;"><rect x="-250" y="-60" width="500" height="120" rx="20" fill="#60a5fa"/><text fill="#0b1220" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Taxonomy & Context Panels</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Navigation • contextual sidebars</tspan></text><title>Taxonomy navigation, contextual sidebars for editing/search.</title></g></g>
+
+                    <!-- TOP RIGHT CLUSTER: Validation & Operations -->
+                    <g transform="translate(2300,180)"><g class="diagram-node" style="transition-delay: 0.48s;"><rect x="-250" y="-65" width="500" height="130" rx="20" fill="#f97316"/><text fill="#fff" text-anchor="middle" font-weight="700" font-size="23" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Promotion & Conflict Resolution</tspan><tspan x="0" dy="1.8em" font-size="17" opacity="0.95">Merges • conflict detection • workflows</tspan></text><title>Project merges, conflict detection/resolution, branch-based workflows.</title></g></g>
+                    
+                    <g transform="translate(2300,380)"><g class="diagram-node" style="transition-delay: 0.51s;"><rect x="-250" y="-60" width="500" height="120" rx="20" fill="#f59e0b"/><text fill="#111827" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">Classification & Validation</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">RVF • integrity • dashboards • exclusions</tspan></text><title>Trigger classifications, RVF validation, integrity checks, exclusions/whitelists, status dashboards.</title></g></g>
+                    
+                    <g transform="translate(2300,570)"><g class="diagram-node" style="transition-delay: 0.54s;"><rect x="-220" y="-60" width="440" height="120" rx="20" fill="#14b8a6"/><text fill="#052e2b" text-anchor="middle" font-weight="700" font-size="22" dominant-baseline="middle"><tspan x="0" dy="-0.4em">File Import/Export</tspan><tspan x="0" dy="1.8em" font-size="16" opacity="0.95">Batch CSV uploads • report exports</tspan></text><title>Batch file uploads (CSV), report downloads/exports.</title></g></g>
+
+                    <!-- RIGHT CLUSTER: UX Features -->
+                    <g transform="translate(1800,130)"><g class="diagram-node" style="transition-delay: 0.57s;"><rect x="-230" y="-55" width="460" height="110" rx="20" fill="#a78bfa"/><text fill="#0b0f1a" text-anchor="middle" font-weight="700" font-size="21" dominant-baseline="middle"><tspan x="0" dy="0">Notifications & Dialogs</tspan></text><title>Confirmation/progress modals, form dialogs with validation, toast notifications.</title></g></g>
+                    
+                    <g transform="translate(2300,130)"><g class="diagram-node" style="transition-delay: 0.60s;"><rect x="-250" y="-55" width="500" height="110" rx="20" fill="#93c5fd"/><text fill="#0b0f1a" text-anchor="middle" font-weight="700" font-size="21" dominant-baseline="middle"><tspan x="0" dy="0">Global Keyboard Shortcuts</tspan></text><title>Quick navigation and productivity accelerators.</title></g></g>
+
+                    <!-- BOTTOM CLUSTER: System Features -->
+                    <g transform="translate(900,1280)"><g class="diagram-node" style="transition-delay: 0.63s;"><rect x="-230" y="-55" width="460" height="110" rx="20" fill="#bef264"/><text fill="#0c1a0a" text-anchor="middle" font-weight="700" font-size="21" dominant-baseline="middle"><tspan x="0" dy="0">User Preferences & Settings</tspan></text><title>User profile, local preferences, feature flags/config.</title></g></g>
+                    
+                    <g transform="translate(1400,1280)"><g class="diagram-node" style="transition-delay: 0.66s;"><rect x="-230" y="-55" width="460" height="110" rx="20" fill="#4f46e5"/><text fill="#eef2ff" text-anchor="middle" font-weight="700" font-size="21" dominant-baseline="middle"><tspan x="0" dy="0">Role-based Access Control</tspan></text><title>Role based access control.</title></g></g>
+                    
+                    <g transform="translate(1900,1280)"><g class="diagram-node" style="transition-delay: 0.69s;"><rect x="-260" y="-55" width="520" height="110" rx="20" fill="#d946ef"/><text fill="#fff" text-anchor="middle" font-weight="700" font-size="21" dominant-baseline="middle"><tspan x="0" dy="0">Release Notes Management</tspan></text><title>Release Notes management and generation.</title></g></g>
+
+                </svg>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Module Coupling -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="coupling" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">Module Coupling: A Tangled Web</h2>
+            <p class="text-center text-slate-400 mb-4 text-sm">A force-directed graph showing the high-risk, tightly coupled nature of core services and controllers. The diagram highlights critical dependencies that are a priority for refactoring.</p>
+            <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start" style="height: calc(100vh - 180px);">
+                <div class="xl:col-span-4 h-full">
+                    <!-- Much larger SVG for better legibility -->
+                    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
+                        <!-- Edges (repositioned for larger layout) -->
+                        <line class="diagram-line animated" style="transition-delay: 0.5s;" x1="800" y1="450" x2="300" y2="170" stroke="#ef4444" stroke-width="5"/>
+                        <line class="diagram-line animated" style="transition-delay: 0.6s;" x1="300" y1="450" x2="300" y2="170" stroke="#f97316" stroke-width="4"/>
+                        <line class="diagram-line animated" style="transition-delay: 0.7s;" x1="800" y1="730" x2="300" y2="170" stroke="#eab308" stroke-width="3"/>
+                        <line class="diagram-line animated" style="transition-delay: 0.8s;" x1="800" y1="450" x2="1300" y2="170" stroke="#ef4444" stroke-width="5"/>
+                        <line class="diagram-line animated" style="transition-delay: 0.9s;" x1="300" y1="450" x2="1300" y2="170" stroke="#f97316" stroke-width="4"/>
+                        <line class="diagram-line animated" style="transition-delay: 1.0s;" x1="800" y1="450" x2="1300" y2="730" stroke="#f97316" stroke-width="4"/>
+                        <line class="diagram-line animated" style="transition-delay: 1.1s;" x1="800" y1="730" x2="1300" y2="730" stroke="#f97316" stroke-width="3"/>
+                        <path class="diagram-line animated" style="transition-delay: 1.2s;" d="M 800 450 C 530 400, 530 500, 300 450" stroke="#dc2626" stroke-width="4.5" fill="none" />
+                        <path class="diagram-line animated" style="transition-delay: 1.2s;" d="M 300 450 C 530 500, 530 400, 800 450" stroke="#dc2626" stroke-width="4.5" fill="none" />
+
+                        <!-- Edge Labels (larger) -->
+                        <text x="550" y="310" dy="-8" text-anchor="middle" fill="#e2e8f0" font-size="17" font-weight="bold" class="diagram-label" style="transition-delay: 1.5s;">24 refs</text>
+                        <text x="300" y="280" dy="-8" text-anchor="middle" fill="#e2e8f0" font-size="17" font-weight="bold" class="diagram-label" style="transition-delay: 1.6s;">25 refs</text>
+                        <text x="550" y="450" dx="25" text-anchor="middle" fill="#e2e8f0" font-size="18" font-weight="bold" class="diagram-label" style="transition-delay: 1.7s;">42 refs</text>
+
+                        <!-- Nodes (much larger for full-screen) -->
+                        <!-- scaService (center) - BIGGEST -->
+                        <g transform="translate(800,450)">
+                            <g class="diagram-node" style="transition-delay: 0.2s;">
+                                <circle r="140" fill="#dc2626"/>
+                                <g transform="translate(0,-15)" fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="26">scaService</text>
+                                    <text y="30" opacity="0.95" font-size="19">(God Object)</text>
+                                    <text y="60" font-size="17" opacity="0.95">10 Dep / 9 Ctrls</text>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- terminologyServerService (left center) - BIGGER -->
+                        <g transform="translate(300,450)">
+                            <g class="diagram-node" style="transition-delay: 0.3s;">
+                                <circle r="110" fill="#f97316"/>
+                                <g transform="translate(0,-10)" fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="20">terminologyServer</text>
+                                    <text y="24" opacity="0.95" font-size="17">(Core Hub)</text>
+                                    <text y="50" font-size="16" opacity="0.95">7 Dep / 8 Ctrls</text>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- metadataService (bottom center) - BIGGER -->
+                        <g transform="translate(800,730)">
+                            <g class="diagram-node" style="transition-delay: 0.4s;">
+                                <circle r="95" fill="#eab308"/>
+                                <g transform="translate(0,-8)" fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="20">metadataService</text>
+                                    <text y="26" opacity="0.95" font-size="17">(Data Service)</text>
+                                    <text y="52" font-size="16" opacity="0.95">3 Dep / 8 Ctrls</text>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- EditCtrl (top-left) - MUCH LARGER -->
+                        <g transform="translate(300,170)">
+                            <g class="diagram-node" style="transition-delay: 0.5s;">
+                                <rect x="-130" y="-70" width="260" height="140" rx="20" fill="#dc2626"/>
+                                <g fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="24" y="-12">EditCtrl</text>
+                                    <text opacity="0.95" font-size="18" y="16">(Critical)</text>
+                                    <text font-size="17" opacity="0.95" y="44">22 Deps / 2.4k LoC</text>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- ProjectCtrl (top-right) - MUCH LARGER -->
+                        <g transform="translate(1300,170)">
+                            <g class="diagram-node" style="transition-delay: 0.6s;">
+                                <rect x="-130" y="-70" width="260" height="140" rx="20" fill="#dc2626"/>
+                                <g fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="24" y="-12">ProjectCtrl</text>
+                                    <text opacity="0.95" font-size="18" y="16">(Critical)</text>
+                                    <text font-size="17" opacity="0.95" y="44">19 Deps / 1k LoC</text>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- HomeCtrl (bottom-right) - MUCH LARGER -->
+                        <g transform="translate(1300,730)">
+                            <g class="diagram-node" style="transition-delay: 0.7s;">
+                                <rect x="-130" y="-70" width="260" height="140" rx="20" fill="#f97316"/>
+                                <g fill="#ffffff" text-anchor="middle">
+                                    <text font-weight="bold" font-size="24" y="-12">HomeCtrl</text>
+                                    <text opacity="0.95" font-size="18" y="16">(High)</text>
+                                    <text font-size="17" opacity="0.95" y="44">17 Deps / 520 LoC</text>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+                <!-- Legend - More Compact -->
+                <div class="card-bg p-5 rounded-xl shadow-lg self-start">
+                    <h3 class="font-bold text-base mb-3 text-slate-100">Legend</h3>
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-red-600 flex-shrink-0 mt-0.5"></div>
+                            <div>
+                                <div class="font-semibold text-slate-200 text-sm">Critical</div>
+                                <p class="text-xs text-slate-400 leading-tight">90-100% • Immediate</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-orange-500 flex-shrink-0 mt-0.5"></div>
+                            <div>
+                                <div class="font-semibold text-slate-200 text-sm">High</div>
+                                <p class="text-xs text-slate-400 leading-tight">70-89% • Priority</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-yellow-500 flex-shrink-0 mt-0.5"></div>
+                            <div>
+                                <div class="font-semibold text-slate-200 text-sm">Medium</div>
+                                <p class="text-xs text-slate-400 leading-tight">50-69% • Planned</p>
+                            </div>
+                        </div>
+                        <hr class="border-slate-600 my-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-full bg-slate-500 flex-shrink-0"></div>
+                            <span class="font-semibold text-slate-200 text-sm">Service</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-slate-500 flex-shrink-0"></div>
+                            <span class="font-semibold text-slate-200 text-sm">Controller</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Largest Directories -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="largest-dirs" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">Largest Directories (Snapshot)</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">Where most code and assets live today.</p>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">Relative on-disk size; prioritise high-impact areas for module boundaries and migrations.</p>
+            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                <div class="space-y-4 chart">
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/fonts</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-cyan-500" style="--bar-width: 100%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">5.5 MB</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/shared</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-purple-500" style="--bar-width: 41.8%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">2.3 MB</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/styles</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-emerald-500" style="--bar-width: 17.9%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">988 KB</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/components</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-rose-500" style="--bar-width: 7.8%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">444 KB</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/vendors</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-yellow-500" style="--bar-width: 4.5%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">248 KB</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-56 text-sm font-semibold text-slate-300 truncate">app/images</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-indigo-500" style="--bar-width: 1.7%;"></div>
+                        </div>
+                        <span class="w-24 text-right text-sm font-bold">92 KB</span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4">Note: Snapshot based on local working copy at analysis time; excludes node_modules.</p>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Module Distribution -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="module-dist" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">Module Distribution</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">How code is organized across the application layers.</p>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">Codebase split into shared services, core components, and utility layers; shared dominates, increasing interdependency risk.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-xl mb-6 text-center">Directory Breakdown</h3>
+                    <div class="space-y-4 chart">
+                        <div class="flex items-center">
+                            <span class="w-32 text-sm font-semibold text-slate-300">Shared Services</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-cyan-500" style="--bar-width: 65%;"></div>
+                            </div>
+                            <span class="w-16 text-right text-sm font-bold">59%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-32 text-sm font-semibold text-slate-300">Components</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-purple-500" style="--bar-width: 18%;"></div>
+                            </div>
+                            <span class="w-16 text-right text-sm font-bold">18%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-32 text-sm font-semibold text-slate-300">Utilities</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-emerald-500" style="--bar-width: 8%;"></div>
+                            </div>
+                            <span class="w-16 text-right text-sm font-bold">8%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-32 text-sm font-semibold text-slate-300">Styles & Assets</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-rose-500" style="--bar-width: 9%;"></div>
+                            </div>
+                            <span class="w-16 text-right text-sm font-bold">9%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-xl mb-6 text-center">Key Modules in Shared</h3>
+                    <ul class="space-y-2 text-slate-300 text-sm">
+                        <li>• <span class="font-semibold">scaService</span> – Authoring workflow</li>
+                        <li>• <span class="font-semibold">terminologyServerService</span> – Terminology queries</li>
+                        <li>• <span class="font-semibold">validationService</span> – RVF & integrity</li>
+                        <li>• <span class="font-semibold">conceptEdit</span> – Main editor (6.5k LoC)</li>
+                        <li>• <span class="font-semibold">feedback</span> – Review workflow (2.5k LoC)</li>
+                        <li>• <span class="font-semibold">constraintService</span> – Business rules</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Service Dependencies -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="dependencies" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">Service Dependency Breadth</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">Which services are most relied upon across controllers.</p>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">Top services injected into controllers; scaService & terminologyServerService are bottlenecks, indicating tight coupling.</p>
+            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                <div class="space-y-4 chart">
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">scaService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-red-500" style="--bar-width: 100%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">18 controllers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">terminologyServerService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-orange-500" style="--bar-width: 83%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">15 controllers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">notificationService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-yellow-500" style="--bar-width: 67%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">12 controllers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">metadataService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-emerald-500" style="--bar-width: 61%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">11 controllers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">modalService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-cyan-500" style="--bar-width: 50%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">9 controllers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-48 text-sm font-semibold text-slate-300">validationService</span>
+                        <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="chart-bar-inner h-full rounded-full bg-indigo-500" style="--bar-width: 39%;"></div>
+                        </div>
+                        <span class="w-20 text-right text-sm font-bold">7 controllers</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Refactor Priority -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="refactor-priority" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">Refactor Priority: Complexity vs. Coupling</h2>
+            <p class="text-center text-slate-400 mb-4 text-sm exec-only">Modules ranked by risk and impact for refactoring.</p>
+            <p class="text-center text-slate-400 mb-4 text-sm eng-only">Scatter plot showing LoC (complexity) vs. dependency count (coupling); top-right quadrant = highest risk.</p>
+            <div class="w-full" style="height: calc(100vh - 180px);">
+                <svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet" class="w-full h-full">
+                    <!-- Grid background - scaled up -->
+                    <line x1="200" y1="120" x2="200" y2="780" stroke="#475569" stroke-width="3"/>
+                    <line x1="200" y1="780" x2="1300" y2="780" stroke="#475569" stroke-width="3"/>
+                    <line x1="200" y1="450" x2="1300" y2="450" stroke="#334155" stroke-width="2" stroke-dasharray="8,8"/>
+                    <line x1="750" y1="120" x2="750" y2="780" stroke="#334155" stroke-width="2" stroke-dasharray="8,8"/>
+
+                    <!-- Axis labels - larger -->
+                    <text x="80" y="450" text-anchor="middle" fill="#94a3b8" font-size="18" font-weight="600">Coupling</text>
+                    <text x="750" y="840" text-anchor="middle" fill="#94a3b8" font-size="18" font-weight="600">Complexity (LoC)</text>
+
+                    <!-- Quadrant labels - larger -->
+                    <text x="450" y="160" fill="#64748b" font-size="16" opacity="0.8">Low Risk</text>
+                    <text x="1000" y="160" fill="#dc2626" font-size="16" opacity="0.8" font-weight="bold">HIGH RISK</text>
+                    <text x="450" y="740" fill="#64748b" font-size="16" opacity="0.8">Low Impact</text>
+                    <text x="1000" y="740" fill="#64748b" font-size="16" opacity="0.8">Med Impact</text>
+
+                    <!-- Data points (circles) - MUCH LARGER -->
+                    <!-- conceptEdit.js (6530 LoC, 22 deps) - top-right, high risk -->
+                    <g class="diagram-node" style="transition-delay: 0.2s;">
+                        <circle cx="1180" cy="150" r="70" fill="#dc2626" opacity="0.85"/>
+                        <text x="1180" y="150" text-anchor="middle" fill="#fff" font-weight="700" font-size="18" dominant-baseline="middle">
+                            <tspan x="1180" dy="-0.4em">conceptEdit</tspan>
+                            <tspan x="1180" dy="1.4em" font-size="16">6.5k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- feedback.js (2460 LoC, 18 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.25s;">
+                        <circle cx="1050" cy="210" r="55" fill="#f97316" opacity="0.85"/>
+                        <text x="1050" y="210" text-anchor="middle" fill="#fff" font-weight="700" font-size="16" dominant-baseline="middle">
+                            <tspan x="1050" dy="-0.4em">feedback</tspan>
+                            <tspan x="1050" dy="1.4em" font-size="14">2.5k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- terminologyServerService (2753 LoC, 16 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.3s;">
+                        <circle cx="1080" cy="260" r="58" fill="#f97316" opacity="0.85"/>
+                        <text x="1080" y="260" text-anchor="middle" fill="#fff" font-weight="700" font-size="16" dominant-baseline="middle">
+                            <tspan x="1080" dy="-0.4em">termServer</tspan>
+                            <tspan x="1080" dy="1.4em" font-size="14">2.8k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- edit.js (2377 LoC, 19 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.35s;">
+                        <circle cx="1000" cy="190" r="54" fill="#f97316" opacity="0.85"/>
+                        <text x="1000" y="190" text-anchor="middle" fill="#fff" font-weight="700" font-size="16" dominant-baseline="middle">
+                            <tspan x="1000" dy="-0.4em">edit.js</tspan>
+                            <tspan x="1000" dy="1.4em" font-size="14">2.4k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- scaService (2016 LoC, 20 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.4s;">
+                        <circle cx="960" cy="165" r="50" fill="#fb923c" opacity="0.85"/>
+                        <text x="960" y="165" text-anchor="middle" fill="#fff" font-weight="700" font-size="15" dominant-baseline="middle">
+                            <tspan x="960" dy="-0.4em">scaService</tspan>
+                            <tspan x="960" dy="1.4em" font-size="13">2.0k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- validationService (1200 LoC, 12 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.45s;">
+                        <circle cx="820" cy="310" r="42" fill="#eab308" opacity="0.85"/>
+                        <text x="820" y="310" text-anchor="middle" fill="#111827" font-weight="700" font-size="14" dominant-baseline="middle">
+                            <tspan x="820" dy="-0.3em">validation</tspan>
+                            <tspan x="820" dy="1.3em" font-size="12">1.2k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- metadataService (900 LoC, 10 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.5s;">
+                        <circle cx="720" cy="360" r="38" fill="#a78bfa" opacity="0.85"/>
+                        <text x="720" y="360" text-anchor="middle" fill="#0b0f1a" font-weight="700" font-size="14" dominant-baseline="middle">
+                            <tspan x="720" dy="-0.3em">metadata</tspan>
+                            <tspan x="720" dy="1.3em" font-size="12">0.9k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- modalService (600 LoC, 8 deps) -->
+                    <g class="diagram-node" style="transition-delay: 0.55s;">
+                        <circle cx="600" cy="430" r="34" fill="#60a5fa" opacity="0.85"/>
+                        <text x="600" y="430" text-anchor="middle" fill="#0b1220" font-weight="700" font-size="13" dominant-baseline="middle">
+                            <tspan x="600" dy="-0.3em">modal</tspan>
+                            <tspan x="600" dy="1.2em" font-size="11">0.6k LoC</tspan>
+                        </text>
+                    </g>
+
+                    <!-- Low-risk items (lower right) -->
+                    <g class="diagram-node" style="transition-delay: 0.6s;">
+                        <circle cx="1050" cy="640" r="28" fill="#10b981" opacity="0.8"/>
+                        <text x="1050" y="640" text-anchor="middle" fill="#06281f" font-weight="700" font-size="12" dominant-baseline="middle">util</text>
+                    </g>
+                </svg>
+            </div>
+            <p class="text-center text-xs text-slate-500 mt-3">Circle size = number of dependencies. Red = critical refactor target. Goal: move items toward lower-left.</p>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Backend Refactoring Opportunities -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="backend-refactor" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">Backend Refactoring Opportunities</h2>
+            <p class="text-center text-slate-400 mb-6 text-sm exec-only">Business logic that should move from the UI to backend services.</p>
+            <p class="text-center text-slate-400 mb-6 text-sm eng-only">Functionality currently implemented in the frontend that should be refactored into Snowstorm or Authoring Services for better separation of concerns, reusability, and maintainability.</p>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Move to Authoring Services -->
+                <div class="card-bg p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+                        <h3 class="font-bold text-xl text-cyan-400">Move to Authoring Services</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-cyan-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Bulk Change Operations</h4>
+                            <p class="text-sm text-slate-400 mb-2">Batch concept updates, mass inactivations, and project-wide refactoring operations currently orchestrated client-side.</p>
+                            <p class="text-xs text-slate-500 italic">Current: Multiple controllers, ~500 LoC total</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-cyan-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Task Workflow Orchestration</h4>
+                            <p class="text-sm text-slate-400 mb-2">Task state transitions, reviewer assignment, promotion logic, and feedback resolution workflows.</p>
+                            <p class="text-xs text-slate-500 italic">Current: feedback.js, project.js, ~400 LoC</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Move to Snowstorm -->
+                <div class="card-bg p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                        <h3 class="font-bold text-xl text-green-400">Move to Snowstorm</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Concept Inactivation Logic</h4>
+                            <p class="text-sm text-slate-400 mb-2">Complex business rules for inactivating concepts, including reason validation, historical association creation, and cascading updates.</p>
+                            <p class="text-xs text-slate-500 italic">Current: ~800 LoC in conceptEdit.js</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Relationship Type Validation</h4>
+                            <p class="text-sm text-slate-400 mb-2">Domain-specific rules for allowed relationship types based on concept hierarchies and metadata constraints.</p>
+                            <p class="text-xs text-slate-500 italic">Current: Scattered across edit.js, conceptEdit.js</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Semantic Consistency Checks</h4>
+                            <p class="text-sm text-slate-400 mb-2">Description logic validation, semantic tag checking, and FSN uniqueness verification before save.</p>
+                            <p class="text-xs text-slate-500 italic">Current: validationService.js, ~300 LoC</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Transitive Closure Computation</h4>
+                            <p class="text-sm text-slate-400 mb-2">Client-side ancestor/descendant graph traversal for hierarchy visualization and relationship inference.</p>
+                            <p class="text-xs text-slate-500 italic">Current: terminologyServerService.js, ~200 LoC</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">ECL Query Expansion</h4>
+                            <p class="text-sm text-slate-400 mb-2">Client-side ECL parsing, refinement expansion, and focus concept resolution for complex queries.</p>
+                            <p class="text-xs text-slate-500 italic">Current: search.js, ~250 LoC</p>
+                        </div>
+                        
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h4 class="font-bold text-lg text-slate-200 mb-1">Concept Normalization</h4>
+                            <p class="text-sm text-slate-400 mb-2">Standard form computation, redundant relationship removal, and stated-to-inferred relationship conversion.</p>
+                            <p class="text-xs text-slate-500 italic">Current: conceptEdit.js, ~180 LoC</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 card-bg p-5 rounded-xl shadow-lg">
+                <h3 class="font-bold text-lg mb-3 text-purple-400">Benefits of Backend Migration</h3>
+                <div class="grid md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">⚡</span>
+                        <div>
+                            <p class="font-semibold text-slate-200">Performance</p>
+                            <p class="text-slate-400 text-xs">Server-side processing reduces client load and network round-trips</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">🔄</span>
+                        <div>
+                            <p class="font-semibold text-slate-200">Reusability</p>
+                            <p class="text-slate-400 text-xs">Logic becomes available to other clients (APIs, CLI, integrations)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">🛡️</span>
+                        <div>
+                            <p class="font-semibold text-slate-200">Maintainability</p>
+                            <p class="text-slate-400 text-xs">Single source of truth, easier testing, and centralized business rules</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Migration Effort -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="migration-effort" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">Migration Effort Estimate</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto exec-only">Rough breakdown of scope and effort for the Angular 20 migration.</p>
+            <p class="text-center text-slate-400 mb-12 max-w-3xl mx-auto eng-only">Estimated effort by category: rewrite dominant (services, components); tests & refactoring required for tight coupling.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-xl mb-6 text-center">Effort by Category</h3>
+                    <div class="space-y-4 chart">
+                        <div class="flex items-center">
+                            <span class="w-40 text-sm font-semibold text-slate-300">Service migration</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-red-500" style="--bar-width: 100%;"></div>
+                            </div>
+                            <span class="w-20 text-right text-sm font-bold">~35%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-40 text-sm font-semibold text-slate-300">Component rewrite</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-orange-500" style="--bar-width: 80%;"></div>
+                            </div>
+                            <span class="w-20 text-right text-sm font-bold">~28%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-40 text-sm font-semibold text-slate-300">Refactoring & decoupling</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-yellow-500" style="--bar-width: 65%;"></div>
+                            </div>
+                            <span class="w-20 text-right text-sm font-bold">~23%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-40 text-sm font-semibold text-slate-300">Testing & QA</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-emerald-500" style="--bar-width: 51%;"></div>
+                            </div>
+                            <span class="w-20 text-right text-sm font-bold">~18%</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-40 text-sm font-semibold text-slate-300">Tooling & build setup</span>
+                            <div class="flex-1 h-6 bg-slate-700 rounded-full overflow-hidden">
+                                <div class="chart-bar-inner h-full rounded-full bg-cyan-500" style="--bar-width: 32%;"></div>
+                            </div>
+                            <span class="w-20 text-right text-sm font-bold">~8%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-xl mb-6 text-center">Risk Factors</h3>
+                    <ul class="space-y-3 text-slate-300 text-sm">
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 font-bold mt-0.5">⚠</span>
+                            <span><strong>Monolithic files:</strong> conceptEdit.js (6.5k LoC) requires careful refactoring into focused modules.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-400 font-bold mt-0.5">⚠</span>
+                            <span><strong>Tight coupling:</strong> scaService used by 18 controllers; refactor first to reduce dependency blast radius.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-orange-400 font-bold mt-0.5">●</span>
+                            <span><strong>Test coverage:</strong> Only ~9% unit test coverage; plan for significant new test suite investment.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-orange-400 font-bold mt-0.5">●</span>
+                            <span><strong>Legacy patterns:</strong> AngularJS 1.4 idioms (digest cycles, watchers) need translation to modern Angular.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Migration Plan -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="migration-plan" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">18-Month Migration Roadmap</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-4xl mx-auto exec-only">Phased approach delivering functional increments every quarter with 1.5 FTE, starting with core dashboards and expanding into editing and validation.</p>
+            <p class="text-center text-slate-400 mb-12 max-w-4xl mx-auto eng-only">Quarterly milestones with parallel refactoring of scaService and terminologyServerService; early wins via dashboard rewrite; foundational modules prioritized for tight coupling reduction.</p>
+            
+            <!-- Resource & Timeline Overview -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
+                    <p class="text-sm text-slate-400 mb-2">Total Duration</p>
+                    <p class="text-3xl font-black gradient-text">18 Months</p>
+                    <p class="text-xs text-slate-500 mt-2">(6 quarters)</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
+                    <p class="text-sm text-slate-400 mb-2">Team Size</p>
+                    <p class="text-3xl font-black gradient-text">1.5 FTE</p>
+                    <p class="text-xs text-slate-500 mt-2">1 Senior + 0.5 Mid</p>
+                </div>
+                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
+                    <p class="text-sm text-slate-400 mb-2">Estimated Effort</p>
+                    <p class="text-3xl font-black gradient-text">~24 PM</p>
+                    <p class="text-xs text-slate-500 mt-2">Person-months</p>
+                </div>
+            </div>
+
+            <!-- Migration Scope -->
+            <div class="card-bg p-8 rounded-2xl shadow-lg mb-12">
+                <h3 class="font-bold text-2xl mb-6 text-center gradient-text">Migration Scope & Approach</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-lg mb-4 text-purple-400 flex items-center gap-2">
+                            <span>🎨</span> Visual & Technical Refresh
+                        </h4>
+                        <ul class="space-y-3 text-slate-300 text-sm">
+                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Framework:</strong> Angular 20 with TypeScript, RxJS, and NgRx for state management</li>
+                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Styling:</strong> Tailwind CSS replacing legacy Bootstrap/custom CSS for modern, utility-first styling</li>
+                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>UI Library:</strong> Angular Material or PrimeNG for consistent, accessible components</li>
+                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Visuals:</strong> Complete design refresh with modern color palette, typography, and component styling</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-4 text-blue-400 flex items-center gap-2">
+                            <span>🧭</span> UX & Functional Improvements
+                        </h4>
+                        <ul class="space-y-3 text-slate-300 text-sm">
+                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Layout:</strong> Core layout and workflows remain familiar to minimize user retraining</li>
+                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Navigation:</strong> Enhanced screen-to-screen navigation with breadcrumbs, quick-nav, and improved routing</li>
+                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Search:</strong> Improved search UX with type-ahead, filters, saved searches, and better result presentation</li>
+                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>AI Integration:</strong> Explore incorporating AI productivity aids (description generation, ECL builder) into new architecture</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase Breakdown -->
+            <div class="space-y-6">
+                <!-- Phase 0: Kickoff & Design -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-indigo-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Phase 0: Kickoff & Design</h3>
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-sm font-semibold">Months 1–3</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Setup, architecture design, tooling, team onboarding, and user feedback sessions.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Activities</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> Angular 20 + TypeScript project scaffold</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> RxJS & state management (NgRx) POC</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> Design system component library baseline</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> API contract & backend service spec</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> <strong class="text-green-400">Identify backend refactoring candidates</strong> (inactivation, validation)</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> User feedback & design workshop (scope, navigation, UX)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Deliverables</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Project repo & CI/CD pipeline</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Component library storybook</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Angular Material setup</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Migration architecture doc</li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Design mockups for Q1</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q1: Dashboard & Auth -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-emerald-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Q1 (Months 4–6): Home Dashboard & Authentication</h3>
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-semibold">3 months</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Core auth flow and user's "My Tasks" dashboard—high visibility, core user entry point, minimal dependencies. <span class="text-green-400 font-semibold">Start backend refactoring</span>: move ECL expansion and transitive closure to Snowstorm.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> OAuth/SSO service wrapper (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Login/logout flow & guards (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Dashboard layout & task table (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> SCA service integration (read-only) (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> ECL expansion API in Snowstorm (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Transitive closure service (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> User login with role-based access</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> "My Tasks" dashboard (read-only)</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> Task filtering & pagination</li>
+                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> Real-time task status updates (WebSocket)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q2: Projects & Concept Read -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-cyan-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Q2 (Months 7–9): Projects & Concept Read</h3>
+                        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-sm font-semibold">3 months</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Expand dashboard to project listing, concept browsing, and read-only search with terminology service integration.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Project list & detail view (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Terminology service integration (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Search UI (lexical + ECL basic) (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Concept read-only view (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Projects dashboard</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Concept search & preview</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Concept detail (read-only)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Basic taxonomy navigation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q3: Core Editing & Refactor -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-yellow-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Q3 (Months 10–12): Concept Editing & Service Refactor</h3>
+                        <span class="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 text-sm font-semibold">3 months</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Introduce writable editing with refactored scaService; parallel refactor of monolithic conceptEdit logic. <span class="text-green-400 font-semibold">Backend refactoring</span>: move concept inactivation and relationship validation to Snowstorm.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> scaService decomposition (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Concept edit form & axioms (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Descriptions & relationships editor (~1.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Inactivation logic in Snowstorm (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Relationship validation API (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Save & conflict detection (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Concept editing (descriptions, axioms)</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Relationship management (basic)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Server-side inactivation</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Relationship validation</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Save & auto-save</li>
+                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Draft status & branching</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q4: Validation & Classification -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-orange-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Q4 (Months 13–15): Validation & Classification</h3>
+                        <span class="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-sm font-semibold">3 months</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Integrate RVF validation, classification service, and error reporting for editorial quality gates. <span class="text-green-400 font-semibold">Backend refactoring</span>: move semantic checks and concept normalization to Snowstorm.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> validationService integration (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Semantic validation in Snowstorm (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Concept normalization API (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> RVF result display & filtering (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Classification triggers & reports (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Error dashboard & diagnostics (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Real-time RVF validation on edit</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Semantic consistency checks</li>
+                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Concept normalization</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Classification job submission</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Classification result review</li>
+                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Validation exclusion list mgmt</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q5–Q6: Review & Polish -->
+                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-rose-500">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Q5–Q6 (Months 16–18): Review Workflow & Polish</h3>
+                        <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-sm font-semibold">6 months</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Complete feedback/review workflow, conflict resolution, release notes, and comprehensive testing for go-live preparation. <span class="text-cyan-400 font-semibold">Final backend refactoring</span>: bulk operations and task workflow to Authoring Services.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Review workflow & task assignment (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> <strong class="text-cyan-400">Backend:</strong> Bulk operations API (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> <strong class="text-cyan-400">Backend:</strong> Task workflow orchestration (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Merge & conflict resolution UI (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Release notes generation (~0.5 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Performance tuning (~1 PM)</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Comprehensive testing & UAT (~2 PM)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Review & approval workflow</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> <strong class="text-cyan-400">Backend API:</strong> Bulk change operations</li>
+                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> <strong class="text-cyan-400">Backend API:</strong> Task orchestration</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Conflict detection & resolution</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Promotion to production branches</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Release notes & reporting</li>
+                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Go-live readiness & final UAT</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Assumptions & Constraints -->
+            <div class="grid md:grid-cols-2 gap-8 mt-12">
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-lg mb-4 text-cyan-400">Key Assumptions</h3>
+                    <ul class="space-y-3 text-slate-300 text-sm">
+                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Backend services (SCA, terminology, RVF) remain stable and available</li>
+                        <li class="flex items-start gap-3"><span class="text-green-400 font-bold">•</span> <strong class="text-green-400">Backend team parallel work:</strong> ~4.5 PM for Snowstorm/Authoring Services refactoring (inactivation, validation, bulk ops)</li>
+                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> 1.5 FTE frontend team maintained throughout (no staffing gaps)</li>
+                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Parallel AngularJS system supported during migration (dual maintenance)</li>
+                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Incremental cutover: dashboard Q1 → projects Q2 → editing Q3 → validation Q4 → review Q5–Q6</li>
+                    </ul>
+                </div>
+                <div class="card-bg p-8 rounded-2xl shadow-lg">
+                    <h3 class="font-bold text-lg mb-4 text-rose-400">Risk Mitigation</h3>
+                    <ul class="space-y-3 text-slate-300 text-sm">
+                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Scope creep:</strong> Monthly steering review + feature gating per phase</li>
+                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Team turnover:</strong> Cross-training & comprehensive documentation</li>
+                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Backend API changes:</strong> Contract-driven development + versioning</li>
+                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Test debt:</strong> Unit & integration tests incremental; 80%+ coverage by Q4</li>
+                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Performance:</strong> Profiling & optimization in Q5–Q6; caching strategy finalized early</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: AI Features (Current System) -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="ai-features" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-3">AI Features: Recently Added Capabilities</h2>
+            <p class="text-center text-slate-400 mb-6 text-sm">Experimental AI-powered productivity tools integrated into the current AngularJS application to accelerate authoring workflows.</p>
+            
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <!-- AI Concept Generation (from FSN) -->
+                <div class="card-bg p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-4xl">🤖</span>
+                        <div>
+                            <h3 class="font-bold text-xl text-purple-400">AI Concept Generation (from FSN)</h3>
+                            <p class="text-xs text-slate-500">Generate a draft concept from a provided FSN</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-300">
+                        <p><strong class="text-purple-300">Purpose:</strong> Given an FSN, generate an initial concept skeleton with appropriate descriptions and suggested attributes.</p>
+                        <div>
+                            <p class="font-semibold text-slate-200 mb-2">Key Features:</p>
+                            <ul class="space-y-1.5 ml-4">
+                                <li class="flex items-start gap-2"><span class="text-purple-400">•</span> Derives preferred term and synonyms from the FSN</li>
+                                <li class="flex items-start gap-2"><span class="text-purple-400">•</span> Infers semantic tag and case-significance hints</li>
+                                <li class="flex items-start gap-2"><span class="text-purple-400">•</span> Suggests starter attributes/relationships for author review</li>
+                                <li class="flex items-start gap-2"><span class="text-purple-400">•</span> Fully editable preview before creation</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400 mb-1"><strong>Implementation:</strong></p>
+                            <p class="text-xs text-slate-400">Create‑concept flow modal; sends FSN + parent context to AI service to propose descriptions and attributes.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI ECL Builder (Formula-based) -->
+                <div class="card-bg p-6 rounded-xl shadow-lg border-l-4 border-teal-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-4xl">🔍</span>
+                        <div>
+                            <h3 class="font-bold text-xl text-teal-400">AI ECL Builder (Formula-based)</h3>
+                            <p class="text-xs text-slate-500">Guided, chip-based builder with smart completions</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-300">
+                        <p><strong class="text-teal-300">Purpose:</strong> Build complex ECL using guided formula chips (focus, attribute, operator) with AI suggestions.</p>
+                        <div>
+                            <p class="font-semibold text-slate-200 mb-2">Key Features:</p>
+                            <ul class="space-y-1.5 ml-4">
+                                <li class="flex items-start gap-2"><span class="text-teal-400">•</span> Chip palette: focus, attribute, value, group, cardinality</li>
+                                <li class="flex items-start gap-2"><span class="text-teal-400">•</span> AI completion for valid attributes/values given focus concept</li>
+                                <li class="flex items-start gap-2"><span class="text-teal-400">•</span> Inline validation and syntax hints</li>
+                                <li class="flex items-start gap-2"><span class="text-teal-400">•</span> One-click preview and run</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400 mb-1"><strong>Implementation:</strong></p>
+                            <p class="text-xs text-slate-400">Search screen modal; AI suggests legal fragments based on SNOMED context, user assembles final formula.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Concept Translation (on Concept Load) -->
+                <div class="card-bg p-6 rounded-xl shadow-lg border-l-4 border-amber-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-4xl">🌐</span>
+                        <div>
+                            <h3 class="font-bold text-xl text-amber-400">AI Concept Translation</h3>
+                            <p class="text-xs text-slate-500">Translate FSN and synonyms on concept load</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-300">
+                        <p><strong class="text-amber-300">Purpose:</strong> Automatically propose localized FSN and synonyms when a concept loads, based on the user's locale.</p>
+                        <div>
+                            <p class="font-semibold text-slate-200 mb-2">Key Features:</p>
+                            <ul class="space-y-1.5 ml-4">
+                                <li class="flex items-start gap-2"><span class="text-amber-400">•</span> On‑load translation to selected language(s)</li>
+                                <li class="flex items-start gap-2"><span class="text-amber-400">•</span> Medical terminology alignment and diacritics handling</li>
+                                <li class="flex items-start gap-2"><span class="text-amber-400">•</span> Side‑by‑side preview with accept/edit workflow</li>
+                                <li class="flex items-start gap-2"><span class="text-amber-400">•</span> Optional caching to avoid repeated calls</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-800/50 p-3 rounded-lg">
+                            <p class="text-xs text-slate-400 mb-1"><strong>Implementation:</strong></p>
+                            <p class="text-xs text-slate-400">Hook on concept load; calls AI translation service with FSN/synonyms, returns localized candidates for review.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Architecture & Integration -->
+            <div class="card-bg p-6 rounded-xl shadow-lg mb-6">
+                <h3 class="font-bold text-lg mb-4 text-orange-400 flex items-center gap-2">
+                    <span>⚙️</span> Technical Architecture
+                </h3>
+                <div class="grid md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <p class="font-semibold text-slate-200 mb-2">Backend Services</p>
+                        <ul class="space-y-1.5 text-slate-400">
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Dedicated AI service endpoints</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> LLM integration (GPT-4 / Claude)</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> SNOMED CT context injection</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Response caching & rate limiting</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-200 mb-2">Frontend Integration</p>
+                        <ul class="space-y-1.5 text-slate-400">
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Modal dialogs in conceptEdit & search</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Async service calls with loading states</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Editable result previews</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> User acceptance/rejection tracking</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-200 mb-2">User Experience</p>
+                        <ul class="space-y-1.5 text-slate-400">
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Opt-in feature (not forced)</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Clear "AI-generated" labeling</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Manual review/edit before save</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">→</span> Feedback loop for accuracy improvement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Migration Considerations -->
+            <div class="card-bg p-6 rounded-xl shadow-lg">
+                <h3 class="font-bold text-lg mb-4 text-blue-400 flex items-center gap-2">
+                    <span>🚀</span> Migration Considerations
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <p class="font-semibold text-slate-200 mb-3">✅ Opportunities in Angular 20</p>
+                        <ul class="space-y-2 text-slate-400">
+                            <li class="flex items-start gap-2"><span class="text-green-400 font-bold">•</span> Reactive architecture with RxJS for better async handling</li>
+                            <li class="flex items-start gap-2"><span class="text-green-400 font-bold">•</span> Reusable AI service layer with proper state management</li>
+                            <li class="flex items-start gap-2"><span class="text-green-400 font-bold">•</span> Improved UX with modern loading indicators and transitions</li>
+                            <li class="flex items-start gap-2"><span class="text-green-400 font-bold">•</span> Better error handling and fallback strategies</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-200 mb-3">⚠️ Challenges & Decisions</p>
+                        <ul class="space-y-2 text-slate-400">
+                            <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">•</span> Backend service contracts must remain stable during migration</li>
+                            <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">•</span> User training if UI patterns change significantly</li>
+                            <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">•</span> Determine feature priority: migrate early or late in roadmap?</li>
+                            <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">•</span> Consider expanding AI features (e.g., relationship suggestions, conflict resolution)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Glossary -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="glossary" class="reveal visible">
+            <h2 class="text-3xl font-bold text-center mb-4">Glossary</h2>
+            <div class="grid md:grid-cols-2 gap-6 card-bg p-6 rounded-2xl shadow-lg">
+                <div>
+                    <p class="font-semibold">LoC</p>
+                    <p class="text-slate-400 text-sm">Lines of Code. A rough indicator of size and maintenance cost.</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Coupling</p>
+                    <p class="text-slate-400 text-sm">How tightly modules depend on each other. High coupling increases risk.</p>
+                </div>
+                <div class="eng-only">
+                    <p class="font-semibold">God Object</p>
+                    <p class="text-slate-400 text-sm">An oversized module doing too much, often a refactoring priority.</p>
+                </div>
+                <div>
+                    <p class="font-semibold">ECL</p>
+                    <p class="text-slate-400 text-sm">Expression Constraint Language for querying SNOMED CT content.</p>
+                </div>
+                <div class="eng-only">
+                    <p class="font-semibold">RVF</p>
+                    <p class="text-slate-400 text-sm">Release Validation Framework. Automated integrity checks.</p>
+                </div>
+            </div>
+        </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Thank You / End -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h1 class="text-5xl md:text-7xl font-black text-slate-100 mb-8 gradient-text">Thank You</h1>
+                    <p class="text-xl text-slate-400 mb-12">Questions & Discussion</p>
+                    <div class="card-bg p-8 rounded-2xl shadow-lg">
+                        <p class="text-slate-300 mb-4">This migration represents a strategic investment in:</p>
+                        <ul class="text-left text-slate-400 space-y-2 max-w-2xl mx-auto">
+                            <li>✓ Long-term maintainability</li>
+                            <li>✓ Modern development practices</li>
+                            <li>✓ Improved performance and user experience</li>
+                            <li>✓ Reduced technical debt</li>
+                            <li>✓ Future-ready architecture</li>
+                        </ul>
+                    </div>
+                    <footer class="mt-12 text-sm text-slate-500">
+        <p class="font-semibold">&copy; 2025 SNOMED CT Codebase Migration Analysis</p>
+                        <p class="mt-2">A necessary investment for long-term sustainability</p>
+    </footer>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End slideshow-container -->
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Scroll Reveal Animation ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        revealElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // --- Animated Number Counters ---
+        const statNumbers = document.querySelectorAll('.stat-number');
+        const statObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = +el.getAttribute('data-target');
+                    let current = 0;
+                    const increment = target / 100;
+
+                    const updateCount = () => {
+                        if (current < target) {
+                            current += increment;
+                            el.innerText = Math.ceil(current);
+                            requestAnimationFrame(updateCount);
+                        } else {
+                            el.innerText = target;
+                        }
+                    };
+                    
+                    updateCount();
+                    observer.unobserve(el); // Animate only once
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        statNumbers.forEach(number => {
+            statObserver.observe(number);
+        });
+        
+        // --- Animate charts into view ---
+        const charts = document.querySelectorAll('.chart');
+        const chartObserver = new IntersectionObserver((entries) => {
+             entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                   setTimeout(() => {
+                        entry.target.classList.add('visible');
+                   }, 300); // Small delay for better effect
+                   observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        charts.forEach(chart => {
+            chartObserver.observe(chart);
+        });
+
+        // --- Audience toggle ---
+        const bodyEl = document.body;
+        const btnExec = document.getElementById('btnExec');
+        const btnEng = document.getElementById('btnEng');
+        const savedMode = localStorage.getItem('audienceMode');
+        if (savedMode === 'eng') {
+            bodyEl.classList.remove('mode-exec');
+            bodyEl.classList.add('mode-eng');
+            btnEng.classList.add('bg-slate-800','text-slate-200');
+            btnExec.classList.remove('bg-slate-800','text-slate-200');
+            btnExec.classList.add('bg-slate-700','text-slate-300');
+        }
+        const setExec = () => {
+            bodyEl.classList.remove('mode-eng');
+            bodyEl.classList.add('mode-exec');
+            btnExec.classList.add('bg-slate-800','text-slate-200');
+            btnExec.classList.remove('bg-slate-700','text-slate-300');
+            btnEng.classList.add('bg-slate-700','text-slate-300');
+            btnEng.classList.remove('bg-slate-800','text-slate-200');
+            localStorage.setItem('audienceMode', 'exec');
+        };
+        const setEng = () => {
+            bodyEl.classList.remove('mode-exec');
+            bodyEl.classList.add('mode-eng');
+            btnEng.classList.add('bg-slate-800','text-slate-200');
+            btnEng.classList.remove('bg-slate-700','text-slate-300');
+            btnExec.classList.add('bg-slate-700','text-slate-300');
+            btnExec.classList.remove('bg-slate-800','text-slate-200');
+            localStorage.setItem('audienceMode', 'eng');
+        };
+        btnExec && btnExec.addEventListener('click', setExec);
+        btnEng && btnEng.addEventListener('click', setEng);
+
+        // --- Print ---
+        const btnPrint = document.getElementById('btnPrint');
+        btnPrint && btnPrint.addEventListener('click', () => window.print());
+
+        // --- Scrollspy --- 
+        const spyLinks = Array.from(document.querySelectorAll('a[data-spy]'));
+        const idToLink = new Map(spyLinks.map(l => [l.getAttribute('href') || '', l]));
+        const sections = spyLinks
+            .map(l => document.querySelector(l.getAttribute('href')))
+            .filter(Boolean);
+        const spyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = '#' + entry.target.id;
+                const link = idToLink.get(id);
+                if (!link) return;
+                if (entry.isIntersecting) {
+                    spyLinks.forEach(a => a.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        }, { rootMargin: '0px 0px -70% 0px', threshold: 0.1 });
+        sections.forEach(sec => spyObserver.observe(sec));
+
+        // --- Slideshow Navigation ---
+        const container = document.getElementById('slideshow-container');
+        const slides = Array.from(document.querySelectorAll('.slide'));
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slideCounter');
+        const currentSlideEl = document.getElementById('currentSlide');
+        const totalSlidesEl = document.getElementById('totalSlides');
+        const slideIndicator = document.getElementById('slideIndicator');
+        
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+        
+        // Update total slides display
+        if (totalSlidesEl) totalSlidesEl.textContent = totalSlides;
+        
+        // Create indicator dots
+        if (slideIndicator) {
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'slide-indicator-dot';
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(index));
+                dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+                slideIndicator.appendChild(dot);
+            });
+        }
+        
+        function updateSlidePosition() {
+            if (!container) return;
+            const offset = -currentIndex * 100;
+            container.style.transform = `translateX(${offset}vw)`;
+            
+            // Update counter
+            if (currentSlideEl) currentSlideEl.textContent = currentIndex + 1;
+            
+            // Update buttons
+            if (prevBtn) prevBtn.disabled = currentIndex === 0;
+            if (nextBtn) nextBtn.disabled = currentIndex === totalSlides - 1;
+            
+            // Update indicator dots
+            const dots = slideIndicator?.querySelectorAll('.slide-indicator-dot');
+            dots?.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+            
+            // Trigger reveal animations for current slide
+            const currentSlide = slides[currentIndex];
+            if (currentSlide) {
+                const reveals = currentSlide.querySelectorAll('.reveal');
+                reveals.forEach(el => el.classList.add('visible'));
+                
+                const charts = currentSlide.querySelectorAll('.chart');
+                charts.forEach(chart => {
+                    setTimeout(() => chart.classList.add('visible'), 300);
+                });
+            }
+        }
+        
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            currentIndex = index;
+            updateSlidePosition();
+        }
+        
+        function nextSlide() {
+            if (currentIndex < totalSlides - 1) {
+                goToSlide(currentIndex + 1);
+            }
+        }
+        
+        function prevSlide() {
+            if (currentIndex > 0) {
+                goToSlide(currentIndex - 1);
+            }
+        }
+        
+        // Button event listeners
+        if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+        if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'ArrowRight') {
+                nextSlide();
+            }
+        });
+        
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + swipeThreshold) {
+                prevSlide();
+            }
+        }
+        
+        // Initialize first slide
+        updateSlidePosition();
+
+        // --- Functionality Tooltip ---
+        const tooltip = document.getElementById('functionality-tooltip');
+        const functionalityNodes = document.querySelectorAll('#functionalities .diagram-node');
+        
+        functionalityNodes.forEach(node => {
+            node.addEventListener('mouseenter', (e) => {
+                const titleElement = node.querySelector('title');
+                if (titleElement && tooltip) {
+                    tooltip.textContent = titleElement.textContent;
+                    tooltip.classList.add('visible');
+                }
+            });
+            
+            node.addEventListener('mousemove', (e) => {
+                if (tooltip && tooltip.classList.contains('visible')) {
+                    // Position tooltip near cursor
+                    const x = e.clientX + 20;
+                    const y = e.clientY + 20;
+                    
+                    // Keep tooltip on screen
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    const maxX = window.innerWidth - tooltipRect.width - 20;
+                    const maxY = window.innerHeight - tooltipRect.height - 20;
+                    
+                    tooltip.style.left = Math.min(x, maxX) + 'px';
+                    tooltip.style.top = Math.min(y, maxY) + 'px';
+                }
+            });
+            
+            node.addEventListener('mouseleave', () => {
+                if (tooltip) {
+                    tooltip.classList.remove('visible');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
+
