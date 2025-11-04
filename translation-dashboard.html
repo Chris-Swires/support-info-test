@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Translation Dashboard Integration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0f172a 0%, #1e293b 90.1%);
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .gradient-text {
+      background: linear-gradient(45deg, #22d3ee, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .diagram-line {
+      stroke-dasharray: 6 6;
+      opacity: 0.85;
+    }
+
+    .screenshot-frame {
+      position: relative;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 26px;
+      padding: 1.5rem;
+      box-shadow: 0 28px 60px -25px rgba(15, 23, 42, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .screenshot-frame.light {
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 26px 55px -24px rgba(15, 23, 42, 0.55);
+    }
+
+    .screenshot-frame img {
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      box-shadow: 0 18px 32px -22px rgba(15, 23, 42, 0.7);
+    }
+
+    .screenshot-placeholder {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: rgba(148, 163, 184, 0.8);
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.92));
+    }
+
+    .screenshot-caption {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    .mock-screen {
+      background: rgba(15, 23, 60, 0.9);
+      border: 1px solid rgba(94, 234, 212, 0.15);
+      box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.6);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .mock-screen.clean {
+      background: rgba(255, 255, 255, 0.97);
+      color: #0f172a;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 20px 45px -18px rgba(15, 23, 42, 0.3);
+    }
+
+    .mock-header {
+      background: linear-gradient(90deg, #0f172a 0%, #1f2937 60%, #1e40af 100%);
+      color: #e2e8f0;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .mock-header span {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .mock-body {
+      padding: 1.75rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .mock-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 2fr 1fr;
+      gap: 1rem;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .mock-label {
+      display: inline-flex;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+
+    .mock-progress {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.4);
+      overflow: hidden;
+    }
+
+    .mock-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #6366f1);
+    }
+
+    .mock-card {
+      border-radius: 16px;
+      padding: 1.2rem;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.18);
+    }
+
+    .mock-columns {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .mock-paired {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .mock-pill-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .mock-pill {
+      border-radius: 999px;
+      padding: 0.5rem 0.9rem;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.8rem;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mock-side-panel {
+      background: rgba(15, 23, 42, 0.92);
+      border-left: 1px solid rgba(148, 163, 184, 0.15);
+      padding: 1.5rem;
+      color: #cbd5f5;
+      display: grid;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .mock-side-panel h4 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
+    .mock-form-grid {
+      display: grid;
+      grid-template-columns: 2.4fr 1.1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .mock-field {
+      display: grid;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .mock-input {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+    }
+
+    .mock-toolbar {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .mock-toolbar button {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      padding: 0.45rem 0.9rem;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .slideshow-wrapper {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #slideshow-container {
+      display: flex;
+      height: 100%;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+
+    .slide {
+      min-width: 100vw;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+    }
+
+    .slide-content {
+      width: 100%;
+      max-width: 1180px;
+      padding: 4rem 2.5rem 5rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      justify-content: center;
+      min-height: 100%;
+      margin: 0 auto;
+    }
+
+    .slide::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .slide::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 999px;
+    }
+
+    .slideshow-nav {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 0.75rem 1.25rem;
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(30, 41, 59, 0.85);
+      color: #bae6fd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-button:hover {
+      transform: translateY(-2px);
+      border-color: #22d3ee;
+    }
+
+    .dot-nav {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .dot {
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.4);
+      transition: transform 0.2s ease, background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background: #22d3ee;
+      transform: scale(1.4);
+    }
+
+    .slide-indicator {
+      position: absolute;
+      top: 2rem;
+      right: 2.5rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    @media (max-width: 1024px) {
+      .slide-content {
+        padding: 3.5rem 1.75rem 6rem;
+      }
+
+      .slideshow-nav {
+        bottom: 1.75rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .slide-content {
+        padding: 3rem 1.5rem 6.5rem;
+      }
+
+      .slideshow-nav {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+      }
+
+      .dot-nav {
+        gap: 0.4rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="slideshow-wrapper">
+    <span class="slide-indicator" id="slide-indicator">01 / 07</span>
+    <div id="slideshow-container">
+      <!-- Slide 1: Hero -->
+      <section class="slide">
+        <div class="slide-content">
+          <div class="space-y-6 max-w-4xl">
+            <span class="text-sm uppercase tracking-[0.6em] text-sky-300">Authoring Platform Vision</span>
+            <h1 class="text-4xl md:text-5xl font-black leading-tight gradient-text">Translation Dashboard Integration</h1>
+            <p class="text-lg text-slate-300">
+              Building a seamless bridge between the SNOMED CT authoring experience and a dedicated translation dashboard.
+              This overview highlights how editors will move between applications, how translated content flows back into
+              authoring tasks, and how AI-assisted translation becomes a first-class capability.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <span class="px-4 py-2 rounded-full border border-sky-400/60 text-sky-300 text-sm uppercase tracking-widest">Cross-App Navigation</span>
+              <span class="px-4 py-2 rounded-full border border-indigo-400/60 text-indigo-300 text-sm uppercase tracking-widest">AI Enabled</span>
+              <span class="px-4 py-2 rounded-full border border-fuchsia-400/60 text-fuchsia-300 text-sm uppercase tracking-widest">Author Experience</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 2: Integration Highlights -->
+      <section class="slide">
+        <div class="slide-content">
+          <div class="card rounded-3xl p-10 space-y-6 max-w-3xl">
+            <h2 class="text-2xl font-semibold text-sky-300">Integration Highlights</h2>
+            <p class="text-slate-200 text-base">
+              What authors gain the moment we connect the Authoring UI to the Translation Dashboard.
+            </p>
+            <ul class="space-y-4 text-slate-200 text-sm">
+              <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Single-click navigation from the Authoring UI into the Translation Dashboard.</span></li>
+              <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Project-aware dropdown inside the translation experience for importing back into authoring tasks.</span></li>
+              <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Integration powered via <strong>simplex-api</strong> today, with a path to a dedicated Import Service.</span></li>
+              <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Clear hand-off: translate in the dashboard, quality assure in authoring.</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 3: Integration Overview -->
+      <section class="slide">
+        <div class="slide-content">
+          <header class="space-y-4">
+            <h2 class="text-3xl font-bold gradient-text">How the Applications Connect</h2>
+            <p class="text-slate-300 max-w-3xl">
+              The Authoring UI links externally to a new Translation Dashboard. Within that dashboard, authors select the
+              relevant project and push approved translations back to the originating task. The integration diagram shows the
+              current simplex-api bridge and an optional import service for future scale.
+            </p>
+          </header>
+          <div class="grid lg:grid-cols-[2fr_3fr] gap-10 items-start">
+            <div class="card rounded-3xl p-10 space-y-6">
+              <h3 class="text-2xl font-semibold text-sky-300">Integration Flow</h3>
+              <p class="text-slate-200">
+                Authors initiate translation from the Authoring UI. The external dashboard provides a focused translation workspace,
+                yet stays aware of SNOMED CT projects and tasks. When translation is complete, the set is imported back into the task using an API bridge.
+              </p>
+              <ul class="space-y-4 text-sm text-slate-300">
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">•</span><span><strong>Outbound link:</strong> Author jumps directly from a task to the Translation Dashboard.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">•</span><span><strong>Project context:</strong> Dashboard dropdown mirrors Authoring UI projects to keep translations targeted.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">•</span><span><strong>Import path:</strong> Today via <code>simplex-api</code>, with a future-friendly import service for bulk or AI generated translations.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">•</span><span><strong>Downstream:</strong> Translations land in Snowstorm through existing publishing channels.</span></li>
+              </ul>
+            </div>
+            <div class="relative">
+              <svg viewBox="0 0 880 460" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="node" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.95" />
+                    <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.95" />
+                  </linearGradient>
+                </defs>
+
+                <rect x="20" y="170" rx="26" ry="26" width="220" height="130" fill="url(#node)" opacity="0.9" />
+                <text x="130" y="210" text-anchor="middle" fill="#0f172a" font-size="22" font-weight="700">Authoring UI</text>
+                <text x="130" y="240" text-anchor="middle" fill="#0f172a" font-size="14">Task level link</text>
+                <text x="130" y="260" text-anchor="middle" fill="#0f172a" font-size="14">Launch Translation Dashboard</text>
+
+                <rect x="310" y="120" rx="26" ry="26" width="240" height="170" fill="#1e293b" stroke="#22d3ee" stroke-width="2.5" opacity="0.98" />
+                <text x="430" y="160" text-anchor="middle" fill="#22d3ee" font-size="22" font-weight="700">Translation Dashboard</text>
+                <text x="430" y="190" text-anchor="middle" fill="#cbd5f5" font-size="14">Project dropdown • Set management</text>
+                <text x="430" y="210" text-anchor="middle" fill="#cbd5f5" font-size="14">Weblate review • AI assistance</text>
+                <text x="430" y="230" text-anchor="middle" fill="#cbd5f5" font-size="14">Export translated set</text>
+
+                <rect x="620" y="70" rx="22" ry="22" width="180" height="110" fill="#1f2937" stroke="#38bdf8" stroke-width="2.5" />
+                <text x="710" y="110" text-anchor="middle" fill="#38bdf8" font-size="18" font-weight="700">simplex-api</text>
+                <text x="710" y="132" text-anchor="middle" fill="#bfdbfe" font-size="13">Current import bridge</text>
+
+                <rect x="620" y="210" rx="22" ry="22" width="180" height="120" fill="#111827" stroke="#a78bfa" stroke-dasharray="12 7" stroke-width="2.5" />
+                <text x="710" y="248" text-anchor="middle" fill="#c4b5fd" font-size="18" font-weight="700">Import Service</text>
+                <text x="710" y="272" text-anchor="middle" fill="#c4b5fd" font-size="13">Future scalable option</text>
+                <text x="710" y="292" text-anchor="middle" fill="#c4b5fd" font-size="13">Bulk + AI pipeline ready</text>
+
+                <rect x="620" y="360" rx="22" ry="22" width="180" height="80" fill="#0f172a" stroke="#38d0ae" stroke-width="2.5" />
+                <text x="710" y="398" text-anchor="middle" fill="#38d0ae" font-size="18" font-weight="700">Snowstorm</text>
+                <text x="710" y="420" text-anchor="middle" fill="#38d0ae" font-size="12">Terminology store & publish</text>
+
+                <line x1="240" y1="230" x2="310" y2="205" stroke="#22d3ee" stroke-width="5" class="diagram-line" marker-end="url(#arrow)" />
+                <line x1="550" y1="175" x2="620" y2="125" stroke="#22d3ee" stroke-width="5" class="diagram-line" marker-end="url(#arrow)" />
+                <line x1="550" y1="205" x2="620" y2="265" stroke="#a78bfa" stroke-width="5" class="diagram-line" marker-end="url(#arrow)" />
+                <line x1="710" y1="180" x2="710" y2="210" stroke="#38bdf8" stroke-width="4" class="diagram-line" />
+                <line x1="710" y1="330" x2="710" y2="360" stroke="#38d0ae" stroke-width="4" class="diagram-line" marker-end="url(#arrow-snow)" />
+                <line x1="620" y1="125" x2="550" y2="240" stroke="#38bdf8" stroke-width="5" class="diagram-line" marker-end="url(#arrow-back)" />
+                <line x1="310" y1="245" x2="240" y2="245" stroke="#38bdf8" stroke-width="5" class="diagram-line" marker-end="url(#arrow-back)" />
+
+                <defs>
+                  <marker id="arrow" markerWidth="12" markerHeight="12" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#22d3ee" />
+                  </marker>
+                  <marker id="arrow-back" markerWidth="12" markerHeight="12" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#38bdf8" />
+                  </marker>
+                  <marker id="arrow-snow" markerWidth="12" markerHeight="12" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#38d0ae" />
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 4: Managing Translation Sets -->
+      <section class="slide">
+        <div class="slide-content">
+          <div class="grid lg:grid-cols-[2.2fr_2.8fr] gap-10 items-start">
+            <div class="space-y-6">
+              <h2 class="text-3xl font-bold gradient-text">Managing Translation Sets</h2>
+              <p class="text-slate-300">
+                Selecting a set reveals the worklist, team status, and entry points into the detailed translation tool.
+                Authors can create new sets, see changes since creation, and open the translation tool in context.
+              </p>
+              <ul class="space-y-3 text-slate-300 text-sm">
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Set metadata keeps editors aligned on language code, translation counts, and review cadence.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>"Open in Translation Tool" deep-links directly to the corresponding Weblate queue.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Embedded members list surfaces the next concepts to translate, priming authors before they dive in.</span></li>
+              </ul>
+            </div>
+            <div class="space-y-3">
+              <div class="screenshot-frame light">
+                <img src="Screenshot%202025-11-03%20at%2010.41.29.png" alt="Translation dashboard overview with translation sets progress" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="screenshot-placeholder">
+                  Screenshot not found.<br />
+                  Ensure <code>Screenshot 2025-11-03 at 10.41.29.png</code> is present in the project root.
+                </div>
+              </div>
+              <p class="screenshot-caption">Dashboard overview · Translation sets and progress</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 5: Translation Sets Dashboard -->
+      <section class="slide">
+        <div class="slide-content">
+          <div class="grid lg:grid-cols-[2fr_3fr] gap-10 items-center">
+            <div class="space-y-6">
+              <h2 class="text-3xl font-bold gradient-text">Translation Sets Dashboard</h2>
+              <p class="text-slate-300">
+                Authors arrive in the dashboard with a project-centric view of every translation set. Progress bars expose
+                velocity, while the navigation automatically scopes work to the active code system.
+              </p>
+              <ul class="space-y-3 text-slate-300 text-sm">
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>At-a-glance metrics surface translated, untranslated, and overall progress for each set.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Set chips act as deep links, taking the author directly into focused translation workflows.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Filters mirror SNOMED CT projects and reference sets so authors always know the scope of work.</span></li>
+              </ul>
+            </div>
+            <div class="space-y-3">
+              <div class="screenshot-frame light">
+                <img src="Screenshot%202025-11-03%20at%2010.43.08.png" alt="Simplex translation dashboard set detail view" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="screenshot-placeholder">
+                  Screenshot not found.<br />
+                  Ensure <code>Screenshot 2025-11-03 at 10.43.08.png</code> is present in the project root.
+                </div>
+              </div>
+              <p class="screenshot-caption">Translation dashboard detail · Project-level summary and quick actions</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 6: Weblate in Action -->
+      <section class="slide">
+        <div class="slide-content">
+          <div class="grid lg:grid-cols-[2fr_3fr] gap-10 items-start">
+            <div class="space-y-6">
+              <h2 class="text-3xl font-bold gradient-text">Translating with Weblate</h2>
+              <p class="text-slate-300">
+                Editors translate individual strings with rich concept context, AI assistance, and streamlined review. The
+                translation dashboard deep-links to this view so authors remain in the same clinical context throughout.
+              </p>
+              <ul class="space-y-3 text-slate-300 text-sm">
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Concept descriptions, parents, and attributes display alongside the editable preferred term.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Automatic suggestions blend translation memory, AI prompts, and other languages.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">◆</span><span>Review states and action buttons (Save, Suggest, Skip) keep teams moving quickly.</span></li>
+              </ul>
+            </div>
+            <div class="space-y-3">
+              <div class="screenshot-frame">
+                <img src="Screenshot%202025-11-03%20at%2010.42.17.png" alt="Weblate translation screen with concept details" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="screenshot-placeholder">
+                  Screenshot not found.<br />
+                  Ensure <code>Screenshot 2025-11-03 at 10.42.17.png</code> is present in the project root.
+                </div>
+              </div>
+              <p class="screenshot-caption">Weblate translation UI · Rich concept context with translation controls</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Slide 7: Future Integration -->
+      <section class="slide">
+        <div class="slide-content">
+          <header class="space-y-4">
+            <h2 class="text-3xl font-bold gradient-text">Beyond the Dashboard: Standardised AI Translation</h2>
+            <p class="text-slate-300 max-w-3xl">
+              The work happening inside this repository lays the groundwork for deeper alignment. Our future state brings the Translation Dashboard,
+              Authoring UI, and AI services into a consistent pipeline.
+            </p>
+          </header>
+          <div class="grid lg:grid-cols-3 gap-8">
+            <div class="card rounded-3xl p-8 space-y-4">
+              <h3 class="text-xl font-semibold text-sky-300">1. Unified AI Patterns</h3>
+              <p class="text-slate-200 text-sm">
+                Reuse the authoring-ui AI prompt orchestration for translations, ensuring consistent logging, safety checks, and user controls.
+              </p>
+            </div>
+            <div class="card rounded-3xl p-8 space-y-4">
+              <h3 class="text-xl font-semibold text-sky-300">2. Service Abstraction</h3>
+              <p class="text-slate-200 text-sm">
+                Extend the upcoming import service to handle AI generated translations, aligning terminology validation and release workflows with existing simplex-api endpoints.
+              </p>
+            </div>
+            <div class="card rounded-3xl p-8 space-y-4">
+              <h3 class="text-xl font-semibold text-sky-300">3. Continuous Feedback Loop</h3>
+              <p class="text-slate-200 text-sm">
+                Feed authoring-ui review outcomes back to the Translation Dashboard and AI models, forming a standardised feedback loop for translation quality.
+              </p>
+            </div>
+          </div>
+          <div class="card mt-12 rounded-3xl p-10 grid lg:grid-cols-[2fr_3fr] gap-10 items-center">
+            <div class="space-y-4">
+              <h3 class="text-2xl font-semibold text-sky-300">Next Milestones</h3>
+              <p class="text-slate-200 text-sm">
+                The integration outlined here is the launch point. The next iteration embeds the Translation Dashboard context deeper into the Authoring UI,
+                allowing standard prompts, reusable golden sets, and automated QA to be shared between products.
+              </p>
+            </div>
+            <div>
+              <ul class="space-y-3 text-slate-200 text-sm">
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">→</span><span>Expose Translation Dashboard status directly inside the Authoring UI task pane.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">→</span><span>Adopt shared AI policy and telemetry components from this repository.</span></li>
+                <li class="flex gap-3"><span class="text-sky-400 mt-1">→</span><span>Scale import automation to support concurrent translation sets and bulk AI updates.</span></li>
+              </ul>
+            </div>
+          </div>
+          <footer class="text-center text-sm text-slate-500 pt-6">
+            © SNOMED International — Translation Dashboard Integration concept. Visual language inspired by the Authoring UI stats experience.
+          </footer>
+        </div>
+      </section>
+    </div>
+
+    <!-- Navigation -->
+    <div class="slideshow-nav">
+      <button class="nav-button" id="prev-slide" aria-label="Previous slide">‹</button>
+      <div class="dot-nav" id="dot-nav"></div>
+      <button class="nav-button" id="next-slide" aria-label="Next slide">›</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const container = document.getElementById('slideshow-container');
+      const slides = Array.from(container.querySelectorAll('.slide'));
+      const prevBtn = document.getElementById('prev-slide');
+      const nextBtn = document.getElementById('next-slide');
+      const dotNav = document.getElementById('dot-nav');
+      const indicator = document.getElementById('slide-indicator');
+      const totalSlides = slides.length;
+      let currentSlide = 0;
+      let isTransitioning = false;
+
+      function updateIndicator() {
+        indicator.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+      }
+
+      function renderDots() {
+        dotNav.innerHTML = '';
+        slides.forEach((_, index) => {
+          const dot = document.createElement('span');
+          dot.className = 'dot' + (index === currentSlide ? ' active' : '');
+          dot.dataset.index = index;
+          dot.addEventListener('click', () => goToSlide(index));
+          dotNav.appendChild(dot);
+        });
+      }
+
+      function goToSlide(index) {
+        if (isTransitioning || index === currentSlide || index < 0 || index >= totalSlides) return;
+        isTransitioning = true;
+        currentSlide = index;
+        container.style.transform = `translateX(-${currentSlide * 100}vw)`;
+        updateIndicator();
+        renderDots();
+        setTimeout(() => { isTransitioning = false; }, 650);
+      }
+
+      function nextSlide() {
+        goToSlide(Math.min(currentSlide + 1, totalSlides - 1));
+      }
+
+      function prevSlide() {
+        goToSlide(Math.max(currentSlide - 1, 0));
+      }
+
+      prevBtn.addEventListener('click', prevSlide);
+      nextBtn.addEventListener('click', nextSlide);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') nextSlide();
+        if (event.key === 'ArrowLeft') prevSlide();
+      });
+
+      let wheelTimeout;
+      container.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        if (wheelTimeout) return;
+        if (event.deltaY > 0) nextSlide();
+        else if (event.deltaY < 0) prevSlide();
+        wheelTimeout = setTimeout(() => wheelTimeout = null, 700);
+      }, { passive: false });
+
+      updateIndicator();
+      renderDots();
+    })();
+  </script>
+</body>
+</html>
+
