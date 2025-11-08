@@ -389,6 +389,7 @@
     <!-- Slideshow Container -->
     <div id="slideshow-container">
         
+        
         <!-- Slide 1: Hero / Title -->
         <div class="slide">
             <div class="slide-content" style="justify-content: center;">
@@ -405,6 +406,79 @@
             </div>
         </div>
 
+        <!-- Slide 2: Why Modernize the Authoring Platform Now -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section id="why-now" class="reveal visible">
+                        <h2 class="text-3xl font-bold text-center mb-4">Why Modernize the Authoring Platform Now</h2>
+                        <p class="text-center text-slate-400 mb-10 max-w-4xl mx-auto">Reduce operational risk, protect business continuity, and unlock faster delivery and innovation—while positioning the platform for collaborative and AI‑augmented authoring.</p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- Technology Risk -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-rose-500">
+                                <h3 class="font-bold text-xl mb-3 text-rose-300">Technology Risk</h3>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Unsupported, end‑of‑life frontend stack increases <span class="font-semibold">security and continuity risk</span>.</li>
+                                    <li>• Large, tightly coupled code makes change <span class="font-semibold">slow and expensive</span>.</li>
+                                    <li>• Tooling and ecosystem have shifted; <span class="font-semibold">talent pool</span> for legacy skills is shrinking.</li>
+                                    <li>• Testing debt drives <span class="font-semibold">release risk and rework</span>.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Human Risk -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-amber-500">
+                                <h3 class="font-bold text-xl mb-3 text-amber-300">Human Risk</h3>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• <span class="font-semibold">Key‑person dependency</span>: knowledge concentrated in two individuals.</li>
+                                    <li>• One expert no longer develops; another is <span class="font-semibold">contracted</span>—succession risk.</li>
+                                    <li>• Difficult to attract/retain engineers on legacy stack; <span class="font-semibold">onboarding cost</span> is high.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Opportunity: Product & Engineering -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-cyan-500">
+                                <h3 class="font-bold text-xl mb-3 text-cyan-300">Opportunity</h3>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Accelerate roadmap delivery with a <span class="font-semibold">modern, modular</span> stack.</li>
+                                    <li>• Productize recent <span class="font-semibold">AI gains</span> (translation, generation) for measurable productivity lift.</li>
+                                    <li>• Improve reliability, performance, accessibility and <span class="font-semibold">reduce total cost of ownership</span>.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Learn & Streamline -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-emerald-500">
+                                <h3 class="font-bold text-xl mb-3 text-emerald-300">Streamline & Focus</h3>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Apply usage data to <span class="font-semibold">retire low‑value features</span> and simplify journeys.</li>
+                                    <li>• Consolidate overlapping screens; standardize patterns to speed change.</li>
+                                    <li>• Institutionalize knowledge with docs/design‑system to reduce ramp‑up time.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Future Vision -->
+                        <div class="card-bg p-6 rounded-2xl shadow-lg mt-8 border-l-4 border-indigo-500">
+                            <h3 class="font-bold text-xl mb-3 text-indigo-300">Platform for the Next Decade</h3>
+                            <div class="grid md:grid-cols-3 gap-6 text-sm text-slate-300">
+                                <div>
+                                    <p class="font-semibold mb-1">Collaborative Authoring</p>
+                                    <p class="text-slate-400">Real‑time co‑editing, presence, and guided review to shorten cycle time.</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold mb-1">AI Co‑pilot</p>
+                                    <p class="text-slate-400">Safe, auditable AI assistance across editing, translation, and search.</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold mb-1">Operational Excellence</p>
+                                    <p class="text-slate-400">Standardized components, strong tests, and telemetry for predictable releases.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
         <!-- Slide 2: Scale & Size + Complexity -->
         <div class="slide">
             <div class="slide-content">
@@ -1383,282 +1457,59 @@
             <div class="slide-content">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <section id="migration-plan" class="reveal visible">
-            <h2 class="text-3xl font-bold text-center mb-4">18-Month Migration Roadmap</h2>
-            <p class="text-center text-slate-400 mb-12 max-w-4xl mx-auto exec-only">Phased approach delivering functional increments every quarter with 1.5 FTE, starting with core dashboards and expanding into editing and validation.</p>
-            <p class="text-center text-slate-400 mb-12 max-w-4xl mx-auto eng-only">Quarterly milestones with parallel refactoring of scaService and terminologyServerService; early wins via dashboard rewrite; foundational modules prioritized for tight coupling reduction.</p>
-            
-            <!-- Resource & Timeline Overview -->
-            <div class="grid md:grid-cols-3 gap-6 mb-12">
-                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
-                    <p class="text-sm text-slate-400 mb-2">Total Duration</p>
-                    <p class="text-3xl font-black gradient-text">18 Months</p>
-                    <p class="text-xs text-slate-500 mt-2">(6 quarters)</p>
-                </div>
-                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
-                    <p class="text-sm text-slate-400 mb-2">Team Size</p>
-                    <p class="text-3xl font-black gradient-text">1.5 FTE</p>
-                    <p class="text-xs text-slate-500 mt-2">1 Senior + 0.5 Mid</p>
-                </div>
-                <div class="card-bg p-6 rounded-2xl shadow-lg text-center">
-                    <p class="text-sm text-slate-400 mb-2">Estimated Effort</p>
-                    <p class="text-3xl font-black gradient-text">~24 PM</p>
-                    <p class="text-xs text-slate-500 mt-2">Person-months</p>
-                </div>
-            </div>
+                        <h2 class="text-3xl font-bold text-center mb-6">Three-Phase Modernization Plan</h2>
+                        <p class="text-center text-slate-400 mb-10 max-w-3xl mx-auto">18-month path to reduce risk, accelerate delivery, and enable collaborative, AI-ready authoring.</p>
 
-            <!-- Migration Scope -->
-            <div class="card-bg p-8 rounded-2xl shadow-lg mb-12">
-                <h3 class="font-bold text-2xl mb-6 text-center gradient-text">Migration Scope & Approach</h3>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div>
-                        <h4 class="font-bold text-lg mb-4 text-purple-400 flex items-center gap-2">
-                            <span>🎨</span> Visual & Technical Refresh
-                        </h4>
-                        <ul class="space-y-3 text-slate-300 text-sm">
-                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Framework:</strong> Angular 20 with TypeScript, RxJS, and NgRx for state management</li>
-                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Styling:</strong> Tailwind CSS replacing legacy Bootstrap/custom CSS for modern, utility-first styling</li>
-                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>UI Library:</strong> Angular Material or PrimeNG for consistent, accessible components</li>
-                            <li class="flex items-start gap-3"><span class="text-purple-400 font-bold">•</span> <strong>Visuals:</strong> Complete design refresh with modern color palette, typography, and component styling</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-lg mb-4 text-blue-400 flex items-center gap-2">
-                            <span>🧭</span> UX & Functional Improvements
-                        </h4>
-                        <ul class="space-y-3 text-slate-300 text-sm">
-                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Layout:</strong> Core layout and workflows remain familiar to minimize user retraining</li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Navigation:</strong> Enhanced screen-to-screen navigation with breadcrumbs, quick-nav, and improved routing</li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>Search:</strong> Improved search UX with type-ahead, filters, saved searches, and better result presentation</li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400 font-bold">•</span> <strong>AI Integration:</strong> Explore incorporating AI productivity aids (description generation, ECL builder) into new architecture</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-rose-500">
+                                <h3 class="font-bold text-xl mb-2 text-rose-300">Phase 1 — Stabilize & De-risk</h3>
+                                <p class="text-slate-400 text-sm mb-4">Protect business continuity and remove technology/key-person risk.</p>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Stand up Angular 20 foundation, design system, CI/CD.</li>
+                                    <li>• Deliver early wins (Auth, Home dashboard) on the new stack.</li>
+                                    <li>• Begin decoupling hotspots and raise automated test coverage.</li>
+                                </ul>
+                                <p class="text-xs text-slate-500 mt-4">Months 1–6</p>
+                            </div>
 
-            <!-- Phase Breakdown -->
-            <div class="space-y-6">
-                <!-- Phase 0: Kickoff & Design -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-indigo-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Phase 0: Kickoff & Design</h3>
-                        <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-sm font-semibold">Months 1–3</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Setup, architecture design, tooling, team onboarding, and user feedback sessions.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Activities</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> Angular 20 + TypeScript project scaffold</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> RxJS & state management (NgRx) POC</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> Design system component library baseline</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> API contract & backend service spec</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> <strong class="text-green-400">Identify backend refactoring candidates</strong> (inactivation, validation)</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">•</span> User feedback & design workshop (scope, navigation, UX)</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Deliverables</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Project repo & CI/CD pipeline</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Component library storybook</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Angular Material setup</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Migration architecture doc</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 font-bold">✓</span> Design mockups for Q1</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-cyan-500">
+                                <h3 class="font-bold text-xl mb-2 text-cyan-300">Phase 2 — Modernize & Accelerate</h3>
+                                <p class="text-slate-400 text-sm mb-4">Improve delivery speed and user experience with a modular core.</p>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Migrate projects, search, and read views to modern architecture.</li>
+                                    <li>• Break up monoliths; normalize shared services and APIs.</li>
+                                    <li>• Productize current AI gains (translation, generation).</li>
+                                </ul>
+                                <p class="text-xs text-slate-500 mt-4">Months 7–12</p>
+                            </div>
 
-                <!-- Q1: Dashboard & Auth -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-emerald-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Q1 (Months 4–6): Home Dashboard & Authentication</h3>
-                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-semibold">3 months</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Core auth flow and user's "My Tasks" dashboard—high visibility, core user entry point, minimal dependencies. <span class="text-green-400 font-semibold">Start backend refactoring</span>: move ECL expansion and transitive closure to Snowstorm.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> OAuth/SSO service wrapper (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Login/logout flow & guards (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Dashboard layout & task table (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> SCA service integration (read-only) (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> ECL expansion API in Snowstorm (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Transitive closure service (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
-                            </ul>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-indigo-500">
+                                <h3 class="font-bold text-xl mb-2 text-indigo-300">Phase 3 — Scale & Innovate</h3>
+                                <p class="text-slate-400 text-sm mb-4">Enable collaborative, AI-assisted authoring at enterprise scale.</p>
+                                <ul class="space-y-2 text-slate-300 text-sm">
+                                    <li>• Launch writable editing with guardrails and quality gates.</li>
+                                    <li>• Add collaboration signals (presence, review, real-time updates).</li>
+                                    <li>• Establish AI co-pilot patterns with audit trail and governance.</li>
+                                </ul>
+                                <p class="text-xs text-slate-500 mt-4">Months 13–18</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> User login with role-based access</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> "My Tasks" dashboard (read-only)</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> Task filtering & pagination</li>
-                                <li class="flex items-start gap-2"><span class="text-emerald-400 font-bold">✓</span> Real-time task status updates (WebSocket)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Q2: Projects & Concept Read -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-cyan-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Q2 (Months 7–9): Projects & Concept Read</h3>
-                        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-sm font-semibold">3 months</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Expand dashboard to project listing, concept browsing, and read-only search with terminology service integration.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Project list & detail view (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Terminology service integration (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Search UI (lexical + ECL basic) (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Concept read-only view (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
-                            </ul>
+                        <div class="grid md:grid-cols-3 gap-6 mt-10">
+                            <div class="card-bg p-4 rounded-xl text-center">
+                                <p class="text-sm text-slate-400 mb-1">Duration</p>
+                                <p class="text-2xl font-black gradient-text">18 Months</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center">
+                                <p class="text-sm text-slate-400 mb-1">Team</p>
+                                <p class="text-2xl font-black gradient-text">1.5 FTE</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center">
+                                <p class="text-sm text-slate-400 mb-1">Outcome</p>
+                                <p class="text-sm text-slate-300">Lower risk • Faster delivery • AI-ready platform</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Projects dashboard</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Concept search & preview</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Concept detail (read-only)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> Basic taxonomy navigation</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Q3: Core Editing & Refactor -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-yellow-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Q3 (Months 10–12): Concept Editing & Service Refactor</h3>
-                        <span class="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 text-sm font-semibold">3 months</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Introduce writable editing with refactored scaService; parallel refactor of monolithic conceptEdit logic. <span class="text-green-400 font-semibold">Backend refactoring</span>: move concept inactivation and relationship validation to Snowstorm.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> scaService decomposition (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Concept edit form & axioms (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Descriptions & relationships editor (~1.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Inactivation logic in Snowstorm (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Relationship validation API (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Save & conflict detection (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Concept editing (descriptions, axioms)</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Relationship management (basic)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Server-side inactivation</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Relationship validation</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Save & auto-save</li>
-                                <li class="flex items-start gap-2"><span class="text-yellow-400 font-bold">✓</span> Draft status & branching</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Q4: Validation & Classification -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-orange-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Q4 (Months 13–15): Validation & Classification</h3>
-                        <span class="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-sm font-semibold">3 months</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Integrate RVF validation, classification service, and error reporting for editorial quality gates. <span class="text-green-400 font-semibold">Backend refactoring</span>: move semantic checks and concept normalization to Snowstorm.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> validationService integration (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Semantic validation in Snowstorm (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">▪</span> <strong class="text-green-400">Backend:</strong> Concept normalization API (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> RVF result display & filtering (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Classification triggers & reports (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Error dashboard & diagnostics (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">▪</span> Testing & refinement (~0.5 PM)</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Real-time RVF validation on edit</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Semantic consistency checks</li>
-                                <li class="flex items-start gap-2"><span class="text-green-400 font-bold">✓</span> <strong class="text-green-400">Backend API:</strong> Concept normalization</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Classification job submission</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Classification result review</li>
-                                <li class="flex items-start gap-2"><span class="text-orange-400 font-bold">✓</span> Validation exclusion list mgmt</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Q5–Q6: Review & Polish -->
-                <div class="card-bg p-6 sm:p-8 rounded-2xl shadow-lg border-l-4 border-rose-500">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold">Q5–Q6 (Months 16–18): Review Workflow & Polish</h3>
-                        <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-sm font-semibold">6 months</span>
-                    </div>
-                    <p class="text-slate-400 mb-4">Complete feedback/review workflow, conflict resolution, release notes, and comprehensive testing for go-live preparation. <span class="text-cyan-400 font-semibold">Final backend refactoring</span>: bulk operations and task workflow to Authoring Services.</p>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Effort & Work</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Review workflow & task assignment (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> <strong class="text-cyan-400">Backend:</strong> Bulk operations API (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">▪</span> <strong class="text-cyan-400">Backend:</strong> Task workflow orchestration (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Merge & conflict resolution UI (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Release notes generation (~0.5 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Performance tuning (~1 PM)</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">▪</span> Comprehensive testing & UAT (~2 PM)</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-sm text-slate-300 mb-3">Functional Delivered</p>
-                            <ul class="text-sm text-slate-400 space-y-2">
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Review & approval workflow</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> <strong class="text-cyan-400">Backend API:</strong> Bulk change operations</li>
-                                <li class="flex items-start gap-2"><span class="text-cyan-400 font-bold">✓</span> <strong class="text-cyan-400">Backend API:</strong> Task orchestration</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Conflict detection & resolution</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Promotion to production branches</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Release notes & reporting</li>
-                                <li class="flex items-start gap-2"><span class="text-rose-400 font-bold">✓</span> Go-live readiness & final UAT</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Key Assumptions & Constraints -->
-            <div class="grid md:grid-cols-2 gap-8 mt-12">
-                <div class="card-bg p-8 rounded-2xl shadow-lg">
-                    <h3 class="font-bold text-lg mb-4 text-cyan-400">Key Assumptions</h3>
-                    <ul class="space-y-3 text-slate-300 text-sm">
-                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Backend services (SCA, terminology, RVF) remain stable and available</li>
-                        <li class="flex items-start gap-3"><span class="text-green-400 font-bold">•</span> <strong class="text-green-400">Backend team parallel work:</strong> ~4.5 PM for Snowstorm/Authoring Services refactoring (inactivation, validation, bulk ops)</li>
-                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> 1.5 FTE frontend team maintained throughout (no staffing gaps)</li>
-                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Parallel AngularJS system supported during migration (dual maintenance)</li>
-                        <li class="flex items-start gap-3"><span class="text-cyan-400 font-bold">•</span> Incremental cutover: dashboard Q1 → projects Q2 → editing Q3 → validation Q4 → review Q5–Q6</li>
-                    </ul>
-                </div>
-                <div class="card-bg p-8 rounded-2xl shadow-lg">
-                    <h3 class="font-bold text-lg mb-4 text-rose-400">Risk Mitigation</h3>
-                    <ul class="space-y-3 text-slate-300 text-sm">
-                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Scope creep:</strong> Monthly steering review + feature gating per phase</li>
-                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Team turnover:</strong> Cross-training & comprehensive documentation</li>
-                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Backend API changes:</strong> Contract-driven development + versioning</li>
-                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Test debt:</strong> Unit & integration tests incremental; 80%+ coverage by Q4</li>
-                        <li class="flex items-start gap-3"><span class="text-rose-400 font-bold">⚠</span> <strong>Performance:</strong> Profiling & optimization in Q5–Q6; caching strategy finalized early</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+                    </section>
                 </div>
             </div>
         </div>
