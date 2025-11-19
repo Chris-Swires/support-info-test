@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI & LLM Use Cases in Development</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to complement Tailwind */
+        html,
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eee8d5;
+            /* Solarized Base2 - Darker */
+            color: #586e75;
+            /* Solarized Base01 - Darker */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Horizontal slideshow container */
+        #slideshow-container {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Individual slides */
+        .slide {
+            min-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Slide content wrapper */
+        .slide-content {
+            min-height: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Allow content to overflow and scroll if needed */
+        .slide-content>* {
+            flex-shrink: 0;
+        }
+
+        /* Better spacing for slide sections */
+        .slide section {
+            width: 100%;
+        }
+
+        /* Animation for elements fading in on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Gradient text for the hero section */
+        .gradient-text {
+            background: linear-gradient(45deg, #2aa198, #268bd2);
+            /* Cyan to Blue */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom styling for the hero section background */
+        .hero-bg {
+            background: radial-gradient(circle at 10% 20%, #eee8d5 0%, #d5cbb8 90.1%);
+        }
+
+        /* Custom card background */
+        .card-bg {
+            background-color: #d5cbb8;
+            /* Darker beige */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Navigation buttons */
+        .nav-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2aa198, #268bd2);
+            color: #fdf6e3;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(42, 161, 152, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-button.prev {
+            left: 2rem;
+        }
+
+        .nav-button.next {
+            right: 2rem;
+        }
+
+        /* Slide indicator */
+        .slide-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        .slide-indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(147, 161, 161, 0.5);
+            /* Solarized Base1 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator-dot.active {
+            background: linear-gradient(135deg, #2aa198, #268bd2);
+            transform: scale(1.3);
+        }
+
+        .slide-indicator-dot:hover {
+            background: rgba(147, 161, 161, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            padding: 0.75rem 1.25rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        /* Card hover effects */
+        .card-bg {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-bg:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(147, 161, 161, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2aa198, #268bd2);
+            transition: width 0.3s ease;
+        }
+
+        /* Icon animations */
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .animate-bounce {
+            animation: bounce 2s infinite;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Number counter animation */
+        .counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Print styles */
+        @media print {
+
+            .nav-button,
+            .slide-indicator,
+            .slide-counter,
+            .print-hidden {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            .card-bg {
+                background: #ffffff !important;
+                box-shadow: none !important;
+                border: 1px solid #ccc;
+            }
+
+            html,
+            body {
+                overflow: visible;
+                height: auto;
+            }
+
+            #slideshow-container {
+                display: block;
+                transform: none !important;
+            }
+
+            .slide {
+                min-width: 100%;
+                width: 100%;
+                height: auto;
+                page-break-after: always;
+            }
+        }
+
+        /* Typing Animation Cursor */
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <button id="prevBtn" class="nav-button prev print-hidden" aria-label="Previous slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <button id="nextBtn" class="nav-button next print-hidden" aria-label="Next slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Slide Counter -->
+    <div id="slideCounter" class="slide-counter print-hidden">
+        <span id="currentSlide">1</span> / <span id="totalSlides">--</span>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div id="slideIndicator" class="slide-indicator print-hidden"></div>
+
+    <!-- Slideshow Container -->
+    <div id="slideshow-container">
+
+        <!-- Slide 1: Introduction -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <header class="hero-bg text-center py-16 md:py-24 px-4">
+                    <div class="max-w-4xl mx-auto">
+                        <h1 class="text-4xl md:text-7xl font-black text-[#586e75] mb-6 reveal visible">AI & LLM <span
+                                class="gradient-text">Use Cases</span></h1>
+                        <h2 class="text-2xl md:text-3xl font-bold text-[#586e75] mb-8 reveal visible">In Modern Software
+                            Development</h2>
+                        <p class="text-lg md:text-xl text-[#839496] max-w-2xl mx-auto reveal visible">
+                            Exploring practical applications of Artificial Intelligence to enhance productivity,
+                            quality, and documentation.
+                        </p>
+                        <p class="text-sm text-[#839496] mt-12">Use ← → arrow keys or buttons to navigate</p>
+                    </div>
+                </header>
+            </div>
+        </div>
+
+        <!-- Slide 2: Disclaimer -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <section class="reveal visible">
+                        <div class="mb-8">
+                            <span class="text-6xl">🛑</span>
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-bold text-[#586e75] mb-8">This is <span
+                                class="text-[#dc322f]">Not</span> a Sales Pitch</h2>
+                        <p class="text-xl text-[#586e75] mb-12 max-w-3xl mx-auto leading-relaxed">
+                            I have nothing to sell. This presentation is purely for knowledge sharing and demonstrating
+                            how we are leveraging new technologies to improve our workflows.
+                        </p>
+                        <div class="grid md:grid-cols-3 gap-8 text-left">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-cyan-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Objective</h3>
+                                <p class="text-[#839496]">To share insights on tools that are reshaping our development
+                                    process.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-purple-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#6c71c4]">Transparency</h3>
+                                <p class="text-[#839496]">Showing real-world examples, including both successes and
+                                    limitations.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-emerald-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#859900]">Collaboration</h3>
+                                <p class="text-[#839496]">Opening a dialogue on how we can all benefit from these
+                                    advancements.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2.5: Title - AI Use Cases -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="h-full flex items-center justify-center hero-bg">
+                    <div class="text-center px-4">
+                        <h1 class="text-7xl font-bold mb-6 gradient-text">AI Use Cases</h1>
+                        <p class="text-2xl text-[#839496] max-w-2xl mx-auto">
+                            Exploring practical applications of Large Language Models
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Guidde -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <div class="flex items-center justify-center gap-4 mb-8">
+                            <h2 class="text-4xl font-bold text-center">Guidde: Instant Documentation</h2>
+                        </div>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            <a href="https://www.guidde.com" target="_blank"
+                                class="text-[#2aa198] hover:underline">Guidde</a> allows us to create video
+                            documentation
+                            and user guides in seconds.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div class="space-y-6">
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-pink-500">
+                                    <h3 class="font-bold text-xl mb-2 text-[#d33682]">How it Works</h3>
+                                    <p class="text-[#586e75]">Simply record your workflow. Guidde automatically
+                                        generates a step-by-step description, screenshots, and a voiceover.</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-pink-500">
+                                    <h3 class="font-bold text-xl mb-2 text-[#d33682]">Key Benefits</h3>
+                                    <ul class="space-y-2 text-[#586e75] list-disc list-inside">
+                                        <li>Reduces documentation time by <strong>10x</strong>.</li>
+                                        <li>Ensures consistency across user guides.</li>
+                                        <li>Easy to update when features change.</li>
+                                        <li>Professional AI voiceovers in multiple languages.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <a href="https://app.guidde.com/playbooks/7Wz7fDHSYsDnrahQ616jZ1" target="_blank"
+                                class="card-bg p-8 rounded-2xl shadow-lg flex flex-col items-center justify-center min-h-[300px] bg-[#eee8d5]/50 hover:scale-105 transition-transform cursor-pointer group no-underline border-2 border-transparent hover:border-[#d33682]">
+                                <div class="mb-6 group-hover:scale-110 transition-transform">
+                                    <!-- Guidde-style Logo -->
+                                    <svg width="100" height="100" viewBox="0 0 100 100" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="100" height="100" rx="24" fill="url(#guiddeGradient)" />
+                                        <path d="M38 32V68L70 50L38 32Z" fill="white" />
+                                        <defs>
+                                            <linearGradient id="guiddeGradient" x1="0" y1="0" x2="100" y2="100"
+                                                gradientUnits="userSpaceOnUse">
+                                                <stop stop-color="#FF5F6D" />
+                                                <stop offset="1" stop-color="#FFC371" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="text-2xl font-bold text-[#586e75] mb-2 group-hover:text-[#d33682] transition-colors">
+                                    Watch Guidde Demo</h3>
+                                <p class="text-[#839496] text-center group-hover:text-[#586e75]">Click to view the
+                                    interactive playbook</p>
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Cursor for Creating Presentations -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Meta: Creating This Presentation</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            How Cursor helped build this very slide deck.
+                        </p>
+
+                        <div class="card-bg p-8 rounded-2xl shadow-lg border-l-4 border-[#2aa198]">
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="font-bold text-2xl mb-4 text-[#2aa198]">The Workflow</h3>
+                                    <ol class="space-y-4 text-[#586e75] list-decimal list-inside">
+                                        <li><strong>Clone Structure:</strong> "Take the styling and layout from
+                                            <code>authoringUiStats.html</code>..."
+                                        </li>
+                                        <li><strong>Define Content:</strong> "...and create a new file with these
+                                            specific slides."</li>
+                                        <li><strong>Iterate:</strong> "Make the cards in the 'Disclaimer' slide equal
+                                            height."</li>
+                                        <li><strong>Refine:</strong> "Add a gradient effect to the title text."</li>
+                                    </ol>
+                                </div>
+                                <div class="flex flex-col justify-center">
+                                    <div class="bg-[#eee8d5] p-6 rounded-xl border border-[#93a1a1] shadow-lg">
+                                        <h4 class="text-[#586e75] font-bold mb-6 text-center">Time to Create
+                                            Presentation</h4>
+
+                                        <!-- Chart Container -->
+                                        <div class="space-y-6">
+                                            <!-- Manual Bar -->
+                                            <div>
+                                                <div class="flex justify-between text-xs text-[#839496] mb-1">
+                                                    <span>Manual Coding</span>
+                                                    <span>4 Hours</span>
+                                                </div>
+                                                <div class="w-full bg-[#93a1a1] rounded-full h-6 overflow-hidden">
+                                                    <div class="productivity-bar bg-[#dc322f] h-full rounded-full relative"
+                                                        style="width: 0%" data-width="100%">
+                                                        <span
+                                                            class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#586e75]/80">100%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- AI Assisted Bar -->
+                                            <div>
+                                                <div class="flex justify-between text-xs text-[#839496] mb-1">
+                                                    <span>With Cursor</span>
+                                                    <span>45 Mins</span>
+                                                </div>
+                                                <div class="w-full bg-[#93a1a1] rounded-full h-6 overflow-hidden">
+                                                    <div class="productivity-bar bg-[#2aa198] h-full rounded-full relative"
+                                                        style="width: 0%" data-width="19%">
+                                                        <span
+                                                            class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#586e75]/80">19%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-8 text-center">
+                                            <div class="text-xs text-[#839496] uppercase tracking-wider mb-1">Efficiency
+                                                Gain</div>
+                                            <span
+                                                class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">5.3x
+                                                FASTER</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6.5: Project-Aware README Generation -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Project-Aware README Generation</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Generate comprehensive documentation by letting AI scan your entire project structure.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div class="space-y-6">
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">Contextual Understanding</h3>
+                                    <p class="text-[#586e75]">Cursor analyzes your <code>package.json</code>, file
+                                        structure, and key entry points to understand <em>what</em> your project does.
+                                    </p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">One-Shot Generation</h3>
+                                    <p class="text-[#586e75]">"Generate a README.md for this project including
+                                        installation steps, tech stack, and usage examples."</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">What it Includes</h3>
+                                    <ul class="space-y-2 text-[#586e75] list-disc list-inside text-sm">
+                                        <li><strong>Tech Stack:</strong> Automatically detects frameworks & libraries.
+                                        </li>
+                                        <li><strong>Prerequisites:</strong> Node/Python versions, API keys.</li>
+                                        <li><strong>Installation:</strong> Correct <code>npm install</code> or
+                                            <code>pip install</code> commands.
+                                        </li>
+                                        <li><strong>Project Structure:</strong> Explains the purpose of key folders.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div
+                                class="card-bg p-1 rounded-2xl shadow-lg bg-[#eee8d5] border border-[#93a1a1] h-[600px] overflow-hidden flex flex-col">
+                                <div class="bg-[#eee8d5] px-4 py-2 flex items-center gap-2 border-b border-[#93a1a1]">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span class="ml-2 text-xs text-[#839496] font-mono">README.md</span>
+                                </div>
+                                <div
+                                    class="p-6 overflow-y-auto custom-scrollbar font-mono text-xs text-[#586e75] leading-relaxed whitespace-pre-wrap">
+                                    # SNOMED CT Authoring UI
+
+                                    The **Authoring UI** is an AngularJS-based single-page web application that powers
+                                    the front-end of the SNOMED CT Authoring Platform. It provides concept search,
+                                    editing, project management and review workflows for authors and reviewers while
+                                    integrating with a rich ecosystem of backend services (Authoring Services,
+                                    Snowstorm, CIS, ActiveMQ, AWS S3, Consul, Vault …).
+
+                                    This document explains **how to run the UI locally** and the **engineering
+                                    conventions** you should follow when working on the code-base.
+
+                                    ---
+
+                                    ## 1 High-Level Architecture
+
+                                    ```mermaid
+                                    flowchart TD
+                                    Browser["Web Browser"] --> |HTTPS| Nginx[(Nginx)]
+                                    Nginx --> AuthoringUI["Authoring UI (AngularJS SPA)"]
+                                    AuthoringUI --> |REST & WebSocket| Gateway[(Authoring-Services)]
+                                    Gateway --> |REST| Snowstorm[(Snowstorm Term Server)]
+                                    Gateway --> |REST| CIS[(CIS)]
+                                    Gateway --> |REST| IMS[(IMS)]
+                                    Gateway --> |REST| Jira[(Jira)]
+                                    Gateway --> |JMS| ActiveMQ[(ActiveMQ)]
+                                    subgraph External Config & Secrets
+                                    Consul[(Consul)]
+                                    Vault[(Vault)]
+                                    end
+                                    AuthoringUI -. consumes .-> Consul
+                                    ```
+
+                                    #### Typical Editing Session
+
+                                    ```mermaid
+                                    sequenceDiagram
+                                    participant Author as Author (browser)
+                                    participant UI as Authoring UI
+                                    participant Gateway as Authoring-Services
+                                    participant Snowstorm as Snowstorm
+                                    Author->>UI: Search concepts
+                                    UI->>Gateway: /api/search?term=heart
+                                    Gateway->>Snowstorm: /browser/…
+                                    Snowstorm-->>Gateway: JSON results
+                                    Gateway-->>UI: Normalised search results
+                                    Author->>UI: Open concept editor
+                                    UI-->>Gateway: WebSocket subscribe /concept/{id}
+                                    Author->>UI: Save changes
+                                    UI->>Gateway: PUT /concept/{id}
+                                    Gateway--)ActiveMQ: publish concept.updated
+                                    ActiveMQ-->>UI: WS event → live update
+                                    ```
+
+                                    Key points:
+                                    * **Stateless front-end** – all state resides in backend services, enabling
+                                    horizontal scaling.
+                                    * **Grunt & NPMher** drive the build pipeline; assets are bundled as a static site.
+                                    * **WebSockets (STOMP)** deliver live task/status updates without polling.
+                                    * Built artefacts are served via **Nginx** or any static web-server and can be
+                                    cached aggressively.
+
+                                    ---
+
+                                    ## 2 Feature Highlights
+
+                                    * **Component Search & Filter** – powerful term + ECL search with language
+                                    reference-set filters.
+                                    * **Concept Editing** – full SNOMED CT concept editor with axioms, descriptions,
+                                    relationships.
+                                    * **Project & Task Management** – create, merge and review authoring tasks.
+                                    * **Batch Editing & Template Authoring** – bulk operations and domain templates with
+                                    validation.
+                                    * **Classification & Integrity Checks** – client-side dashboards for Snowstorm
+                                    classification runs.
+                                    * **Responsive Layout** – Bootstrap 3 and custom SCSS for desktop & tablet
+                                    workflows.
+                                    * **End-to-End Tests with Cypress** and unit tests with Karma/Jasmine.
+                                    * **Structured Logging** via `$log` service wrappers.
+                                    * **Consul & Vault support** – runtime config and feature-flags fetched at start-up.
+
+                                    ---
+
+                                    ## 3 Project Layout
+
+                                    ```
+                                    app/
+                                    index.html ← entry-point & ng-view outlet
+                                    app.js ← root module & route config
+                                    components/ ← feature modules (edit, project, …)
+                                    shared/ ← cross-cutting services & directives
+                                    styles/ ← SCSS source
+                                    images/ fonts/ ← static assets
+                                    cypress/ ← e2e tests
+                                    Gruntfile.js ← build & dev-server tasks
+                                    package.json ← JS dependencies
+                                    ```
+
+                                    Naming conventions:
+                                    * `components/**` Feature-scoped MV* modules (HTML, JS, SCSS colocated).
+                                    * `shared/**` Reusable services, directives and filters.
+                                    * `utilities/**` Helper scripts consumed across components.</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <!-- Slide 10.7: System Architecture -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-4 text-[#268bd2]">Generating Architecture with AI
+                        </h2>
+                        <p class="text-center text-[#839496] mb-6 max-w-3xl mx-auto text-sm">
+                            A stateless AngularJS SPA powering the SNOMED CT authoring platform.
+                        </p>
+
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- Left: Key Architecture Points -->
+                            <div class="space-y-4">
+                                <div class="card-bg p-4 rounded-xl shadow border-l-4 border-[#2aa198]">
+                                    <h3 class="font-bold text-sm mb-1 text-[#2aa198]">🌐 Stateless Front-End</h3>
+                                    <p class="text-[#586e75] text-xs">All state in backend services; horizontal scaling
+                                        & CDN caching</p>
+                                </div>
+                                <div class="card-bg p-4 rounded-xl shadow border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-sm mb-1 text-[#cb4b16]">⚡ WebSocket Live Updates</h3>
+                                    <p class="text-[#586e75] text-xs">STOMP over WebSocket for real-time updates without
+                                        polling</p>
+                                </div>
+                                <div class="card-bg p-4 rounded-xl shadow border-l-4 border-[#268bd2]">
+                                    <h3 class="font-bold text-sm mb-1 text-[#268bd2]">🔧 Microservices Backend</h3>
+                                    <p class="text-[#586e75] text-xs">Distributed with Snowstorm, CIS, IMS, message
+                                        queues</p>
+                                </div>
+                                <div class="card-bg p-4 rounded-xl shadow border-l-4 border-[#6c71c4]">
+                                    <h3 class="font-bold text-sm mb-1 text-[#6c71c4]">📦 Build Pipeline</h3>
+                                    <p class="text-[#586e75] text-xs">Grunt & NPM; bundled static site served via Nginx
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Center: Simplified Diagram -->
+                            <div class="col-span-2 card-bg p-6 rounded-xl shadow-lg">
+                                <svg viewBox="0 0 600 400" class="w-full h-auto">
+                                    <!-- Browser -->
+                                    <rect x="40" y="20" width="100" height="50" fill="#2aa198" rx="6" />
+                                    <text x="90" y="50" text-anchor="middle" fill="#eee8d5" font-size="12"
+                                        font-weight="bold">Browser</text>
+
+                                    <!-- Nginx -->
+                                    <rect x="200" y="20" width="80" height="50" fill="#268bd2" rx="6" />
+                                    <text x="240" y="50" text-anchor="middle" fill="#eee8d5" font-size="12"
+                                        font-weight="bold">Nginx</text>
+
+                                    <!-- Authoring UI -->
+                                    <rect x="340" y="20" width="120" height="50" fill="#6c71c4" rx="6" />
+                                    <text x="400" y="42" text-anchor="middle" fill="#eee8d5" font-size="11"
+                                        font-weight="bold">Authoring UI</text>
+                                    <text x="400" y="56" text-anchor="middle" fill="#eee8d5" font-size="9">(AngularJS
+                                        SPA)</text>
+
+                                    <!-- Gateway -->
+                                    <rect x="170" y="120" width="140" height="50" fill="#cb4b16" rx="6" />
+                                    <text x="240" y="150" text-anchor="middle" fill="#eee8d5" font-size="12"
+                                        font-weight="bold">Authoring Services</text>
+
+                                    <!-- Backend Services -->
+                                    <rect x="40" y="220" width="80" height="40" fill="#859900" rx="6" />
+                                    <text x="80" y="245" text-anchor="middle" fill="#eee8d5"
+                                        font-size="10">Snowstorm</text>
+
+                                    <rect x="140" y="220" width="60" height="40" fill="#859900" rx="6" />
+                                    <text x="170" y="245" text-anchor="middle" fill="#eee8d5" font-size="10">CIS</text>
+
+                                    <rect x="220" y="220" width="60" height="40" fill="#859900" rx="6" />
+                                    <text x="250" y="245" text-anchor="middle" fill="#eee8d5" font-size="10">IMS</text>
+
+                                    <rect x="300" y="220" width="90" height="40" fill="#859900" rx="6" />
+                                    <text x="345" y="245" text-anchor="middle" fill="#eee8d5"
+                                        font-size="10">ActiveMQ</text>
+
+                                    <!-- Config Services -->
+                                    <rect x="500" y="100" width="70" height="35" fill="#d33682" rx="6" />
+                                    <text x="535" y="122" text-anchor="middle" fill="#eee8d5"
+                                        font-size="10">Consul</text>
+
+                                    <rect x="500" y="150" width="70" height="35" fill="#d33682" rx="6" />
+                                    <text x="535" y="172" text-anchor="middle" fill="#eee8d5"
+                                        font-size="10">Vault</text>
+
+                                    <!-- Arrows -->
+                                    <line x1="140" y1="45" x2="200" y2="45" stroke="#586e75" stroke-width="2"
+                                        marker-end="url(#arrow)" />
+                                    <line x1="280" y1="45" x2="340" y2="45" stroke="#586e75" stroke-width="2"
+                                        marker-end="url(#arrow)" />
+                                    <line x1="400" y1="70" x2="240" y2="120" stroke="#586e75" stroke-width="2"
+                                        marker-end="url(#arrow)" />
+
+                                    <!-- Gateway to Services -->
+                                    <line x1="210" y1="170" x2="80" y2="220" stroke="#586e75" stroke-width="1.5"
+                                        marker-end="url(#arrow)" />
+                                    <line x1="220" y1="170" x2="170" y2="220" stroke="#586e75" stroke-width="1.5"
+                                        marker-end="url(#arrow)" />
+                                    <line x1="240" y1="170" x2="250" y2="220" stroke="#586e75" stroke-width="1.5"
+                                        marker-end="url(#arrow)" />
+                                    <line x1="270" y1="170" x2="345" y2="220" stroke="#586e75" stroke-width="1.5"
+                                        marker-end="url(#arrow)" />
+
+                                    <!-- UI to Snowstorm direct link -->
+                                    <line x1="360" y1="70" x2="100" y2="220" stroke="#2aa198" stroke-width="2"
+                                        marker-end="url(#arrow)" stroke-dasharray="5,5" />
+
+                                    <!-- UI to Config (dashed) -->
+                                    <line x1="460" y1="50" x2="500" y2="117" stroke="#586e75" stroke-width="1.5"
+                                        stroke-dasharray="4,4" />
+
+                                    <!-- Arrow marker -->
+                                    <defs>
+                                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3"
+                                            orient="auto">
+                                            <polygon points="0 0, 8 3, 0 6" fill="#586e75" />
+                                        </marker>
+                                    </defs>
+
+                                    <!-- Labels -->
+                                    <text x="170" y="40" fill="#839496" font-size="8">HTTPS</text>
+                                    <text x="310" y="40" fill="#839496" font-size="8">Static</text>
+                                    <text x="350" y="100" fill="#839496" font-size="8">REST/WS</text>
+                                    <text x="470" y="75" fill="#839496" font-size="8" font-style="italic">config</text>
+
+                                    <!-- Data Flow Annotation -->
+                                    <g>
+                                        <rect x="30" y="310" width="540" height="70" fill="#eee8d5" rx="6"
+                                            opacity="0.6" />
+                                        <text x="300" y="330" text-anchor="middle" fill="#268bd2" font-size="11"
+                                            font-weight="bold">Typical Editing Session Flow</text>
+                                        <text x="300" y="350" text-anchor="middle" fill="#586e75" font-size="9">1.
+                                            Author searches → 2. UI queries Gateway → 3. Gateway fetches from
+                                            Snowstorm</text>
+                                        <text x="300" y="365" text-anchor="middle" fill="#586e75" font-size="9">4.
+                                            Author edits → 5. UI saves via Gateway → 6. Gateway publishes to ActiveMQ →
+                                            7. Live WS update</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Cursor for Documenting Codebases -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Documenting Codebases</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Turning legacy code into understandable documentation with ease.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-12">
+                            <div class="space-y-6">
+                                <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                    <h3 class="font-bold text-xl mb-3 text-[#6c71c4]">Generate Docstrings</h3>
+                                    <p class="text-[#586e75] mb-4">Select a complex function and ask Cursor to "Add
+                                        JSDoc comments explaining parameters and return values."</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                    <h3 class="font-bold text-xl mb-3 text-[#6c71c4]">Explain Logic</h3>
+                                    <p class="text-[#586e75] mb-4">Highlight a confusing block of code and ask "Explain
+                                        what this does in plain English." Use the output to write READMEs.</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                    <h3 class="font-bold text-xl mb-3 text-[#6c71c4]">Update Outdated Docs</h3>
+                                    <p class="text-[#586e75] mb-4">"Check if the comments in this file match the actual
+                                        code implementation."</p>
+                                </div>
+                            </div>
+                            <div
+                                class="comparison-slider-wrapper relative w-full h-[500px] rounded-xl overflow-hidden border border-[#93a1a1] select-none bg-[#eee8d5] shadow-lg">
+                                <!-- After Content (Background) -->
+                                <div class="absolute top-0 left-0 w-full h-full p-6 overflow-y-auto custom-scrollbar">
+                                    <div class="text-[#859900] font-mono text-xs leading-relaxed">
+                                        <span class="text-[#839496]">/**</span><br>
+                                        <span class="text-[#839496]">&nbsp;* Processes user data for the
+                                            dashboard.</span><br>
+                                        <span class="text-[#839496]">&nbsp;* @param {User[]} users - Raw user
+                                            objects.</span><br>
+                                        <span class="text-[#839496]">&nbsp;* @returns {ProcessedUser[]} Formatted
+                                            users.</span><br>
+                                        <span class="text-[#839496]">&nbsp;*/</span><br>
+                                        <span class="text-[#6c71c4]">function</span> <span
+                                            class="text-[#268bd2]">processUserData</span>(users) {<br>
+                                        &nbsp;&nbsp;<span class="text-[#6c71c4]">return</span> users.map(user => {<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#6c71c4]">try</span> {<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#839496]">// Validate
+                                            required fields</span><br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#6c71c4]">if</span>
+                                        (!user.id || !user.email) <span class="text-[#6c71c4]">throw</span> <span
+                                            class="text-[#6c71c4]">new</span> <span
+                                            class="text-[#b58900]">Error</span>(<span class="text-[#cb4b16]">'Invalid
+                                            User'</span>);<br><br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#6c71c4]">return</span>
+                                        {<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: user.id,<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fullName: <span
+                                            class="text-[#b58900]">`</span><span
+                                            class="text-[#268bd2]">${user.firstName} ${user.lastName}</span><span
+                                            class="text-[#b58900]">`</span>,<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastActive: <span
+                                            class="text-[#6c71c4]">new</span> <span
+                                            class="text-[#b58900]">Date</span>(user.timestamp).toLocaleDateString(),<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;status: user.isActive ? <span
+                                            class="text-[#cb4b16]">'Active'</span> : <span
+                                            class="text-[#cb4b16]">'Inactive'</span><br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;} <span class="text-[#6c71c4]">catch</span> (err) {<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                                            class="text-[#b58900]">console</span>.error(<span
+                                            class="text-[#cb4b16]">'Error processing user:'</span>, err);<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#6c71c4]">return</span>
+                                        <span class="text-[#6c71c4]">null</span>;<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                                        &nbsp;&nbsp;}).filter(<span class="text-[#b58900]">Boolean</span>);<br>
+                                        }
+                                    </div>
+                                    <div
+                                        class="absolute top-4 right-4 text-[#859900] font-bold text-xs bg-[#859900]/50 px-2 py-1 rounded border border-[#859900]">
+                                        AFTER</div>
+                                </div>
+
+                                <!-- Before Content (Foreground) -->
+                                <div
+                                    class="comparison-before absolute top-0 left-0 w-1/2 h-full bg-[#eee8d5] p-6 border-r border-[#93a1a1] overflow-hidden">
+                                    <div class="text-[#dc322f] font-mono text-xs leading-relaxed w-[600px]">
+                                        <span class="text-[#6c71c4]">function</span> <span
+                                            class="text-[#268bd2]">proc</span>(d) {<br>
+                                        &nbsp;&nbsp;<span class="text-[#6c71c4]">var</span> r = [];<br>
+                                        &nbsp;&nbsp;<span class="text-[#6c71c4]">for</span>(<span
+                                            class="text-[#6c71c4]">var</span> i=0; i
+                                        <d.length; i++) {<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#6c71c4]">var</span> u =
+                                            d[i];<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#839496]">// what if u is
+                                                null??</span><br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;r.push({<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: u.id,<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n: u.f + <span class="text-[#cb4b16]">'
+                                                '</span> + u.l,<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d: <span
+                                                class="text-[#6c71c4]">new</span> <span
+                                                class="text-[#b58900]">Date</span>(u.ts).toString().split(<span
+                                                class="text-[#cb4b16]">'
+                                                '</span>)[0],<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s: u.a ? 1 : 0<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;});<br>
+                                            &nbsp;&nbsp;}<br>
+                                            &nbsp;&nbsp;<span class="text-[#6c71c4]">return</span> r;<br>
+                                            }<br><br>
+                                            <span class="text-[#839496]">// ⚠️ Single letter vars</span><br>
+                                            <span class="text-[#839496]">// ⚠️ No error handling</span><br>
+                                            <span class="text-[#839496]">// ⚠️ Cryptic output format</span><br>
+                                            <span class="text-[#839496]">// ⚠️ Legacy 'var' usage</span>
+                                    </div>
+                                    <div
+                                        class="absolute top-4 left-4 text-[#dc322f] font-bold text-xs bg-[#dc322f]/50 px-2 py-1 rounded border border-[#dc322f]">
+                                        BEFORE</div>
+                                </div>
+
+                                <!-- Handle -->
+                                <div class="comparison-handle absolute top-0 bottom-0 w-1 bg-[#586e75] cursor-ew-resize z-10"
+                                    style="left: 50%">
+                                    <div
+                                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#586e75] rounded-full flex items-center justify-center shadow-lg text-[#eee8d5] font-bold hover:scale-110 transition-transform">
+                                        ⇄
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6.5: i18n Translation with LLMs -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#2aa198]">i18n Translation with LLMs</h2>
+                        <p class="text-center text-[#839496] mb-8 max-w-3xl mx-auto">
+                            LLMs can accurately translate i18n JSON files while preserving structure and keys.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- English (Before) -->
+                            <div
+                                class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#dc322f] h-[500px] overflow-y-auto custom-scrollbar relative">
+                                <div
+                                    class="absolute top-4 right-4 text-[#dc322f] font-bold text-xs bg-[#dc322f]/10 px-2 py-1 rounded border border-[#dc322f]">
+                                    ENGLISH (BEFORE)</div>
+                                <pre class="text-[#586e75] font-mono text-xs leading-relaxed text-left mt-8 m-0"><span class="text-[#839496]">{</span>
+  <span class="text-[#268bd2]" style="font-weight: bold;">"requestManagement"</span>: <span class="text-[#839496]">{</span>
+    <span class="text-[#268bd2]" style="font-weight: bold;">"heading"</span>: <span class="text-[#2aa198]">"Requests"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"search"</span>: <span class="text-[#2aa198]">"Search..."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"newRequestButton"</span>: <span class="text-[#2aa198]">"NEW REQUEST"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"downloadButton"</span>: <span class="text-[#2aa198]">"DOWNLOAD"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"noRequests"</span>: <span class="text-[#2aa198]">"No requests found."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"retrieving"</span>: <span class="text-[#2aa198]">"Retrieving requests..."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"deleteTitle"</span>: <span class="text-[#2aa198]">"Delete Request #{{id}}"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"confirmDelete"</span>: <span class="text-[#2aa198]">"Are you sure you want to delete this request?"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"delete"</span>: <span class="text-[#839496]">{</span>
+      <span class="text-[#268bd2]" style="font-weight: bold;">"successMessage"</span>: <span class="text-[#2aa198]">"Request with ID: {{id}} has been deleted successfully."</span>,
+      <span class="text-[#268bd2]" style="font-weight: bold;">"errorMessage"</span>: <span class="text-[#2aa198]">"Error deleting request: {{error}}"</span>
+    <span class="text-[#839496]">}</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"download"</span>: <span class="text-[#839496]">{</span>
+      <span class="text-[#268bd2]" style="font-weight: bold;">"fetchingRequests"</span>: <span class="text-[#2aa198]">"Fetching all requests for download..."</span>,
+      <span class="text-[#268bd2]" style="font-weight: bold;">"downloadComplete"</span>: <span class="text-[#2aa198]">"Download Complete"</span>
+    <span class="text-[#839496]">}</span>
+  <span class="text-[#839496]">}</span>
+<span class="text-[#839496]">}</span></pre>
+                            </div>
+
+                            <!-- French (After) -->
+                            <div
+                                class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#859900] h-[500px] overflow-y-auto custom-scrollbar relative">
+                                <div
+                                    class="absolute top-4 right-4 text-[#859900] font-bold text-xs bg-[#859900]/10 px-2 py-1 rounded border border-[#859900]">
+                                    FRENCH (AFTER)</div>
+                                <pre class="text-[#586e75] font-mono text-xs leading-relaxed text-left mt-8 m-0"><span class="text-[#839496]">{</span>
+  <span class="text-[#268bd2]" style="font-weight: bold;">"requestManagement"</span>: <span class="text-[#839496]">{</span>
+    <span class="text-[#268bd2]" style="font-weight: bold;">"heading"</span>: <span class="text-[#2aa198]">"Demandes"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"search"</span>: <span class="text-[#2aa198]">"Rechercher..."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"newRequestButton"</span>: <span class="text-[#2aa198]">"NOUVELLE DEMANDE"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"downloadButton"</span>: <span class="text-[#2aa198]">"TÉLÉCHARGER"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"noRequests"</span>: <span class="text-[#2aa198]">"Aucune demande trouvée."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"retrieving"</span>: <span class="text-[#2aa198]">"Récupération des demandes..."</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"deleteTitle"</span>: <span class="text-[#2aa198]">"Supprimer la demande #{{id}}"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"confirmDelete"</span>: <span class="text-[#2aa198]">"Êtes-vous sûr de vouloir supprimer cette demande ?"</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"delete"</span>: <span class="text-[#839496]">{</span>
+      <span class="text-[#268bd2]" style="font-weight: bold;">"successMessage"</span>: <span class="text-[#2aa198]">"La demande avec l'ID : {{id}} a été supprimée avec succès."</span>,
+      <span class="text-[#268bd2]" style="font-weight: bold;">"errorMessage"</span>: <span class="text-[#2aa198]">"Erreur lors de la suppression de la demande : {{error}}"</span>
+    <span class="text-[#839496]">}</span>,
+    <span class="text-[#268bd2]" style="font-weight: bold;">"download"</span>: <span class="text-[#839496]">{</span>
+      <span class="text-[#268bd2]" style="font-weight: bold;">"fetchingRequests"</span>: <span class="text-[#2aa198]">"Récupération de toutes les demandes pour téléchargement..."</span>,
+      <span class="text-[#268bd2]" style="font-weight: bold;">"downloadComplete"</span>: <span class="text-[#2aa198]">"Téléchargement terminé"</span>
+    <span class="text-[#839496]">}</span>
+  <span class="text-[#839496]">}</span>
+<span class="text-[#839496]">}</span></pre>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Reliable Use Cases -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-10">Reliable Use Cases</h2>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <!-- Refactoring -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Refactoring</h3>
+                                <p class="text-[#839496] text-sm">Renaming variables, extracting methods, and
+                                    modernizing syntax (e.g., Promises to Async/Await).</p>
+                            </div>
+                            <!-- Config -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Creating Config</h3>
+                                <p class="text-[#839496] text-sm">Generating JSON, YAML, or Dockerfiles. "Create a
+                                    Dockerfile for a Node.js app."</p>
+                            </div>
+                            <!-- Unit Testing -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Unit Testing</h3>
+                                <p class="text-[#839496] text-sm">Writing boilerplate test cases. "Write Jest tests for
+                                    this utility function covering edge cases."</p>
+                            </div>
+                            <!-- API Documentation -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">API Documentation</h3>
+                                <p class="text-[#839496] text-sm">Generating Swagger/OpenAPI specs from code, or
+                                    explaining API endpoints.</p>
+                            </div>
+                            <!-- Green Field -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Green Field Dev</h3>
+                                <p class="text-[#839496] text-sm">Scaffolding new projects or components from scratch.
+                                    "Create a React component for a login form."</p>
+                            </div>
+                            <!-- Data Transformation -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Data Transformation</h3>
+                                <p class="text-[#839496] text-sm">Writing regex or scripts to format data. "Convert this
+                                    CSV string to a JSON array."</p>
+                            </div>
+                            <!-- Rapid Prototyping -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#268bd2]">Rapid Prototyping</h3>
+                                <p class="text-[#839496] text-sm">Quickly spinning up POCs or trying out new libraries.
+                                    "Build a simple dashboard using Shadcn UI."</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Cursor General -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Cursor: AI Code Editor</h2>
+                        <p class="text-center text-[#839496] mb-8 max-w-3xl mx-auto">
+                            A fork of VS Code with deep AI integration. It understands your entire codebase.
+                        </p>
+
+                        <div class="text-center mb-12">
+                            <a href="https://cursor.com/home?from=agents" target="_blank"
+                                class="inline-flex items-center gap-2 px-6 py-3 bg-[#000000] text-white rounded-full hover:scale-105 transition-transform font-medium shadow-lg hover:shadow-xl no-underline group">
+                                <span>Try Cursor</span>
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </a>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-4">⌨️</div>
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Command K</h3>
+                                <p class="text-[#586e75] text-sm">Edit code in-place. Highlight a block, press Cmd+K,
+                                    and describe the change.</p>
+                                <div
+                                    class="mt-4 bg-[#eee8d5] p-3 rounded text-xs font-mono text-[#859900] h-16 overflow-hidden relative">
+                                    <span class="typing-effect"
+                                        data-text='> "Refactor this function to use async/await and add error handling."'></span><span
+                                        class="cursor-blink">|</span>
+                                </div>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-4">💬</div>
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Chat with Codebase</h3>
+                                <p class="text-[#586e75] text-sm">Ask questions about your entire project. Cursor
+                                    indexes your files for context-aware answers.</p>
+                                <div class="mt-4 bg-[#eee8d5] p-3 rounded text-xs font-mono text-[#859900]">
+                                    > "@Codebase Where is the authentication logic handled?"
+                                </div>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-4">✨</div>
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Tab Autocomplete</h3>
+                                <p class="text-[#586e75] text-sm">Next-generation autocomplete that predicts multiple
+                                    lines of code, not just the next word.</p>
+                                <div class="mt-4 bg-[#eee8d5] p-3 rounded text-xs font-mono text-[#839496]">
+                                    function calculateTotal(items) {<br>
+                                    <span class="text-[#586e75]">&nbsp;&nbsp;return items.reduce((sum, item) => sum +
+                                        item.price, 0);</span><br>
+                                    }
+                                </div>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-4">🖥️</div>
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">CLI & File Access</h3>
+                                <p class="text-[#586e75] text-sm">Unified context: Cursor can run terminal commands
+                                    (tests, builds) and read/write files directly.</p>
+                                <div class="mt-4 bg-[#eee8d5] p-3 rounded text-xs font-mono text-[#859900]">
+                                    > "Run the tests and fix any failures in the auth module."
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 card-bg p-6 rounded-2xl shadow-lg border-l-4 border-yellow-500">
+                            <h3 class="font-bold text-lg text-[#b58900] mb-2">💡 Pro Tip</h3>
+                            <p class="text-[#586e75]">Always review the diffs. Cursor is powerful, but you are the
+                                pilot. Treat it as a very fast junior developer.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4.5: Advanced Cursor Features -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Advanced Cursor Features</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Beyond basic autocomplete: Tailoring the AI to your specific needs and workflow.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-12">
+                            <!-- Model Swapping -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-4 border-indigo-500">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <span class="text-4xl">🧠</span>
+                                    <h3 class="font-bold text-2xl text-[#6c71c4]">Model Swapping</h3>
+                                </div>
+                                <p class="text-[#586e75] mb-6">Not all models are created equal. Cursor lets you toggle
+                                    between top-tier models to play to their strengths.</p>
+                                <ul class="space-y-4 text-[#839496]">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-[#6c71c4] font-bold">•</span>
+                                        <span><strong>Claude 3.5 Sonnet:</strong> Currently the gold standard for coding
+                                            tasks and complex refactoring.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-[#6c71c4] font-bold">•</span>
+                                        <span><strong>GPT-4o:</strong> Excellent for high-level reasoning and creative
+                                            writing.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-[#6c71c4] font-bold">•</span>
+                                        <span><strong>Cursor Small:</strong> Extremely fast model for quick, simple
+                                            edits.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Rules -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-4 border-pink-500">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <span class="text-4xl">📏</span>
+                                    <h3 class="font-bold text-2xl text-[#d33682]">Project Rules</h3>
+                                </div>
+                                <p class="text-[#586e75] mb-6">Define behavior globally or per-project using a
+                                    <code>.cursorrules</code> file.
+                                </p>
+                                <div
+                                    class="bg-[#eee8d5] p-4 rounded-xl font-mono text-xs text-[#586e75] border border-[#93a1a1]">
+                                    <p class="text-[#839496] mb-2"># .cursorrules</p>
+                                    <p class="mb-1"><span class="text-[#d33682]">Always</span> use TypeScript interfaces
+                                        instead of types.</p>
+                                    <p class="mb-1"><span class="text-[#d33682]">Never</span> use 'any'; strictly type
+                                        all variables.</p>
+                                    <p class="mb-1"><span class="text-[#d33682]">Style:</span> Use Tailwind CSS for all
+                                        styling.</p>
+                                    <p class="mb-1"><span class="text-[#d33682]">Context:</span> This is a Next.js 14
+                                        app
+                                        using App Router.</p>
+                                </div>
+                                <p class="text-[#839496] mt-6 text-sm">
+                                    Ensures the AI knows your tech stack and coding standards before it writes a single
+                                    line of code.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Limitations -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#dc322f]">Where LLMs Struggle</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            AI is not magic. It requires supervision and context.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#dc322f]">
+                                <h3 class="font-bold text-xl mb-2 text-[#dc322f]">Complex Requirements</h3>
+                                <p class="text-[#586e75]">Struggles with vague, multi-step business logic that isn't
+                                    explicitly defined in code.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#dc322f]">
+                                <h3 class="font-bold text-xl mb-2 text-[#dc322f]">Hallucination</h3>
+                                <p class="text-[#586e75]">Can confidently invent libraries, functions, or syntax that do
+                                    not exist.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#dc322f]">
+                                <h3 class="font-bold text-xl mb-2 text-[#dc322f]">Context Loss</h3>
+                                <p class="text-[#586e75]">In very large codebases, it may miss global side effects or
+                                    obscure dependencies.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#dc322f]">
+                                <h3 class="font-bold text-xl mb-2 text-[#dc322f]">Niche Bug Fixing</h3>
+                                <p class="text-[#586e75]">Often fails at debugging subtle race conditions or memory
+                                    leaks without strong human guidance.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Slide 8.5: AI IDE Tips & Tricks -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#2aa198]">AI IDE Tips & Tricks</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Maximizing productivity and overcoming limitations.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">🔄</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Reset Context</h3>
+                                </div>
+                                <p class="text-[#586e75]">Losing context? Start a new chat. Long conversations degrade
+                                    model
+                                    performance over time.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">🧠</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Model Swapping</h3>
+                                </div>
+                                <p class="text-[#586e75]">Play to their strengths. Use <strong>Claude 3.5
+                                        Sonnet</strong> for
+                                    coding and <strong>GPT-4o</strong> for high-level reasoning.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">📏</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Define Rules</h3>
+                                </div>
+                                <p class="text-[#586e75]">Codify best practices in <code>.cursorrules</code>. Ensure the
+                                    AI
+                                    follows your project's specific conventions.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">🏆</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Competitive Agents</h3>
+                                </div>
+                                <p class="text-[#586e75]">Have two models attempt the same complex task. Compare their
+                                    solutions
+                                    and pick the winner.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">🎯</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Targeted Context</h3>
+                                </div>
+                                <p class="text-[#586e75]">Be specific. Use <strong>@mentions</strong> to include only
+                                    relevant files and docs to reduce noise.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-2xl">👀</span>
+                                    <h3 class="font-bold text-xl text-[#2aa198]">Human in the Loop</h3>
+                                </div>
+                                <p class="text-[#586e75]">Trust but verify. Always review code diffs carefully before
+                                    accepting changes.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <!-- Slide 10.5: Real-Life Use Case: IMS Crowd -> Keycloak Migration -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#cb4b16]">Real-Life Use Case: IMS Crowd to
+                            Keycloak</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Navigating complex legacy migrations with AI assistance.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div class="space-y-6">
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">Revised Login Workflow</h3>
+                                    <p class="text-[#586e75]">Implemented new OIDC-based login flows in <code
+                                            class="text-[#2aa198]">identity-management-ui</code>, handling redirects and
+                                        token exchanges seamlessly.</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">Cookie Management</h3>
+                                    <p class="text-[#586e75]">Rewrote cookie handling logic to ensure secure session
+                                        management across domains during the transition from Crowd to Keycloak.</p>
+                                </div>
+                                <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                    <h3 class="font-bold text-xl mb-2 text-[#cb4b16]">Group & User Search</h3>
+                                    <p class="text-[#586e75]">Refactored search functionality in <code
+                                            class="text-[#2aa198]">identity-management-service</code> to query
+                                        Keycloak's API instead of legacy direct DB calls.</p>
+                                </div>
+                            </div>
+                            <div
+                                class="card-bg p-8 rounded-2xl shadow-lg border border-[#93a1a1] flex flex-col justify-center items-center h-full">
+                                <div class="text-center space-y-4">
+                                    <div class="p-4 bg-[#eee8d5] rounded-lg border border-[#93a1a1] inline-block">
+                                        <span class="font-mono text-[#cb4b16] font-bold">Legacy Code</span>
+                                    </div>
+                                    <div class="text-[#839496] text-2xl">↓</div>
+                                    <div class="p-4 bg-[#eee8d5] rounded-lg border border-[#93a1a1] inline-block">
+                                        <span class="font-mono text-[#2aa198] font-bold">Cursor Refactoring</span>
+                                    </div>
+                                    <div class="text-[#839496] text-2xl">↓</div>
+                                    <div class="p-4 bg-[#eee8d5] rounded-lg border border-[#93a1a1] inline-block">
+                                        <span class="font-mono text-[#268bd2] font-bold">Keycloak Ready</span>
+                                    </div>
+                                </div>
+                                <p class="mt-8 text-sm text-[#839496] text-center">Accelerated implementation of
+                                    supporting code changes by <strong class="text-[#2aa198]">40%</strong>.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10.6: Real-Life Use Case: Rapid Prototyping AI Features -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#2aa198]">Real-Life Use Case: Rapid
+                            Prototyping</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Accelerating feature development within this very project.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Single Concept Translation</h3>
+                                <p class="text-[#586e75] mb-4">AI-assisted translation of SNOMED CT concepts, leveraging
+                                    GPT to suggest accurate translations based on context and existing patterns.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Single Concept Generation</h3>
+                                <p class="text-[#586e75] mb-4">Automated generation of new SNOMED CT concepts from
+                                    natural language descriptions, ensuring adherence to editorial guidelines.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">ECL Builder</h3>
+                                <p class="text-[#586e75] mb-4">Natural language to Expression Constraint Language (ECL)
+                                    converter, allowing users to build complex queries by simply describing them.</p>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-4 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Concept Research</h3>
+                                <p class="text-[#586e75] mb-4">Deep dive analysis of concepts, using AI to surface
+                                    related concepts, usage patterns, and potential modeling issues.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Slide 9: Cursor vs Antigravity -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6">Cursor vs. Antigravity</h2>
+                        <p class="text-center text-[#839496] mb-10 max-w-3xl mx-auto">
+                            Two powerful tools, different philosophies.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- Cursor -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-cyan-500">
+                                <h3 class="text-3xl font-bold mb-6 text-[#2aa198]">Cursor</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>Mature & Established:</strong> Built on VS Code, proven user base,
+                                            stable ecosystem.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>"Vibe-Coding" Focus:</strong> AI-assisted editing, autocomplete,
+                                            multi-line edits, natural language commands.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>Deep Codebase Understanding:</strong> Embedding model for context,
+                                            @-mentions for targeted queries.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>Model Flexibility:</strong> Easy switching between GPT-4, Claude,
+                                            and others.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>VS Code Extensions:</strong> Full support for themes, keybindings,
+                                            and customization.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#2aa198] font-bold text-lg">✓</span>
+                                        <span><strong>Best For:</strong> Hands-on editing, refactoring, UI/UX work,
+                                            rapid iteration.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#cb4b16] font-bold text-lg">⚠</span>
+                                        <span><strong>Trade-offs:</strong> Requires active guidance; may introduce
+                                            subtle bugs; some slowdowns on familiar code.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Antigravity -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-purple-500">
+                                <h3 class="text-3xl font-bold mb-6 text-[#6c71c4]">Antigravity</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>New & Ambitious:</strong> Announced Nov 2025, public preview,
+                                            "agent-first" paradigm.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>Agent Orchestration:</strong> Multiple autonomous agents,
+                                            editor/terminal/browser integration, verifiable artifacts.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>Long-Horizon Planning:</strong> Gemini 3 Pro with large context
+                                            windows for complex, multi-step tasks.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>Task-Level Workflow:</strong> Delegate entire features, not just
+                                            code edits—agents coordinate across tools.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>Broad Integration:</strong> Agents operate on code, tests,
+                                            browser, infrastructure—end-to-end automation.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#6c71c4] font-bold text-lg">✓</span>
+                                        <span><strong>Best For:</strong> Building entire features, complex
+                                            implementations, delegating larger chunks of work.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-[#cb4b16] font-bold text-lg">⚠</span>
+                                        <span><strong>Trade-offs:</strong> Less mature; workflow changes needed; higher
+                                            security surface with broader agent access.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: AI Industry Future -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-4xl font-bold text-center mb-6 text-[#268bd2]">The AI Landscape: What's Next?
+                        </h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">
+                            Navigating hype cycles and finding sustainable value.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8 mb-8">
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#cb4b16]">
+                                <h3 class="font-bold text-xl mb-3 text-[#cb4b16]">The Bubble Question</h3>
+                                <p class="text-[#586e75] mb-4">There's valid concern about AI over-hype:</p>
+                                <ul class="text-[#586e75] space-y-2 text-sm">
+                                    <li>• Massive investments in uncertain technologies</li>
+                                    <li>• Inflated valuations for AI startups</li>
+                                    <li>• Some solutions seeking problems</li>
+                                    <li>• Potential market correction ahead</li>
+                                </ul>
+                            </div>
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Why This Time Is Different</h3>
+                                <p class="text-[#586e75] mb-4">But the fundamentals are solid:</p>
+                                <ul class="text-[#586e75] space-y-2 text-sm">
+                                    <li>• Real productivity gains measurable today</li>
+                                    <li>• Backed by tech giants with deep pockets</li>
+                                    <li>• Infrastructure already deployed at scale</li>
+                                    <li>• Clear ROI for enterprise use cases</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-bg p-8 rounded-2xl shadow-lg border-t-4 border-[#268bd2]">
+                            <h3 class="font-bold text-2xl mb-4 text-[#268bd2] text-center">The Likely Outcome</h3>
+                            <div class="grid md:grid-cols-3 gap-6 text-center">
+                                <div>
+                                    <div class="text-3xl mb-2">🏢</div>
+                                    <h4 class="font-bold text-[#268bd2] mb-2">Large Players Survive</h4>
+                                    <p class="text-[#586e75] text-sm">OpenAI, Google, Anthropic, Microsoft will weather
+                                        any correction</p>
+                                </div>
+                                <div>
+                                    <div class="text-3xl mb-2">📉</div>
+                                    <h4 class="font-bold text-[#268bd2] mb-2">Market Settling</h4>
+                                    <p class="text-[#586e75] text-sm">Speculative startups fade, sustainable businesses
+                                        remain</p>
+                                </div>
+                                <div>
+                                    <div class="text-3xl mb-2">✨</div>
+                                    <h4 class="font-bold text-[#268bd2] mb-2">Maturation Phase</h4>
+                                    <p class="text-[#586e75] text-sm">Industry stabilizes around proven use cases and
+                                        real value</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-8">
+                            <p class="text-[#586e75] italic max-w-3xl mx-auto">
+                                Like every technology revolution, there will be winners and losers. The key is to focus
+                                on real productivity gains, not hype.
+                            </p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Slide 15: Closing Summary -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-5xl font-bold text-center mb-8 gradient-text">Key Takeaways</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-4xl mx-auto text-lg">
+                            AI-powered development tools are transforming how we build software.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8 mb-12">
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-l-4 border-[#2aa198]">
+                                <h3 class="font-bold text-2xl mb-4 text-[#2aa198]">Choose the Right Tool</h3>
+                                <p class="text-[#586e75] mb-4">Match the tool to the task:</p>
+                                <ul class="text-[#586e75] space-y-2">
+                                    <li><strong class="text-[#2aa198]">Cursor</strong> for rapid iteration and inline
+                                        editing</li>
+                                    <li><strong class="text-[#6c71c4]">Antigravity</strong> for complex, multi-step
+                                        implementations</li>
+                                </ul>
+                            </div>
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-l-4 border-[#268bd2]">
+                                <h3 class="font-bold text-2xl mb-4 text-[#268bd2]">Understand the Limits</h3>
+                                <p class="text-[#586e75] mb-4">AI is powerful but not magic:</p>
+                                <ul class="text-[#586e75] space-y-2">
+                                    <li>Requires clear requirements and context</li>
+                                    <li>Best for well-defined, structured tasks</li>
+                                    <li>Always verify outputs and test thoroughly</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card-bg p-8 rounded-2xl shadow-lg border-t-4 border-[#cb4b16] text-center">
+                            <h3 class="font-bold text-2xl mb-4 text-[#cb4b16]">The Future is Collaborative</h3>
+                            <p class="text-[#586e75] text-lg max-w-3xl mx-auto">
+                                AI won't replace developers—it will amplify their capabilities. The most productive
+                                teams will be those who learn to work <em>with</em> AI, leveraging its strengths while
+                                applying human judgment, creativity, and domain expertise.
+                            </p>
+                        </div>
+
+                        <div class="text-center mt-12">
+                            <p class="text-3xl font-bold text-[#586e75]">Thank You</p>
+                            <p class="text-[#839496] mt-4">Questions?</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End slideshow-container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Scroll Reveal Animation ---
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            revealElements.forEach(el => {
+                observer.observe(el);
+            });
+
+            // --- Slideshow Navigation ---
+            const container = document.getElementById('slideshow-container');
+            const slides = Array.from(document.querySelectorAll('.slide'));
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const currentSlideEl = document.getElementById('currentSlide');
+            const totalSlidesEl = document.getElementById('totalSlides');
+            const slideIndicator = document.getElementById('slideIndicator');
+
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+
+            // Update total slides display
+            if (totalSlidesEl) totalSlidesEl.textContent = totalSlides;
+
+            // Create indicator dots
+            if (slideIndicator) {
+                slides.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'slide-indicator-dot';
+                    if (index === 0) dot.classList.add('active');
+                    dot.addEventListener('click', () => goToSlide(index));
+                    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+                    slideIndicator.appendChild(dot);
+                });
+            }
+
+            function updateSlidePosition() {
+                if (!container) return;
+                const offset = -currentIndex * 100;
+                container.style.transform = `translateX(${offset}vw)`;
+
+                // Update counter
+                if (currentSlideEl) currentSlideEl.textContent = currentIndex + 1;
+
+                // Update buttons
+                if (prevBtn) prevBtn.disabled = currentIndex === 0;
+                if (nextBtn) nextBtn.disabled = currentIndex === totalSlides - 1;
+
+                // Update indicator dots
+                const dots = slideIndicator?.querySelectorAll('.slide-indicator-dot');
+                dots?.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentIndex);
+                });
+
+                // Trigger reveal animations for current slide
+                const currentSlide = slides[currentIndex];
+                if (currentSlide) {
+                    const reveals = currentSlide.querySelectorAll('.reveal');
+                    reveals.forEach(el => el.classList.add('visible'));
+                    handleSlideAnimations(currentSlide);
+                }
+
+                // Update progress bar
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    const progress = ((currentIndex + 1) / totalSlides) * 100;
+                    progressBar.style.width = `${progress}%`;
+                }
+            }
+
+            function goToSlide(index) {
+                if (index < 0 || index >= totalSlides) return;
+                currentIndex = index;
+                updateSlidePosition();
+            }
+
+            function nextSlide() {
+                if (currentIndex < totalSlides - 1) {
+                    goToSlide(currentIndex + 1);
+                }
+            }
+
+            function prevSlide() {
+                if (currentIndex > 0) {
+                    goToSlide(currentIndex - 1);
+                }
+            }
+
+            // Button event listeners
+            if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+            if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                }
+            });
+
+            // Touch/swipe support
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchEndX < touchStartX - swipeThreshold) {
+                    nextSlide();
+                }
+                if (touchEndX > touchStartX + swipeThreshold) {
+                    prevSlide();
+                }
+            }
+
+            // --- Typing Animation Logic ---
+            function handleSlideAnimations(slide) {
+                const typingElements = slide.querySelectorAll('.typing-effect');
+                typingElements.forEach(el => {
+                    if (el.dataset.typed === 'true') return; // Already typed
+
+                    const text = el.dataset.text;
+                    el.textContent = '';
+                    el.dataset.typed = 'true';
+
+                    let i = 0;
+                    function type() {
+                        if (i < text.length) {
+                            el.textContent += text.charAt(i);
+                            i++;
+                            setTimeout(type, 30 + Math.random() * 50); // Random typing speed
+                        }
+                    }
+                    // Small delay before starting
+                    setTimeout(type, 500);
+                });
+
+                // Chart Animation
+                const bars = slide.querySelectorAll('.productivity-bar');
+                bars.forEach(bar => {
+                    // Reset width first
+                    bar.style.width = '0%';
+                    bar.style.transition = 'width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+                    setTimeout(() => {
+                        bar.style.width = bar.dataset.width;
+                    }, 300);
+                });
+            }
+
+            // --- Comparison Slider Logic ---
+            function initComparisonSliders() {
+                const sliders = document.querySelectorAll('.comparison-slider-wrapper');
+                sliders.forEach(slider => {
+                    const before = slider.querySelector('.comparison-before');
+                    const handle = slider.querySelector('.comparison-handle');
+                    let isDragging = false;
+
+                    const onMove = (e) => {
+                        if (!isDragging) return;
+                        const rect = slider.getBoundingClientRect();
+                        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                        const width = Math.max(0, Math.min(x, rect.width));
+                        const percentage = (width / rect.width) * 100;
+
+                        before.style.width = `${percentage}%`;
+                        handle.style.left = `${percentage}%`;
+                    };
+
+                    const onStart = (e) => {
+                        isDragging = true;
+                        e.preventDefault(); // Prevent text selection
+                    };
+
+                    const onEnd = () => {
+                        isDragging = false;
+                    };
+
+                    // Mouse events
+                    handle.addEventListener('mousedown', onStart);
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onEnd);
+
+                    // Touch events
+                    handle.addEventListener('touchstart', onStart);
+                    document.addEventListener('touchmove', onMove);
+                    document.addEventListener('touchend', onEnd);
+
+                    // Click on slider to jump
+                    slider.addEventListener('click', (e) => {
+                        if (e.target === handle || handle.contains(e.target)) return;
+                        const rect = slider.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const width = Math.max(0, Math.min(x, rect.width));
+                        const percentage = (width / rect.width) * 100;
+
+                        before.style.width = `${percentage}%`;
+                        handle.style.left = `${percentage}%`;
+                    });
+                });
+            }
+
+            initComparisonSliders();
+            updateSlidePosition();
+
+            // --- Animated Number Counters ---
+            function animateCounter(element, target, duration = 1500) {
+                const start = 0;
+                const increment = target / (duration / 16); // 60fps
+                let current = start;
+
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        element.textContent = Math.round(target);
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.round(current);
+                    }
+                }, 16);
+            }
+
+            // Trigger counters when they come into view
+            const counters = document.querySelectorAll('.counter');
+            const counterObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.animated) {
+                        const target = parseInt(entry.target.dataset.target) || parseInt(entry.target.textContent);
+                        entry.target.dataset.animated = 'true';
+                        animateCounter(entry.target, target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            counters.forEach(counter => counterObserver.observe(counter));
+
+            // --- Icon Animations ---
+            // Add bounce animation to emojis on slide load
+            document.querySelectorAll('.text-3xl').forEach((icon, index) => {
+                if (icon.textContent.match(/[🏢📉✨😊]/)) {
+                    setTimeout(() => {
+                        icon.classList.add('animate-bounce');
+                    }, index * 200);
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>
