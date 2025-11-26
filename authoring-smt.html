@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authoring UI Migration: Angular 20</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles to complement Tailwind */
+        html,
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eee8d5;
+            /* Solarized Base2 - Darker */
+            color: #586e75;
+            /* Solarized Base01 - Darker */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Horizontal slideshow container */
+        #slideshow-container {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Individual slides */
+        .slide {
+            min-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Slide content wrapper */
+        .slide-content {
+            min-height: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Allow content to overflow and scroll if needed */
+        .slide-content>* {
+            flex-shrink: 0;
+        }
+
+        /* Better spacing for slide sections */
+        .slide section {
+            width: 100%;
+        }
+
+        /* Animation for elements fading in on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Gradient text for the hero section */
+        .gradient-text {
+            background: linear-gradient(45deg, #2aa198, #268bd2);
+            /* Cyan to Blue */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom styling for the hero section background */
+        .hero-bg {
+            background: radial-gradient(circle at 10% 20%, #eee8d5 0%, #d5cbb8 90.1%);
+        }
+
+        /* Custom card background */
+        .card-bg {
+            background-color: #d5cbb8;
+            /* Darker beige */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Navigation buttons */
+        .nav-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2aa198, #268bd2);
+            color: #fdf6e3;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(42, 161, 152, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-button.prev {
+            left: 2rem;
+        }
+
+        .nav-button.next {
+            right: 2rem;
+        }
+
+        /* Slide indicator */
+        .slide-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        .slide-indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(147, 161, 161, 0.5);
+            /* Solarized Base1 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator-dot.active {
+            background: linear-gradient(135deg, #2aa198, #268bd2);
+            transform: scale(1.3);
+        }
+
+        .slide-indicator-dot:hover {
+            background: rgba(147, 161, 161, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            padding: 0.75rem 1.25rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        /* Card hover effects */
+        .card-bg {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-bg:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(147, 161, 161, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2aa198, #268bd2);
+            transition: width 0.3s ease;
+        }
+
+        /* Animations for AI Demos */
+        @keyframes typeText {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid #2aa198;
+            animation: typeText 3s steps(40, end), blink 0.75s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            from,
+            to {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: #2aa198;
+            }
+        }
+
+        @keyframes pulse-soft {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        .ai-pulse {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+
+        /* Print styles */
+        @media print {
+
+            .nav-button,
+            .slide-indicator,
+            .slide-counter,
+            .print-hidden {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            .card-bg {
+                background: #ffffff !important;
+                box-shadow: none !important;
+                border: 1px solid #ccc;
+            }
+
+            html,
+            body {
+                overflow: visible;
+                height: auto;
+            }
+
+            #slideshow-container {
+                display: block;
+                transform: none !important;
+            }
+
+            .slide {
+                min-width: 100%;
+                width: 100%;
+                height: auto;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <button id="prevBtn" class="nav-button prev print-hidden" aria-label="Previous slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <button id="nextBtn" class="nav-button next print-hidden" aria-label="Next slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Slide Counter -->
+    <div id="slideCounter" class="slide-counter print-hidden">
+        <span id="currentSlide">1</span> / <span id="totalSlides">--</span>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div id="slideIndicator" class="slide-indicator print-hidden"></div>
+
+    <!-- Slideshow Container -->
+    <div id="slideshow-container">
+
+        <!-- Slide 1: Hero / Title -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <header class="hero-bg text-center py-16 md:py-24 px-4">
+                    <div class="max-w-4xl mx-auto">
+                        <h1 class="text-4xl md:text-7xl font-black text-[#586e75] mb-6 reveal visible">The <span
+                                class="gradient-text">Migration Challenge</span></h1>
+                        <h2 class="text-2xl md:text-3xl font-bold text-[#586e75] mb-8 reveal visible">Authoring UI to
+                            Angular 20</h2>
+                        <p class="text-lg md:text-xl text-[#839496] max-w-2xl mx-auto reveal visible">
+                            A strategic roadmap to modernize the SNOMED CT Authoring Platform, reduce risk, and unlock
+                            AI capabilities.
+                        </p>
+                        <p class="text-sm text-[#839496] mt-12">Use ← → arrow keys or buttons to navigate</p>
+                    </div>
+                </header>
+            </div>
+        </div>
+
+        <!-- Slide 2: Reasons for Replacement -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">Why Modernize Now?
+                        </h2>
+                        <p class="text-center text-[#839496] mb-10 max-w-4xl mx-auto">Reduce operational risk, protect
+                            business continuity, and unlock faster delivery and innovation.</p>
+
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- Technology Risk -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-red-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#dc322f]">Technology Risk</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Unsupported, end‑of‑life AngularJS stack.</li>
+                                    <li>Security vulnerabilities in outdated dependencies.</li>
+                                    <li>Tightly coupled code makes changes slow and expensive.</li>
+                                    <li>Testing debt drives release risk and rework.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Human Risk -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-yellow-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#b58900]">Human Risk</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Key‑person dependency: knowledge concentrated.</li>
+                                    <li>Talent pool for legacy AngularJS is shrinking.</li>
+                                    <li>High onboarding cost for new engineers.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Opportunity -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-cyan-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#2aa198]">Opportunity</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Accelerate roadmap with a modern, modular stack.</li>
+                                    <li>Productize AI gains (translation, generation).</li>
+                                    <li>Improve reliability, performance, and accessibility.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Streamline & Focus -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-green-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#859900]">Streamline & Focus</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Retire low‑value features based on usage data.</li>
+                                    <li>Standardize UI patterns to speed up development.</li>
+                                    <li>Institutionalize knowledge with better documentation.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Slide 3: Challenges Faced -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">The Roots of
+                            Complexity</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">How a decade of evolution created
+                            the challenges we face today.</p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- 10 Years -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-6 text-center">📅</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#268bd2]">10+ Years of History</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">
+                                    The project began in a different era of web development. Architectural decisions
+                                    that were standard a decade ago have now become significant technical debt,
+                                    anchoring us to the past.
+                                </p>
+                            </div>
+
+                            <!-- Organic Growth -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-6 text-center">🌿</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#cb4b16]">Organic Growth</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">
+                                    Features were layered on top of each other year after year. Without continuous
+                                    refactoring, the "temporary" workarounds became permanent structural dependencies.
+                                </p>
+                            </div>
+
+                            <!-- Human Factors -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <div class="text-4xl mb-6 text-center">👥</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#859900]">Developer Turnover</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">
+                                    Multiple generations of developers have contributed to the codebase. Each brought
+                                    different styles and patterns, resulting in a fragmented and inconsistent
+                                    architecture.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="mt-12 p-6 bg-[#eee8d5] rounded-xl border border-[#93a1a1] max-w-3xl mx-auto text-center">
+                            <p class="text-[#586e75] font-semibold italic">
+                                "The complexity isn't just in the code—it's in the history."
+                            </p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Slide 4: The Tailwind Advantage -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">The Tailwind
+                            Advantage</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Efficiency through constraint and
+                            standardization.</p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Efficiency -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#2aa198]">
+                                <div class="text-4xl mb-4 text-center">🚀</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#2aa198]">Accelerated Development
+                                </h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    By removing trivial design decisions, developers can focus on logic and
+                                    functionality. No more debating over pixel-perfect values.
+                                </p>
+                            </div>
+
+                            <!-- Consistency -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#268bd2]">
+                                <div class="text-4xl mb-4 text-center">🎨</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#268bd2]">Enforced Consistency</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    Limited customization options prevent "snowflake" designs. The UI remains cohesive
+                                    without constant policing.
+                                </p>
+                            </div>
+
+                            <!-- Cleanup -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">🧹</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#dc322f]">Legacy CSS Removal</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    Eliminate the maintenance burden of thousands of lines of custom, fragile CSS.
+                                    Utility classes handle the styling directly.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-12 p-6 bg-[#eee8d5] rounded-xl border border-[#93a1a1] max-w-3xl mx-auto">
+                            <h4 class="font-bold text-[#586e75] mb-2 text-center">The Impact</h4>
+                            <div class="flex justify-around text-center">
+                                <div>
+                                    <div class="text-2xl font-bold text-[#2aa198]">-40%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Dev Time</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-[#268bd2]">-90%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Custom CSS</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-[#859900]">100%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Consistency</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Executive Summary (The Plan) -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 text-[#586e75]">Executive Summary:
+                            The Replacement Plan</h2>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Phase 1 -->
+                            <div
+                                class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#2aa198] relative overflow-hidden group">
+                                <div
+                                    class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <span class="text-6xl font-black">1</span>
+                                </div>
+                                <h3 class="font-bold text-2xl mb-4 text-[#2aa198]">Plan & Scaffold</h3>
+                                <p class="text-[#586e75] mb-4 font-semibold">Foundation & De-risking</p>
+                                <ul class="space-y-3 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Analyze legacy code & dependencies.</li>
+                                    <li>Setup new Angular 20 repository (Nx monorepo).</li>
+                                    <li>Establish Design System (Angular Material/Tailwind).</li>
+                                    <li>Configure CI/CD pipelines.</li>
+                                    <li>Create "Strangler Fig" routing strategy.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 2 -->
+                            <div
+                                class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#268bd2] relative overflow-hidden group">
+                                <div
+                                    class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <span class="text-6xl font-black">2</span>
+                                </div>
+                                <h3 class="font-bold text-2xl mb-4 text-[#268bd2]">Build</h3>
+                                <p class="text-[#586e75] mb-4 font-semibold">Migration & Parity</p>
+                                <ul class="space-y-3 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Incremental component migration.</li>
+                                    <li>Implement core services (Auth, Terminology).</li>
+                                    <li>Migrate "Concept Editor" (The Monolith).</li>
+                                    <li>Parallel running of old and new UIs.</li>
+                                    <li>Rigorous testing & QA.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 3 -->
+                            <div
+                                class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#6c71c4] relative overflow-hidden group">
+                                <div
+                                    class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <span class="text-6xl font-black">3</span>
+                                </div>
+                                <h3 class="font-bold text-2xl mb-4 text-[#6c71c4]">Iterate & Future Proof</h3>
+                                <p class="text-[#586e75] mb-4 font-semibold">Innovation & AI</p>
+                                <ul class="space-y-3 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Full switch-over to Angular 20.</li>
+                                    <li>Performance tuning & optimization.</li>
+                                    <li><strong>Deep AI Integration</strong> (Co-pilot, Auto-complete).</li>
+                                    <li>Enhanced collaborative features.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: AI Concept Authoring Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            Concept Authoring</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Accelerating content creation with
+                            intelligent suggestions (based on <code>aiConceptCreationModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 600px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #fff; border-bottom: 1px solid #e5e5e5; padding: 15px;">
+                                <h3 class="modal-title"
+                                    style="margin: 0; color: #333; font-size: 18px; font-weight: 600;">
+                                    <i class="fa fa-magic" style="color: #667eea; margin-right: 10px;"></i>
+                                    Create Concept with AI
+                                </h3>
+                            </div>
+                            <div class="modal-body" style="background-color: #fff; padding: 20px;">
+                                <form>
+                                    <div class="form-group">
+                                        <label
+                                            style="font-weight: bold; margin-bottom: 10px; display: block; color: #333;">Concept
+                                            Fully Specified Name (FSN) *</label>
+                                        <input type="text" class="form-control"
+                                            value="Viral pneumonia caused by SARS-CoV-2 (disorder)"
+                                            style="width: 100%; border-radius: 4px; border: 1px solid #ddd; padding: 8px 12px; font-size: 14px; color: #333;">
+                                        <small style="color: #666; margin-top: 5px; display: block;">
+                                            Enter the FSN for your new concept. AI will generate appropriate
+                                            relationships based on SNOMED CT Editorial Guide.
+                                        </small>
+                                    </div>
+                                    <!-- Simulated AI Processing/Result -->
+                                    <div
+                                        class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800 flex items-center">
+                                        <i class="fa fa-spinner fa-spin mr-2"></i> <span>AI is analyzing SNOMED CT
+                                            patterns...</span>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer"
+                                style="background-color: #fff; border-top: 1px solid #e5e5e5; padding: 15px; text-align: right;">
+                                <button type="button"
+                                    style="background-color: #f5f5f5; border: 1px solid #ccc; color: #333; padding: 8px 16px; margin-right: 10px; border-radius: 4px;">Cancel</button>
+                                <button type="button"
+                                    style="background-color: #667eea; border: 1px solid #667eea; color: white; padding: 8px 16px; border-radius: 4px;">
+                                    <i class="fa fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Create Concept
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: AI ECL Builder Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            ECL Builder</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Natural language to Expression
+                            Constraint Language (based on <code>aiEclBuilderModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 800px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #fff; border-bottom: 1px solid #e5e5e5; padding: 15px;">
+                                <h4 class="modal-title"
+                                    style="margin: 0; color: #333; font-weight: 600; font-size: 18px;">
+                                    <i class="fa fa-magic" style="color: #337ab7; margin-right: 8px;"></i> AI-Powered
+                                    ECL Builder
+                                </h4>
+                            </div>
+                            <div class="modal-body" style="background-color: #fff; padding: 20px;">
+                                <!-- Step 1 -->
+                                <div class="panel panel-default"
+                                    style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f5f5f5; border-bottom: 1px solid #ddd; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: bold; color: #333;">Step 1: Add Concept
+                                            Variables</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <!-- Search Box Simulation -->
+                                        <div id="search-container" style="margin-bottom: 15px; position: relative;">
+                                            <input type="text" id="concept-search" placeholder="Search for a concept..."
+                                                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                            <div id="search-results"
+                                                style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-radius: 0 0 4px 4px; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                                <!-- Results injected by JS -->
+                                            </div>
+                                        </div>
+
+                                        <!-- Variables List -->
+                                        <div id="variables-list">
+                                            <!-- Variables injected by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Step 2 -->
+                                <div class="panel panel-default"
+                                    style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f5f5f5; border-bottom: 1px solid #ddd; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: bold; color: #333;">Step 2: Write Your
+                                            Formula</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <textarea id="query-input" class="form-control" rows="2"
+                                            style="width: 100%; border: 1px solid #ccc; padding: 8px; font-family: monospace; color: #333;"
+                                            placeholder="e.g., Descendants of A..."></textarea>
+                                    </div>
+                                </div>
+                                <!-- Result -->
+                                <div id="ecl-result" class="well well-sm"
+                                    style="display: none; background-color: #f5f5f5; border: 1px solid #e3e3e3; padding: 15px; font-family: monospace; color: #333; border-radius: 4px;">
+                                    <!-- Result injected by JS -->
+                                </div>
+                                <div id="generating-spinner" style="display: none; color: #2aa198; font-weight: bold;">
+                                    <i class="fa fa-spinner fa-spin mr-2"></i> Generating ECL...
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Animation Logic for Slide 7
+            document.addEventListener('DOMContentLoaded', () => {
+                const searchInput = document.getElementById('concept-search');
+                const searchResults = document.getElementById('search-results');
+                const variablesList = document.getElementById('variables-list');
+                const queryInput = document.getElementById('query-input');
+                const eclResult = document.getElementById('ecl-result');
+                const spinner = document.getElementById('generating-spinner');
+
+                const steps = [
+                    // 1. Type "Diabetes"
+                    async () => await typeText(searchInput, "Diabetes"),
+                    // 2. Show results
+                    async () => {
+                        searchResults.innerHTML = `
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer border-b">Diabetes mellitus (disorder)</div>
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer">Diabetes mellitus screening (procedure)</div>
+                        `;
+                        searchResults.style.display = 'block';
+                        await wait(1000);
+                    },
+                    // 3. Select "Diabetes"
+                    async () => {
+                        searchResults.style.display = 'none';
+                        searchInput.value = '';
+                        addVariable('A', 'Diabetes mellitus (disorder)', '73211009');
+                        await wait(800);
+                    },
+                    // 4. Type "Retina"
+                    async () => await typeText(searchInput, "Retina"),
+                    // 5. Show results
+                    async () => {
+                        searchResults.innerHTML = `
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer border-b">Retina structure (body structure)</div>
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer">Retinal finding (finding)</div>
+                        `;
+                        searchResults.style.display = 'block';
+                        await wait(1000);
+                    },
+                    // 6. Select "Retina"
+                    async () => {
+                        searchResults.style.display = 'none';
+                        searchInput.value = '';
+                        addVariable('B', 'Retina structure (body structure)', '5665001');
+                        await wait(800);
+                    },
+                    // 7. Type Query
+                    async () => await typeText(queryInput, "Descendants of A that have finding site B"),
+                    // 8. Generate
+                    async () => {
+                        spinner.style.display = 'block';
+                        await wait(1500);
+                        spinner.style.display = 'none';
+                        eclResult.innerHTML = '&lt;&lt; 73211009 |Diabetes mellitus| : 363698007 |Finding site| = &lt;&lt; 5665001 |Retina structure|';
+                        eclResult.style.display = 'block';
+                        eclResult.classList.add('ai-pulse');
+                    }
+                ];
+
+                async function runAnimation() {
+                    // Reset state
+                    variablesList.innerHTML = '';
+                    queryInput.value = '';
+                    eclResult.style.display = 'none';
+                    searchInput.value = '';
+
+                    for (const step of steps) {
+                        await step();
+                    }
+                }
+
+                // Helper functions
+                function wait(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                async function typeText(element, text) {
+                    element.value = '';
+                    for (let i = 0; i < text.length; i++) {
+                        element.value += text[i];
+                        await wait(50 + Math.random() * 50);
+                    }
+                    await wait(500);
+                }
+
+                function addVariable(letter, name, id) {
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '10px';
+                    div.className = 'reveal visible'; // Animate in
+                    div.innerHTML = `
+                        <span style="font-weight: bold; color: #337ab7; font-size: 16px; margin-right: 8px;">${letter}</span>
+                        <span style="color: #333;">${name}</span>
+                        <code style="margin-left: 8px; background-color: #e8e8e8; color: #555; padding: 2px 6px; border-radius: 3px;">${id}</code>
+                    `;
+                    variablesList.appendChild(div);
+                }
+
+                // Start animation when slide is visible (intersection observer or manual trigger)
+                // For simplicity, we'll trigger it when the slide is navigated to.
+                // We'll hook into the existing 'updateSlideState' function if possible, or just run it on loop.
+
+                // Expose runAnimation to global scope to be called by slide navigation
+                window.runEclAnimation = runAnimation;
+            });
+        </script>
+
+
+        <!-- Slide 7: AI Concept Research Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            Concept Research</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Automated literature review (based
+                            on <code>aiResearchModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 800px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 15px;">
+                                <h3 class="modal-title"
+                                    style="margin: 0; color: #333; font-weight: 600; font-size: 18px;">
+                                    <i class="fa fa-flask" style="color: #4a90e2; margin-right: 8px;"></i>
+                                    AI Clinical Research Assistant
+                                </h3>
+                                <p style="margin: 8px 0 0 0; color: #6c757d; font-size: 14px;">Evidence-based analysis
+                                    for: <strong>Myocarditis due to Kawasaki disease (disorder)</strong></p>
+                            </div>
+                            <div class="modal-body"
+                                style="background-color: #fff; padding: 20px; max-height: 500px; overflow-y: auto;">
+                                <!-- Findings -->
+                                <div class="panel panel-default"
+                                    style="border: 1px solid #dee2e6; margin-bottom: 20px; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: 600; color: #333;">Research Findings</h5>
+                                    </div>
+                                    <div class="panel-body"
+                                        style="padding: 15px; color: #333; font-size: 14px; line-height: 1.6;">
+                                        <p style="margin-bottom: 10px;"><strong>Summary:</strong> Myocarditis due to
+                                            Kawasaki disease is a serious condition that can arise as a complication of
+                                            Kawasaki disease, an illness primarily affecting children that causes
+                                            inflammation of blood vessels. Leading to potential heart complications like
+                                            myocarditis.</p>
+
+                                        <p style="margin-bottom: 10px;"><strong>Clinical Evidence:</strong> Research
+                                            indicates that myocarditis can occur in children who suffer from Kawasaki
+                                            disease, presenting significant risks such as heart failure and arrhythmias.
+                                            Studies have shown a notable incidence rate of myocarditis as a result of
+                                            Kawasaki disease [2].</p>
+
+                                        <p style="margin-bottom: 10px;"><strong>Modeling Assessment:</strong> The SNOMED
+                                            CT model correctly defines myocarditis due to Kawasaki disease under the
+                                            broader category of diseases of the cardiovascular system, accurately
+                                            reflecting the pathology of myocarditis in this context.</p>
+
+                                        <p><strong>Recommendations:</strong> It is recommended to enhance the definition
+                                            of the condition with specific clinical criteria for diagnosis and
+                                            management strategies reflecting current guidelines.</p>
+                                    </div>
+                                </div>
+                                <!-- Citations -->
+                                <div class="panel panel-info"
+                                    style="border: 1px solid #b3d9ff; background-color: #f0f8ff; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #d9edf7; border-bottom: 1px solid #b3d9ff; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: 600; color: #31708f;">Citations & References
+                                            (2)</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <div style="margin-bottom: 10px;">
+                                            <span
+                                                style="background-color: #4a90e2; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 8px;">[1]</span>
+                                            <span style="color: #333; font-size: 13px;">The New England Journal of
+                                                Medicine - "Kawasaki Disease"</span>
+                                        </div>
+                                        <div>
+                                            <span
+                                                style="background-color: #4a90e2; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 8px;">[2]</span>
+                                            <span style="color: #333; font-size: 13px;">PubMed - Search results for
+                                                "myocarditis Kawasaki disease incidence"</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Future AI Discovery -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">Future AI Discovery
+                        </h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Collaborating with Content Team &
+                            Customers to identify high-value opportunities.</p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center mb-12">
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <h3 class="font-bold text-2xl mb-6 text-[#2aa198]">Discovery Process</h3>
+                                <ul class="space-y-4 text-[#586e75]">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-users mt-1 mr-3 text-[#268bd2]"></i>
+                                        <span><strong>Workshops with Content Team:</strong> Deep dive into daily
+                                            workflows to find repetitive, manual tasks.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-comments mt-1 mr-3 text-[#268bd2]"></i>
+                                        <span><strong>Customer Feedback Loop:</strong> Direct engagement with MS
+                                            customers to understand their pain points.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-chart-line mt-1 mr-3 text-[#268bd2]"></i>
+                                        <span><strong>Data-Driven Prioritization:</strong> Focusing AI efforts where
+                                            they deliver the most efficiency.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-l-4 border-[#6c71c4]">
+                                <h3 class="font-bold text-2xl mb-6 text-[#6c71c4]">Emerging Ideas</h3>
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">🤖 Automatic Citation in CRS</h4>
+                                        <p class="text-sm text-[#839496]">AI agents that automatically find and link
+                                            supporting literature for content request submissions.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">📦 Bulk Concept Creation</h4>
+                                        <p class="text-sm text-[#839496]">Generative AI to draft entire hierarchies or
+                                            sets of related concepts from a single prompt.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">💬 AI for Collaboration</h4>
+                                        <p class="text-sm text-[#839496]">Smart summarization of authoring discussions
+                                            and automated conflict resolution suggestions.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">✅ Real-time Concept Validation</h4>
+                                        <p class="text-sm text-[#839496]">Instant feedback against the editorial guide
+                                            to ensure quality and compliance as you type.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Sign Off -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <div class="max-w-4xl mx-auto text-center">
+                    <section class="reveal visible">
+                        <div class="mb-8">
+                            <i class="fas fa-rocket text-6xl text-[#2aa198] ai-pulse"></i>
+                        </div>
+                        <h2 class="text-4xl md:text-6xl font-black text-[#586e75] mb-8">Ready for the Future</h2>
+                        <p class="text-xl md:text-2xl text-[#839496] mb-12">
+                            Migrating to Angular 20 isn't just an upgrade.<br>
+                            It's the foundation for the next generation of SNOMED CT tooling.
+                        </p>
+
+                        <div class="inline-block p-8 card-bg rounded-2xl shadow-xl">
+                            <h3 class="text-2xl font-bold text-[#586e75] mb-4">Questions & Discussion</h3>
+                            <p class="text-[#839496]">Thank you for your time.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Slideshow Logic
+        const container = document.getElementById('slideshow-container');
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentSlideEl = document.getElementById('currentSlide');
+        const totalSlidesEl = document.getElementById('totalSlides');
+        const slideIndicator = document.getElementById('slideIndicator');
+        const progressBar = document.getElementById('progressBar');
+
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+
+        // Initialize
+        totalSlidesEl.textContent = totalSlides;
+
+        // Create indicator dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('slide-indicator-dot');
+            if (index === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(index));
+            slideIndicator.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.slide-indicator-dot');
+
+        function updateSlideState() {
+            // Update container transform
+            container.style.transform = `translateX(-${currentIndex * 100}vw)`;
+
+            // Update counters
+            currentSlideEl.textContent = currentIndex + 1;
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            // Update buttons
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === totalSlides - 1;
+
+            // Update progress bar
+            const progress = ((currentIndex + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Trigger animations for the current slide
+            const currentSlide = slides[currentIndex];
+            const reveals = currentSlide.querySelectorAll('.reveal');
+
+            // Reset animations in other slides (optional, but good for re-playing)
+            slides.forEach((slide, index) => {
+                if (index !== currentIndex) {
+                    const otherReveals = slide.querySelectorAll('.reveal');
+                    otherReveals.forEach(el => el.classList.remove('visible'));
+                }
+            });
+
+            // Small delay to allow transition to start
+            setTimeout(() => {
+                reveals.forEach(el => el.classList.add('visible'));
+
+                // Trigger ECL Animation if on Slide 7 (Index 6)
+                if (currentIndex === 6 && window.runEclAnimation) {
+                    window.runEclAnimation();
+                }
+            }, 100);
+        }
+
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            currentIndex = index;
+            updateSlideState();
+        }
+
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentIndex - 1);
+        }
+
+        // Event Listeners
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Initial setup
+        updateSlideState();
+    </script>
+</body>
+
+</html>
