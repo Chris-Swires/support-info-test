@@ -74,12 +74,6 @@
     <h2 class="text-3xl font-black mb-6 text-[#586e75] border-b-2 border-[#dc322f] pb-2 inline-block">The "Drowning"
       Case: Support Challenges</h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div class="card p-6 border-l-8 border-[#dc322f]">
-        <h3 class="text-lg font-bold mb-2 text-[#586e75] flex items-center"><i
-            class="fas fa-balance-scale-right text-[#dc322f] mr-3"></i> Efficiency Ratio</h3>
-        <p class="text-sm mb-4 text-[#93a1a1]">Ratio of Created vs Resolved. >1.0 means backlog is growing fast.</p>
-        <div class="chart-container-lg" style="height: 250px;"><canvas id="efficiencyChart"></canvas></div>
-      </div>
       <div class="card p-6 border-l-8 border-[#2aa198]">
         <h3 class="text-lg font-bold mb-2 text-[#586e75] flex items-center"><i
             class="fas fa-chart-line text-[#2aa198] mr-3"></i> Inflow vs Outflow</h3>
@@ -110,7 +104,7 @@
       <div class="card p-6 border-l-8 border-[#2aa198]">
         <h3 class="text-lg font-bold mb-2 text-[#586e75] flex items-center"><i
             class="fas fa-chalkboard-teacher text-[#2aa198] mr-3"></i> Training Needs</h3>
-        <p class="text-sm mb-4 text-[#93a1a1]">Top Reporters. Targeted training could reduce volume.</p>
+        <p class="text-sm mb-4 text-[#93a1a1]">Top 10 Reporters. Targeted training could reduce volume.</p>
         <div class="chart-container-lg" style="height: 250px;"><canvas id="trainingChart"></canvas></div>
       </div>
 
@@ -11832,11 +11826,16 @@
       // --- IMPROVEMENT METRICS (NEW) ---
 
       // 1. Training Needs (Top Reporters)
+      const excludeReporters = new Set(["Maria Braithwaite", "Leong Hui Wong", "Krista Lilly", "Jim Case", "Andrew Atkinson"]);
       const reporterCounts = {};
-      processed.forEach(d => { reporterCounts[d.reporter] = (reporterCounts[d.reporter] || 0) + 1; });
+      processed.forEach(d => {
+        if (d.reporter && !excludeReporters.has(d.reporter)) {
+          reporterCounts[d.reporter] = (reporterCounts[d.reporter] || 0) + 1;
+        }
+      });
       const topReporters = Object.entries(reporterCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
+        .slice(0, 10)
         .map((r) => ({ name: r[0], count: r[1] })); // Use actual names
 
       new Chart(document.getElementById('trainingChart'), {
@@ -11877,10 +11876,6 @@
       const rKeys = Object.keys(monthlyCreated).sort((a, b) => { const [ya, ma] = a.split('-').map(Number); const [yb, mb] = b.split('-').map(Number); return ya - yb || ma - mb; });
       const rVals = rKeys.map(k => { const c = monthlyCreated[k] || 0; const r = monthlyResolved[k] || 1; return parseFloat((c / r).toFixed(2)); });
 
-      new Chart(document.getElementById('efficiencyChart'), {
-        type: 'line', data: { labels: rKeys.map(k => { const [y, m] = k.split('-'); return new Date(y, m).toLocaleString('default', { month: 'short', year: '2-digit' }) }), datasets: [{ label: 'Ratio', data: rVals, borderColor: rVals.map(v => v > 1 ? '#dc322f' : '#2aa198'), tension: 0.3 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { annotation: { annotations: { line1: { type: 'line', yMin: 1, yMax: 1, borderColor: '#586e75', borderWidth: 2, borderDash: [5, 5] } } } }, scales: { y: { beginAtZero: true, title: { display: true, text: '>1.0 = Problem' } } } }
-      });
 
       // 1.5 Inflow vs Outflow (Trend)
       new Chart(document.getElementById('inoutChart'), {
