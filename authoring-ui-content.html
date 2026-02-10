@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authoring UI Migration: Angular 20</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles to complement Tailwind */
+        html,
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #eee8d5;
+            /* Solarized Base2 - Darker */
+            color: #586e75;
+            /* Solarized Base01 - Darker */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Horizontal slideshow container */
+        #slideshow-container {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Individual slides */
+        .slide {
+            min-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Slide content wrapper */
+        .slide-content {
+            min-height: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Allow content to overflow and scroll if needed */
+        .slide-content>* {
+            flex-shrink: 0;
+        }
+
+        /* Better spacing for slide sections */
+        .slide section {
+            width: 100%;
+        }
+
+        /* Animation for elements fading in on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Gradient text for the hero section */
+        .gradient-text {
+            background: linear-gradient(45deg, #00A4E4, #326295);
+            /* Cyan to Blue */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom styling for the hero section background */
+        .hero-bg {
+            background: radial-gradient(circle at 10% 20%, #eee8d5 0%, #d5cbb8 90.1%);
+        }
+
+        /* Custom card background */
+        .card-bg {
+            background-color: #d5cbb8;
+            /* Darker beige */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Navigation buttons */
+        .nav-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00A4E4, #326295);
+            color: #fdf6e3;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(42, 161, 152, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-button.prev {
+            left: 2rem;
+        }
+
+        .nav-button.next {
+            right: 2rem;
+        }
+
+        /* Slide indicator */
+        .slide-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        .slide-indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(147, 161, 161, 0.5);
+            /* Solarized Base1 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator-dot.active {
+            background: linear-gradient(135deg, #00A4E4, #326295);
+            transform: scale(1.3);
+        }
+
+        .slide-indicator-dot:hover {
+            background: rgba(147, 161, 161, 0.8);
+            transform: scale(1.2);
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            padding: 0.75rem 1.25rem;
+            background: rgba(238, 232, 213, 0.9);
+            /* Solarized Base2 */
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            /* Solarized Base1 */
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #657b83;
+            /* Solarized Base00 */
+        }
+
+        /* Card hover effects */
+        .card-bg {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-bg:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(147, 161, 161, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00A4E4, #326295);
+            transition: width 0.3s ease;
+        }
+
+        /* Animations for AI Demos */
+        @keyframes typeText {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid #00A4E4;
+            animation: typeText 3s steps(40, end), blink 0.75s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            from,
+            to {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: #00A4E4;
+            }
+        }
+
+        @keyframes pulse-soft {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        .ai-pulse {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+
+        /* Print styles */
+        @media print {
+
+            .nav-button,
+            .slide-indicator,
+            .slide-counter,
+            .print-hidden {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+
+            .card-bg {
+                background: #ffffff !important;
+                box-shadow: none !important;
+                border: 1px solid #ccc;
+            }
+
+            html,
+            body {
+                overflow: visible;
+                height: auto;
+            }
+
+            #slideshow-container {
+                display: block;
+                transform: none !important;
+            }
+
+            .slide {
+                min-width: 100%;
+                width: 100%;
+                height: auto;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <button id="prevBtn" class="nav-button prev print-hidden" aria-label="Previous slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <button id="nextBtn" class="nav-button next print-hidden" aria-label="Next slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Slide Counter -->
+    <div id="slideCounter" class="slide-counter print-hidden">
+        <span id="currentSlide">1</span> / <span id="totalSlides">--</span>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div id="slideIndicator" class="slide-indicator print-hidden"></div>
+
+    <!-- SNOMED International Branding Header -->
+    <div class="fixed top-0 left-0 p-6 z-50 pointer-events-none">
+        <div class="flex items-center">
+            <!-- Logo Box -->
+            <div class="w-48 shadow-sm">
+                <svg preserveAspectRatio="xMidYMid meet" viewBox="0 0 324 144" xmlns="http://www.w3.org/2000/svg"
+                    role="presentation" aria-hidden="true">
+                    <g>
+                        <path
+                            d="M155.47 101.1a.31.31 0 0 0-.34-.35h-.67v-1.34H156c.7 0 1 .3 1 1v8.35a.31.31 0 0 0 .34.34h3.05a.31.31 0 0 0 .34-.34v-.71h1.42v1.39c0 .71-.3 1-1 1h-4.72c-.7 0-1-.29-1-1Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M183.1 102.35a2.64 2.64 0 0 1 2.44 1.22 4.78 4.78 0 0 1 0-.53v-2a.3.3 0 0 0-.34-.34h-.64v-1.3h1.5c.7 0 1 .3 1 1v8.39a.31.31 0 0 0 .34.35h.6v1.29h-1.45c-.69 0-1-.31-1-.84v-.41a2.78 2.78 0 0 1-2.59 1.44c-2.14 0-3.48-1.69-3.48-4.14s1.52-4.13 3.62-4.13Zm2.49 4.12c0-1.4-.74-2.81-2.25-2.81-1.24 0-2.27 1-2.27 2.83s.92 2.83 2.24 2.83c1.17 0 2.28-.83 2.28-2.85Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M189.81 104.18a.31.31 0 0 0-.35-.35h-.64v-1.29h1.49c.7 0 1 .29 1 1v5.26a.31.31 0 0 0 .34.35h.64v1.29h-1.48c-.71 0-1-.29-1-1Zm0-4.77h1.36V101h-1.36Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M194 104.18a.31.31 0 0 0-.34-.35H193v-1.29h1.45c.67 0 1 .29 1 .87v.3a3.38 3.38 0 0 1 0 .45 3.21 3.21 0 0 1 3-1.81c1.88 0 2.72 1 2.72 3v3.42a.31.31 0 0 0 .34.35h.64v1.29h-1.5c-.7 0-1-.29-1-1v-3.72c0-1.1-.22-2-1.48-2a2.56 2.56 0 0 0-2.5 1.94 3.2 3.2 0 0 0-.14 1.06v3.7H194Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M206.26 102.35a2.63 2.63 0 0 1 2.53 1.23v-.25c0-.47.25-.79.87-.79h1.47v1.29h-.62a.31.31 0 0 0-.35.32v6c0 2.61-2 3.61-4 3.61a6.22 6.22 0 0 1-2.7-.66l.51-1.22a5 5 0 0 0 2.16.53c1.37 0 2.5-.61 2.5-2.2v-.53a4.81 4.81 0 0 1 0-.5 2.53 2.53 0 0 1-2.36 1.2c-2.19 0-3.53-1.77-3.53-4s1.31-4.03 3.52-4.03Zm2.47 4c0-2.06-1-2.66-2.24-2.66-1.37 0-2.15 1-2.15 2.61s.85 2.77 2.28 2.77c1.09-.07 2.11-.69 2.11-2.75Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M217 101.05a.3.3 0 0 0-.34-.34H216v-1.3h1.5c.7 0 1 .3 1 1v3.73a3.22 3.22 0 0 1 2.94-1.76c1.86 0 2.7 1 2.7 3v3.42a.31.31 0 0 0 .34.35h.64v1.29h-1.48c-.7 0-1-.29-1-1v-3.72c0-1.1-.24-2-1.5-2a2.61 2.61 0 0 0-2.5 2 3.25 3.25 0 0 0-.14 1v3.7H217Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M229.76 102.35c2.22 0 3.41 1.66 3.41 3.7v.63h-5.76a2.64 2.64 0 0 0 2.72 2.64 3.63 3.63 0 0 0 2.31-.92l.65 1.08a4.63 4.63 0 0 1-3 1.15 4 4 0 0 1-4.2-4.14 3.88 3.88 0 0 1 3.87-4.14Zm1.85 3.22a1.88 1.88 0 0 0-1.86-2 2.29 2.29 0 0 0-2.33 2Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M239 105.52h.34v-.08c0-1.39-.51-1.89-1.75-1.89-.37 0-1.29.1-1.29.61v.46h-1.43v-.79c0-1.29 2-1.48 2.74-1.48 2.56 0 3.25 1.34 3.25 3.09v3.36a.31.31 0 0 0 .34.35h.64v1.29h-1.44c-.7 0-1-.34-1-.9a3.51 3.51 0 0 1 0-.47 2.71 2.71 0 0 1-2.52 1.56 2.48 2.48 0 0 1-2.69-2.4c.02-2.55 3.46-2.71 4.81-2.71Zm-1.75 3.89a2.39 2.39 0 0 0 2.11-2.51v-.27H239c-1.14 0-3.21.06-3.21 1.52a1.32 1.32 0 0 0 1.44 1.26Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M166.75 102.35c2.22 0 3.41 1.66 3.41 3.7v.63h-5.76a2.64 2.64 0 0 0 2.72 2.64 3.63 3.63 0 0 0 2.31-.92l.65 1.08a4.63 4.63 0 0 1-3 1.15 4 4 0 0 1-4.2-4.14 3.88 3.88 0 0 1 3.87-4.14Zm1.85 3.22a1.88 1.88 0 0 0-1.86-2 2.28 2.28 0 0 0-2.33 2Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M176 105.52h.34v-.08c0-1.39-.51-1.89-1.75-1.89-.37 0-1.29.1-1.29.61v.46h-1.43v-.79c0-1.29 2-1.48 2.74-1.48 2.56 0 3.25 1.34 3.25 3.09v3.36a.31.31 0 0 0 .34.35h.64v1.29h-1.42c-.7 0-1-.34-1-.9a3.51 3.51 0 0 1 0-.47 2.71 2.71 0 0 1-2.52 1.56 2.48 2.48 0 0 1-2.69-2.4c-.01-2.55 3.43-2.71 4.79-2.71Zm-1.75 3.89a2.39 2.39 0 0 0 2.11-2.51v-.27h-.39c-1.14 0-3.21.06-3.21 1.52a1.32 1.32 0 0 0 1.46 1.26Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M243.43 101.05a.3.3 0 0 0-.34-.34h-.64v-1.3H244c.7 0 1 .3 1 1v8.39a.31.31 0 0 0 .34.35h.64v1.29h-1.5c-.7 0-1-.29-1-1Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M247.71 103.76h-1v-1.22h1.06v-2.18h1.49v2.18h1.89v1.22h-1.89v3.62a1.56 1.56 0 0 0 1.67 1.78 1.89 1.89 0 0 0 .36 0v1.35a4.14 4.14 0 0 1-.53 0 2.73 2.73 0 0 1-3-3Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M253 101.05a.31.31 0 0 0-.35-.34H252v-1.3h1.5c.71 0 1 .3 1 1v3.73a3.23 3.23 0 0 1 2.94-1.76c1.86 0 2.7 1 2.7 3v3.42a.31.31 0 0 0 .35.35h.64v1.29h-1.49c-.7 0-1-.29-1-1v-3.72c0-1.1-.23-2-1.5-2a2.61 2.61 0 0 0-2.5 2 3.25 3.25 0 0 0-.14 1v3.7H253Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M266.24 102.35c.95 0 2.84.39 2.84 1.73v.82h-1.37v-.44c0-.56-.89-.81-1.47-.81a2.66 2.66 0 0 0-2.7 2.82 2.69 2.69 0 0 0 2.78 2.82 3.55 3.55 0 0 0 2.45-1.1l.66 1.08a4.37 4.37 0 0 1-3.22 1.36 4.14 4.14 0 1 1 0-8.28Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M275 105.52h.34v-.08c0-1.39-.51-1.89-1.75-1.89-.37 0-1.29.1-1.29.61v.46h-1.42v-.79c0-1.29 2-1.48 2.73-1.48 2.56 0 3.25 1.34 3.25 3.09v3.36a.31.31 0 0 0 .34.35h.64v1.29h-1.42c-.7 0-1-.34-1-.9a3.51 3.51 0 0 1 0-.47 2.71 2.71 0 0 1-2.52 1.56 2.47 2.47 0 0 1-2.68-2.4c.06-2.55 3.49-2.71 4.78-2.71Zm-1.75 3.89a2.39 2.39 0 0 0 2.11-2.51v-.27H275c-1.14 0-3.2.06-3.2 1.52a1.31 1.31 0 0 0 1.49 1.26Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M279.34 104.18a.31.31 0 0 0-.35-.35h-.64v-1.29h1.44c.69 0 1 .28 1 .92v.5a4.93 4.93 0 0 1 0 .55 2.73 2.73 0 0 1 2.5-2.07 3.14 3.14 0 0 1 .41 0V104a2.55 2.55 0 0 0-.45 0 2.4 2.4 0 0 0-2.22 1.86 4.78 4.78 0 0 0-.19 1.42v3.23h-1.51Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M288.29 102.35c2.22 0 3.41 1.66 3.41 3.7 0 .21-.05.63-.05.63h-5.76a2.64 2.64 0 0 0 2.72 2.64 3.66 3.66 0 0 0 2.31-.92l.65 1.08a4.63 4.63 0 0 1-3 1.15 4 4 0 0 1-4.21-4.14 3.88 3.88 0 0 1 3.93-4.14Zm1.85 3.22a1.88 1.88 0 0 0-1.86-2 2.28 2.28 0 0 0-2.33 2Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M155.26 119.08h-1v-1.22h1.07v-2.17h1.48v2.17h1.89v1.22h-1.89v3.62a1.57 1.57 0 0 0 1.67 1.79 1.44 1.44 0 0 0 .36 0v1.35a4 4 0 0 1-.53 0 2.72 2.72 0 0 1-3-3Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M163.41 117.67c2.22 0 3.40 1.66 3.40 3.71v.62H161a2.64 2.64 0 0 0 2.72 2.64 3.63 3.63 0 0 0 2.31-.92l.66 1.08a4.64 4.64 0 0 1-3.05 1.15 4 4 0 0 1-4.20-4.14 3.89 3.89 0 0 1 3.97-4.14Zm1.84 3.22a1.88 1.88 0 0 0-1.86-2 2.29 2.29 0 0 0-2.33 2Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M168.64 119.5a.3.3 0 0 0-.34-.34h-.64v-1.3h1.43c.69 0 1 .28 1 .92v.5a4.93 4.93 0 0 1 0 .55 2.70 2.70 0 0 1 2.5-2.06 3.09 3.09 0 0 1 .40 0v1.5a2.06 2.06 0 0 0-.45 0 2.40 2.40 0 0 0-2.22 1.86 4.81 4.81 0 0 0-.18 1.42v3.24h-1.52Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M174.8 119.5a.31.31 0 0 0-.35-.34h-.64v-1.3h1.46c.68 0 1 .3 1 .87v.75a3.07 3.07 0 0 1 2.7-1.81 2.15 2.15 0 0 1 2.38 1.8 3.19 3.19 0 0 1 2.81-1.8c1.78 0 2.61 1 2.61 3v3.43a.31.31 0 0 0 .34.34h.64v1.3h-1.5c-.7 0-1-.3-1-1V121c0-1.11-.22-2-1.39-2a2.49 2.49 0 0 0-2.22 2 4.44 4.44 0 0 0-.13 1.08v3.61H180V121c0-1-.16-2-1.36-2a2.52 2.52 0 0 0-2.27 2.09 4.14 4.14 0 0 0-.11 1v3.61h-1.46Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M189.52 119.5a.3.3 0 0 0-.34-.34h-.64v-1.3H190c.71 0 1 .3 1 1v5.27a.31.31 0 0 0 .35.34h.65v1.3h-1.49c-.7 0-1-.3-1-1Zm0-4.77h1.36v1.58h-1.36Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M193.8 119.5a.3.3 0 0 0-.34-.34h-.64v-1.3h1.45c.67 0 1 .3 1 .87v.3a3.38 3.38 0 0 1 0 .45 3.23 3.23 0 0 1 3-1.81c1.87 0 2.72 1 2.72 3v3.43a.3.3 0 0 0 .34.34h.64v1.3h-1.5c-.7 0-1-.3-1-1v-3.72c0-1.11-.22-2-1.48-2a2.56 2.56 0 0 0-2.5 1.94 3.2 3.2 0 0 0-.14 1.06v3.71h-1.55Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M206.82 117.67a4.14 4.14 0 1 1-4.25 4.13 4.13 4.13 0 0 1 4.25-4.13Zm0 7a2.83 2.83 0 1 0-2.7-2.84 2.73 2.73 0 0 0 2.7 2.81Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M212.66 116.37a.31.31 0 0 0-.35-.34h-.64v-1.3h1.5c.7 0 1 .3 1 1v8.4a.31.31 0 0 0 .34.34h.65v1.3h-1.5c-.71 0-1-.3-1-1Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M220.1 117.67a4.14 4.14 0 1 1-4.25 4.13 4.12 4.12 0 0 1 4.25-4.13Zm0 7a2.83 2.83 0 1 0-2.7-2.84 2.73 2.73 0 0 0 2.7 2.81Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M228.91 117.67a2.64 2.64 0 0 1 2.53 1.24v-.25c0-.47.25-.8.87-.8h1.47v1.3h-.62c-.21 0-.35.11-.35.31v6c0 2.61-2 3.61-4 3.61a6.22 6.22 0 0 1-2.7-.66l.51-1.22a5 5 0 0 0 2.16.53c1.37 0 2.5-.61 2.5-2.2V125a4.81 4.81 0 0 1 0-.5 2.53 2.53 0 0 1-2.36 1.2c-2.19 0-3.53-1.76-3.53-4s1.31-4.03 3.52-4.03Zm2.46 4c0-2.06-1-2.66-2.23-2.66s-2.16 1-2.16 2.61.86 2.77 2.29 2.77c1.09-.03 2.1-.69 2.1-2.75Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M236.21 127.74a1.59 1.59 0 0 0 1.39-1.15l.36-.85-2.71-6.27a.46.46 0 0 0-.5-.31h-.18v-1.3h.89c.64 0 .87.17 1.12.8l1.8 4.45c.15.41.28 1 .28 1a6.92 6.92 0 0 1 .27-1l1.64-4.45a1 1 0 0 1 1.15-.8h.91v1.3h-.2a.46.46 0 0 0-.5.31l-3.13 7.72a2.7 2.7 0 0 1-2.55 1.86 2.59 2.59 0 0 1-1.85-.78l.62-1.1a1.61 1.61 0 0 0 1.19.57Z"
+                            fill="#434a55"></path>
+                        <path d="m243.9 124.13-1.33 3.21h-1.17l1-3.21Z" fill="#434a55"></path>
+                        <path
+                            d="M248.93 119.47c-.08-.25-.23-.31-.48-.31h-.22v-1.3h1c.71 0 1 .17 1.17.84l1.41 4.71a7.46 7.46 0 0 1 .19.84s.09-.44.22-.84l1.7-5.52h1.39l1.72 5.52c.12.4.2.84.2.84a7.46 7.46 0 0 1 .19-.84l1.39-4.71c.2-.67.49-.84 1.19-.84h1v1.3h-.22c-.25 0-.41.06-.49.31l-2.08 6.3h-1.7l-1.64-5.08c-.12-.41-.22-.86-.22-.86s-.09.45-.22.86l-1.62 5.08H251Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M265.65 117.67a4.14 4.14 0 1 1-4.25 4.13 4.13 4.13 0 0 1 4.25-4.13Zm0 7a2.83 2.83 0 1 0-2.71-2.84 2.72 2.72 0 0 0 2.71 2.81Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M271.59 119.5a.3.3 0 0 0-.34-.34h-.64v-1.3H272c.69 0 1 .28 1 .92v.5a4.93 4.93 0 0 1 0 .55 2.70 2.70 0 0 1 2.5-2.06 3.35 3.35 0 0 1 .41 0v1.5a2.22 2.22 0 0 0-.46 0 2.40 2.40 0 0 0-2.22 1.86 4.81 4.81 0 0 0-.18 1.42v3.24h-1.52Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M277.45 116.37a.31.31 0 0 0-.34-.34h-.64v-1.3H278c.7 0 1 .3 1 1v8.4a.31.31 0 0 0 .35.34h.65v1.3h-1.5c-.7 0-1-.3-1-1Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M284.5 117.67a2.64 2.64 0 0 1 2.43 1.22 4.55 4.55 0 0 1 0-.53v-2a.3.3 0 0 0-.34-.34H286v-1.3h1.5c.7 0 1 .3 1 1v8.4a.3.3 0 0 0 .34.34h.64v1.3H288c-.69 0-1-.32-1-.85a3.8 3.8 0 0 1 0-.4 2.81 2.81 0 0 1-2.6 1.43c-2.14 0-3.48-1.68-3.48-4.14s1.48-4.13 3.58-4.13Zm2.5 4.13c0-1.41-.73-2.82-2.25-2.82-1.23 0-2.27 1-2.27 2.83s.93 2.83 2.24 2.83 2.28-.83 2.28-2.84Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M290.35 119.47c-.08-.25-.23-.31-.48-.31h-.22v-1.3h1c.70 0 1 .17 1.17.84l1.41 4.71a7.46 7.46 0 0 1 .19.84s.09-.44.22-.84l1.7-5.52h1.39l1.72 5.52c.12.4.2.84.2.84a5.57 5.57 0 0 1 .19-.84l1.39-4.71c.2-.67.48-.84 1.19-.84h.93v1.3h-.21c-.25 0-.41.06-.49.31l-2.08 6.3h-1.7l-1.64-5.08c-.12-.41-.22-.86-.22-.86s-.09.45-.22.86l-1.62 5.08h-1.72Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M304.12 119.5a.31.31 0 0 0-.34-.34h-.65v-1.3h1.49c.7 0 1 .3 1 1v5.27a.3.3 0 0 0 .34.34h.64v1.3h-1.48c-.7 0-1-.3-1-1Zm-.5-4.77H305v1.58h-1.36Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M311 117.67a2.64 2.64 0 0 1 2.44 1.22 4.55 4.55 0 0 1 0-.53v-2a.3.3 0 0 0-.34-.34h-.64v-1.3h1.5c.7 0 1 .3 1 1v8.4a.3.3 0 0 0 .34.34h.64v1.3h-1.45c-.69 0-1-.32-1-.85a3.8 3.8 0 0 1 0-.4 2.78 2.78 0 0 1-2.59 1.43c-2.14 0-3.48-1.68-3.48-4.14s1.47-4.13 3.58-4.13Zm2.49 4.13c0-1.41-.74-2.82-2.25-2.82-1.23 0-2.27 1-2.27 2.83s.93 2.83 2.24 2.83 2.26-.83 2.26-2.84Z"
+                            fill="#434a55"></path>
+                        <path
+                            d="M320.59 117.67c2.22 0 3.41 1.66 3.41 3.71 0 .2-.05.62-.05.62h-5.76a2.64 2.64 0 0 0 2.72 2.64 3.63 3.63 0 0 0 2.31-.92l.65 1.08a4.63 4.63 0 0 1-3 1.15 4 4 0 0 1-4.2-4.14 3.88 3.88 0 0 1 3.92-4.14Zm1.85 3.22a1.88 1.88 0 0 0-1.86-2 2.29 2.29 0 0 0-2.33 2Z"
+                            fill="#434a55"></path>
+                        <path fill="#00a7e1" d="M144 0v144H0V0h144z"></path>
+                        <path
+                            d="M12.16 105.37a8.09 8.09 0 0 0 5.58 2.68c2.07 0 3.81-1.26 3.81-3.31 0-4.66-10.74-3.94-10.74-10.86 0-3.34 2.93-5.95 7.12-5.95 2.36 0 6.33 1.07 6.33 4.09v1.83h-2.9v-1c0-1.17-1.67-2-3.43-2-2.4 0-3.91 1.32-3.91 3 0 4.51 10.71 3.5 10.71 10.8 0 3.4-2.65 6.33-7.06 6.33a9.92 9.92 0 0 1-7.36-3.3Z"
+                            fill="#fefefe"></path>
+                        <path
+                            d="M25.58 107.83h1.36a.63.63 0 0 0 .69-.7V88.3h2.86l9.89 14.08c.82 1.2 1.86 3 1.86 3h.06a30.17 30.17 0 0 1-.22-3V90.32c0-1.42.6-2 2.05-2h3.15V91h-1.36a.61.61 0 0 0-.69.69v18.83h-2.84l-9.91-14.06c-.82-1.2-1.83-3-1.83-3h-.06s.19 1.79.19 3v12.06c0 1.42-.6 2-2 2h-3.2Z"
+                            fill="#fefefe"></path>
+                        <path
+                            d="M59.13 87.93a11.23 11.23 0 0 1 11.44 11.33 11.42 11.42 0 1 1-22.83 0 11.2 11.2 0 0 1 11.39-11.33Zm0 20a8.37 8.37 0 0 0 8.16-8.69 8.14 8.14 0 1 0-16.28 0c-.01 4.93 3.62 8.76 8.12 8.76Z"
+                            fill="#fefefe"></path>
+                        <path
+                            d="M70.53 107.83h1.07c.44 0 .66-.26.69-.7l1.52-18.83h3.24l5.23 11.78c.53 1.2 1.1 2.8 1.1 2.8h.06s.57-1.6 1.1-2.8l5.23-11.78H93l1.52 18.83c0 .44.25.7.69.7h1v2.7h-2.8c-1.42 0-1.92-.59-2-2l-.91-11.75c-.1-1.32-.07-3.27-.07-3.27h-.03s-.63 2.08-1.16 3.27l-4.51 9.77h-2.64l-4.51-9.77c-.53-1.16-1.19-3.3-1.19-3.3h-.06s0 2-.07 3.3l-.88 11.75c-.09 1.42-.6 2-2 2h-2.85Z"
+                            fill="#fefefe"></path>
+                        <path
+                            d="M98.08 91H96v-2.7h13.1c1.42 0 2 .6 2 2v2.8h-2.86v-1.4a.62.62 0 0 0-.7-.69h-6.33v7H109v2.71h-7.78v6.45a.64.64 0 0 0 .7.7h6.48a.63.63 0 0 0 .69-.7v-1.41H112v2.8c0 1.42-.6 2-2 2h-9.9c-1.42 0-2-.59-2-2Z"
+                            fill="#fefefe"></path>
+                        <path
+                            d="M115 91h-2v-2.7h9c6.76 0 11.23 4.07 11.23 11.09s-4.47 11.14-11.23 11.14h-5c-1.42 0-2-.59-2-2Zm3.85 16.82h2.89c4.95 0 8.19-3 8.19-8.44S126.67 91 121.76 91h-3.59v16.12a.64.64 0 0 0 .7.71Z"
+                            fill="#fefefe"></path>
+                        <path d="M10.83 128.63h1.48v-11.42h-1.48v-1.84h5v1.84h-1.49v11.42h1.48v1.85h-5Z" fill="#c2e3f6">
+                        </path>
+                        <path
+                            d="M18.11 121.89a.42.42 0 0 0-.47-.47h-.88v-1.77h2c.92 0 1.37.4 1.37 1.19v.41a4.9 4.9 0 0 1 0 .62 4.41 4.41 0 0 1 4.07-2.48c2.56 0 3.72 1.39 3.72 4.15v4.69a.42.42 0 0 0 .47.47h.88v1.78H27.2c-1 0-1.37-.41-1.37-1.37V124c0-1.52-.3-2.72-2-2.72a3.51 3.51 0 0 0-3.45 2.72 4.42 4.42 0 0 0-.2 1.45v5.08h-2.07Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M30.91 121.31h-1.42v-1.66H31v-3h2v3h2.59v1.66H33v5a2.14 2.14 0 0 0 2.29 2.44 2.81 2.81 0 0 0 .5 0v1.84a5.71 5.71 0 0 1-.73 0c-1.37 0-4.13-.43-4.13-4Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M41.73 119.39c3 0 4.67 2.27 4.67 5.07 0 .28-.07.86-.07.86h-7.89a3.61 3.61 0 0 0 3.72 3.61 5 5 0 0 0 3.17-1.26l.9 1.48a6.37 6.37 0 0 1-4.18 1.58 5.52 5.52 0 0 1-5.75-5.67 5.32 5.32 0 0 1 5.43-5.67Zm2.53 4.41a2.57 2.57 0 0 0-2.55-2.8 3.12 3.12 0 0 0-3.19 2.76Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M48.67 121.89a.42.42 0 0 0-.47-.47h-.88v-1.77h2c.94 0 1.39.38 1.39 1.26v.68a6.71 6.71 0 0 1 0 .75 3.71 3.71 0 0 1 3.42-2.82 4.54 4.54 0 0 1 .56 0v2A3.1 3.1 0 0 0 51 124.1a6.63 6.63 0 0 0-.26 1.94v4.44h-2.07Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M57.06 121.89a.42.42 0 0 0-.47-.47h-.88v-1.77h2c.92 0 1.37.4 1.37 1.19v.41a3.94 3.94 0 0 1 0 .62 4.41 4.41 0 0 1 4.06-2.48c2.57 0 3.73 1.39 3.73 4.15v4.69a.42.42 0 0 0 .47.47h.88v1.78h-2.07c-1 0-1.37-.41-1.37-1.37V124c0-1.52-.3-2.72-2-2.72a3.53 3.53 0 0 0-3.46 2.72 4.43 4.43 0 0 0-.19 1.45v5.08h-2.07Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M75.63 123.73h.47v-.1c0-1.91-.71-2.59-2.4-2.59-.51 0-1.78.13-1.78.83v.62H70v-1.07c0-1.77 2.69-2 3.74-2 3.51 0 4.45 1.84 4.45 4.24v4.6a.42.42 0 0 0 .47.47h.88v1.78h-2c-1 0-1.34-.48-1.34-1.25a5 5 0 0 1 0-.64 3.71 3.71 0 0 1-3.45 2.14c-1.86 0-3.68-1.13-3.68-3.29.03-3.47 4.74-3.74 6.56-3.74Zm-2.4 5.33c1.75 0 2.89-1.84 2.89-3.44v-.37h-.54c-1.56 0-4.38.09-4.38 2.08a1.8 1.8 0 0 0 2.03 1.73Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M81 121.31h-1.38v-1.66h1.45v-3h2v3h2.63v1.66h-2.59v5a2.14 2.14 0 0 0 2.29 2.44 2.62 2.62 0 0 0 .49 0v1.84a5.71 5.71 0 0 1-.73 0c-1.37 0-4.13-.43-4.13-4Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M88.09 121.89a.42.42 0 0 0-.47-.47h-.88v-1.77h2c1 0 1.37.4 1.37 1.37v7.21a.42.42 0 0 0 .47.47h.88v1.78h-2c-1 0-1.37-.41-1.37-1.37Zm0-6.52H90v2.16h-1.86Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M98 119.39a5.67 5.67 0 1 1-5.87 5.61 5.64 5.64 0 0 1 5.87-5.61Zm0 9.54a3.87 3.87 0 1 0-3.75-3.93 3.74 3.74 0 0 0 3.75 3.93Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M105.78 121.89a.42.42 0 0 0-.47-.47h-.88v-1.77h2c.92 0 1.37.4 1.37 1.19v.41a4.9 4.9 0 0 1 0 .62 4.42 4.42 0 0 1 4.07-2.48c2.57 0 3.72 1.39 3.72 4.15v4.69a.43.43 0 0 0 .48.47h.87v1.78h-2.05c-1 0-1.37-.41-1.37-1.37V124c0-1.52-.3-2.72-2-2.72a3.53 3.53 0 0 0-3.43 2.66 4.43 4.43 0 0 0-.19 1.45v5.08h-2.08Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M124.35 123.73h.47v-.1c0-1.91-.7-2.59-2.39-2.59-.52 0-1.78.13-1.78.83v.62h-2v-1.07c0-1.77 2.7-2 3.75-2 3.51 0 4.45 1.84 4.45 4.24v4.6a.42.42 0 0 0 .47.47h.88v1.78h-2c-1 0-1.35-.48-1.35-1.25a5 5 0 0 1 0-.64 3.69 3.69 0 0 1-3.44 2.14c-1.87 0-3.68-1.13-3.68-3.29.1-3.47 4.8-3.74 6.62-3.74Zm-2.35 5.33c1.75 0 2.89-1.84 2.89-3.44v-.37h-.54c-1.56 0-4.39.09-4.39 2.08a1.81 1.81 0 0 0 2.04 1.73Z"
+                            fill="#c2e3f6"></path>
+                        <path
+                            d="M129.74 117.61a.42.42 0 0 0-.47-.47h-.87v-1.77h2c1 0 1.37.4 1.37 1.36v11.5a.42.42 0 0 0 .47.47h.88v1.78h-2.06c-1 0-1.37-.41-1.37-1.37Z"
+                            fill="#c2e3f6"></path>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slideshow Container -->
+    <div id="slideshow-container">
+
+        <!-- Slide 1: Hero / Title -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <header class="hero-bg text-center py-16 md:py-24 px-4">
+                    <div class="max-w-4xl mx-auto">
+                        <h1 class="text-5xl md:text-8xl font-black text-[#586e75] mb-8 reveal visible">
+                            <span class="gradient-text">Authoring-UI</span><br>Migration
+                        </h1>
+                        <p class="text-xl md:text-2xl text-[#839496] max-w-3xl mx-auto reveal visible leading-relaxed">
+                            Modernizing the authoring experience: A low-risk front-end roadmap to **Angular 20**
+                        </p>
+                        <p class="text-sm text-[#839496] mt-12">Use ← → arrow keys or buttons to navigate</p>
+                    </div>
+                </header>
+            </div>
+        </div>
+
+        <!-- Slide 2: Why Upgrade? The Rationale -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Why Upgrade? The
+                            Technical Imperative</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-4xl mx-auto">Moving from AngularJS to Angular
+                            20 is a strategic necessity to address critical risks and enable future growth.</p>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <!-- Security & Risk -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">🛡️</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#dc322f]">Security & Risk</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle mt-1 mr-2 text-[#dc322f]"></i>
+                                        <span><strong>EOL Status:</strong> AngularJS is officially End-of-Life. No more
+                                            security patches.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-shield-virus mt-1 mr-2 text-[#dc322f]"></i>
+                                        <span><strong>CVE Vulnerabilities:</strong> Increasing risk of unpatched
+                                            vulnerabilities in legacy dependencies.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Maintainability -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#b58900]">
+                                <div class="text-4xl mb-4 text-center">🔧</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#b58900]">Maintainability</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-code-branch mt-1 mr-2 text-[#b58900]"></i>
+                                        <span><strong>Technical Debt:</strong> Brittle, monolithic code that is
+                                            difficult and expensive to modify.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-user-plus mt-1 mr-2 text-[#b58900]"></i>
+                                        <span><strong>Hiring:</strong> Modern developers expect modern stacks; legacy
+                                            skills are becoming rare.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Why Now? -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#859900]">
+                                <div class="text-4xl mb-4 text-center">⏱️</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#859900]">Strategic Timing</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-rocket mt-1 mr-2 text-[#859900]"></i>
+                                        <span><strong>AI Readiness:</strong> Modern libraries (Signals, Standalone) are
+                                            essential for efficient AI integration.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-clock mt-1 mr-2 text-[#859900]"></i>
+                                        <span><strong>Why Now:</strong> Proactive migration avoids a future "fire drill"
+                                            when legacy systems fail.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Future Proofing -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#268bd2]">
+                                <div class="text-4xl mb-4 text-center">📅</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#268bd2]">Future Proofing</h3>
+                                <ul class="space-y-3 text-[#586e75] text-sm">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-calendar-check mt-1 mr-2 text-[#268bd2]"></i>
+                                        <span><strong>Next 10 Years:</strong> Architecture ready for the next decade of
+                                            authoring.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-shield-halved mt-1 mr-2 text-[#268bd2]"></i>
+                                        <span><strong>Stable Growth:</strong> A modern foundation that scales with
+                                            evolving clinical needs.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: The Opportunity -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">The Opportunity</h2>
+                        <p class="text-center text-[#839496] mb-10 max-w-4xl mx-auto">Modernizing to unlock innovation,
+                            AI capabilities, and massive productivity gains.</p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Accelerated Innovation -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-blue-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#326295]">Accelerated Innovation</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Unlocking powerful AI capabilities (generation, validation).</li>
+                                    <li>Rapid prototyping and delivery of new features.</li>
+                                    <li>Staying ahead with a cutting-edge tech stack.</li>
+                                </ul>
+                            </div>
+
+                            <!-- End-User Productivity -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-green-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#859900]">End-User Productivity</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Automated assistance for faster authoring workflows.</li>
+                                    <li>Real-time feedback and intelligent suggestions.</li>
+                                    <li>A smoother, more responsive user experience.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Future-Proof Foundation -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-l-4 border-cyan-500">
+                                <h3 class="font-bold text-xl mb-3 text-[#00A4E4]">Future-Proof Foundation</h3>
+                                <ul class="space-y-2 text-[#586e75] text-sm list-disc list-inside">
+                                    <li>Modular architecture ready for the next decade.</li>
+                                    <li>Seamless integration with emerging technologies.</li>
+                                    <li>Scalable performance for growing data demands.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- Slide 4: The Tailwind Advantage -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">The Tailwind
+                            Advantage</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Efficiency through constraint and
+                            standardization.</p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Efficiency -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#00A4E4]">
+                                <div class="text-4xl mb-4 text-center">🚀</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#00A4E4]">Accelerated Development
+                                </h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    By removing trivial design decisions, developers can focus on logic and
+                                    functionality. No more debating over pixel-perfect values.
+                                </p>
+                            </div>
+
+                            <!-- Consistency -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#326295]">
+                                <div class="text-4xl mb-4 text-center">🎨</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#326295]">Enforced Consistency</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    Limited customization options prevent "snowflake" designs. The UI remains cohesive
+                                    without constant policing.
+                                </p>
+                            </div>
+
+                            <!-- Cleanup -->
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">🧹</div>
+                                <h3 class="font-bold text-xl mb-4 text-center text-[#dc322f]">Legacy CSS Removal</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    Eliminate the maintenance burden of thousands of lines of custom, fragile CSS.
+                                    Utility classes handle the styling directly.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-12 p-6 bg-[#eee8d5] rounded-xl border border-[#93a1a1] max-w-3xl mx-auto">
+                            <h4 class="font-bold text-[#586e75] mb-2 text-center">The Impact</h4>
+                            <div class="flex justify-around text-center">
+                                <div>
+                                    <div class="text-2xl font-bold text-[#00A4E4]">-40%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Dev Time</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-[#326295]">-90%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Custom CSS</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-[#859900]">100%</div>
+                                    <div class="text-xs text-[#657b83] uppercase tracking-wide">Consistency</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Slide 5: Project Scope -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 text-[#586e75]">Project Scope: Focus
+                            & Alignment</h2>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <div class="space-y-8">
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-blue-100 p-3 rounded-full text-blue-600">
+                                        <i class="fas fa-arrows-spin text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-[#073642] mb-1">Not Reinventing the Wheel</h3>
+                                        <p class="text-[#586e75]">We aren't redesigning core workflows. Your existing
+                                            processes and mental models remain the foundation.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-green-100 p-3 rounded-full text-green-600">
+                                        <i class="fas fa-palette text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-[#073642] mb-1">Styling Alignment</h3>
+                                        <p class="text-[#586e75]">Bringing the interface inline with the wider
+                                            application suite for a cohesive, professional user experience.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-purple-100 p-3 rounded-full text-purple-600">
+                                        <i class="fas fa-gears text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-xl text-[#073642] mb-1">Functional Stability</h3>
+                                        <p class="text-[#586e75]">No major functional changes expected. The focus is on
+                                            technical modernization and maintainability.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                class="card-bg p-8 rounded-3xl shadow-2xl border-2 border-dashed border-[#93a1a1] text-center">
+                                <div class="text-6xl mb-6">✅</div>
+                                <h3 class="font-black text-2xl text-[#586e75] mb-4">Everything You Need Remains</h3>
+                                <p class="text-[#839496] leading-relaxed">
+                                    The upgrade is about a <strong>stronger foundation</strong>, not removing the tools
+                                    you rely on every day.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Migration Strategy -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-5xl font-bold text-center mb-10 text-[#586e75]">Migration Strategy
+                        </h2>
+
+                        <div class="grid md:grid-cols-2 gap-12">
+                            <!-- Left Column: Risk Mitigation -->
+                            <div class="space-y-8">
+                                <div class="card-bg p-8 rounded-2xl shadow-lg border-l-8 border-[#268bd2]">
+                                    <h3 class="font-bold text-2xl mb-4 text-[#268bd2]">Risk Mitigation</h3>
+                                    <ul class="space-y-4 text-[#586e75]">
+                                        <li class="flex items-start">
+                                            <i class="fas fa-check-circle mt-1 mr-3 text-[#2aa198]"></i>
+                                            <span><strong>Front-end Changes Only:</strong> Core logic remains
+                                                stable.</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-link mt-1 mr-3 text-[#2aa198]"></i>
+                                            <span><strong>Backwards Compatible:</strong> All backend changes support
+                                                legacy clients.</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fas fa-database mt-1 mr-3 text-[#2aa198]"></i>
+                                            <span><strong>Data Integrity:</strong> Tasks, projects, and content remain
+                                                completely unchanged.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Rollout Plan -->
+                            <div class="space-y-8">
+                                <div class="card-bg p-8 rounded-2xl shadow-lg bg-[#eee8d5]">
+                                    <h3 class="font-bold text-2xl mb-4 text-[#073642]">Phased Rollout</h3>
+                                    <div class="space-y-6">
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                class="bg-[#268bd2] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                                1</div>
+                                            <div>
+                                                <h4 class="font-bold text-[#073642]">Dual Running</h4>
+                                                <p class="text-[#586e75] text-sm">Both front-ends accessible
+                                                    simultaneously for comparison and validation.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                class="bg-[#dc322f] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                                2</div>
+                                            <div>
+                                                <h4 class="font-bold text-[#073642]">Big Bang Cutover</h4>
+                                                <p class="text-[#586e75] text-sm">Once verified, a single cutover event
+                                                    to the new modern interface.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: User Feedback Overview -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-6 text-[#586e75]">Voice of the User
+                        </h2>
+                        <p class="text-center text-[#839496] mb-10 max-w-3xl mx-auto">We listened to the team. The
+                            feedback is clear: <strong>"Don't fix what isn't broken, but make it faster."</strong></p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center mb-12">
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <h3 class="font-bold text-2xl mb-6 text-[#2aa198]">What You Love (Keep this!)</h3>
+                                <ul class="space-y-4 text-[#586e75]">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3 text-[#2aa198]"></i>
+                                        <span><strong>Cloning & Drag-and-Drop:</strong> Critical for speed.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3 text-[#2aa198]"></i>
+                                        <span><strong>MRCM & Safeguards:</strong> Essential preventative checks.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="card-bg p-8 rounded-2xl shadow-lg bg-[#fdf6e3] border-l-8 border-[#b58900]">
+                                <h3 class="font-bold text-xl mb-4 text-[#b58900]"><i
+                                        class="fas fa-quote-left mr-2"></i>Direct Feedback</h3>
+                                <p class="text-[#657b83] italic text-lg leading-relaxed mb-4">
+                                    "I would prefer to see very little change to the UI... I would like to see all the
+                                    current functionality available in the same place."
+                                </p>
+                                <p class="text-[#657b83] italic text-lg leading-relaxed">
+                                    "It's a great tool and much appreciate the work that goes into it."
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 text-center">
+                            <a href="https://docs.google.com/spreadsheets/d/14WmlAF-EVUiUjDDtEYefRVCp8YJgrPcAw0PBJ_5bXrU/edit?resourcekey=&gid=1838432644#gid=1838432644"
+                                target="_blank"
+                                class="inline-flex items-center px-6 py-3 bg-[#b58900] text-white font-bold rounded-full shadow-lg hover:bg-[#cb4b16] transition-colors duration-300 no-underline">
+                                <i class="fas fa-file-excel mr-2"></i> View Full Survey Data
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Pain Points & Bottlenecks -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-6 text-[#586e75]">Where It Hurts</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Your feedback highlighted specific
+                            areas causing friction and delays.</p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <!-- Context Switching -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">
+                                    <i class="fa-solid fa-right-left text-[#dc322f]"></i>
+                                </div>
+                                <h3 class="font-bold text-xl mb-3 text-center text-[#dc322f]">Context Switching</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    "Jumping back and forth"<br>
+                                    Losing context between Taxonomy and Editor.
+                                </p>
+                            </div>
+
+                            <!-- Missing Features -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">
+                                    <i class="fa-solid fa-layer-group text-[#dc322f]"></i>
+                                </div>
+                                <h3 class="font-bold text-xl mb-3 text-center text-[#dc322f]">Lack of Bulk Actions</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    "Ability to make a bulk change... with just a click or two"
+                                </p>
+                            </div>
+
+                            <!-- Performance -->
+                            <div class="card-bg p-6 rounded-2xl shadow-lg border-t-8 border-[#dc322f]">
+                                <div class="text-4xl mb-4 text-center">
+                                    <i class="fa-solid fa-hourglass-start text-[#dc322f]"></i>
+                                </div>
+                                <h3 class="font-bold text-xl mb-3 text-center text-[#dc322f]">Sluggishness</h3>
+                                <p class="text-[#586e75] text-sm text-center">
+                                    "A go slow"<br>
+                                    Validation and classification times break flow.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Strategic Action Plan -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 text-[#586e75]">Our Action Plan</h2>
+
+                        <div class="space-y-6">
+                            <!-- Retain -->
+                            <div
+                                class="flex items-center gap-6 p-6 bg-white rounded-xl shadow-sm border-l-8 border-[#859900]">
+                                <div class="text-3xl font-bold text-[#859900] w-32 flex-shrink-0 text-center">RETAIN
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-[#586e75]">Existing Features & Layouts</h3>
+                                    <p class="text-[#839496]">Commitment to maintaining all current functionality. Core
+                                        workflows and familiar layouts will remain intact during the transition.</p>
+                                </div>
+                            </div>
+
+                            <!-- Review -->
+                            <div
+                                class="flex items-center gap-6 p-6 bg-white rounded-xl shadow-sm border-l-8 border-[#268bd2]">
+                                <div class="text-3xl font-bold text-[#268bd2] w-32 flex-shrink-0 text-center">REVIEW
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-[#586e75]">Application Navigation & Performance
+                                    </h3>
+                                    <p class="text-[#839496]">Analyzing how we move through the app to improve ease of
+                                        use and relative performance. Reducing friction and lag is a top priority.</p>
+                                </div>
+                            </div>
+
+                            <!-- Analyze -->
+                            <div
+                                class="flex items-center gap-6 p-6 bg-white rounded-xl shadow-sm border-l-8 border-[#6c71c4]">
+                                <div class="text-3xl font-bold text-[#6c71c4] w-32 flex-shrink-0 text-center">ANALYZE
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-[#586e75]">New Requirements & Optimization</h3>
+                                    <p class="text-[#839496]">Identifying high-impact improvements, such as <strong>Bulk
+                                            Operations</strong>, to address the most time-consuming authoring tasks.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: The Template Question -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <div class="flex flex-col md:flex-row items-center gap-12">
+                            <div class="md:w-1/2">
+                                <h2 class="text-3xl md:text-5xl font-bold mb-6 text-[#586e75]">The Template Question
+                                </h2>
+                                <p class="text-lg text-[#839496] mb-8 leading-relaxed text-left">
+                                    Survey results show that Templates are one of our <strong>least used</strong>
+                                    features. Before we build, we need to understand why.
+                                </p>
+
+                                <div class="space-y-4">
+                                    <div
+                                        class="flex items-start gap-4 p-4 card-bg rounded-xl border-l-4 border-[#dc322f]">
+                                        <i class="fas fa-pause-circle text-2xl text-[#dc322f] mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75]">Phase 1 Decision</h4>
+                                            <p class="text-sm text-[#839496]">Defer front-end template management to
+                                                focus on higher-impact performance wins.</p>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="flex items-start gap-4 p-4 card-bg rounded-xl border-l-4 border-[#2aa198]">
+                                        <i class="fas fa-users text-2xl text-[#2aa198] mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75]">Content Team Discovery</h4>
+                                            <p class="text-sm text-[#839496]">Workshop with the authors to find where we
+                                                went wrong and how to make templates actually useful.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 flex justify-center">
+                                <div class="relative">
+                                    <div class="text-[12rem] text-[#eee8d5] absolute -top-20 -left-10 select-none">?
+                                    </div>
+                                    <i class="fas fa-file-invoice text-[10rem] text-[#93a1a1] opacity-20"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Future AI Integration Ideas -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <div class="max-w-4xl mx-auto text-center">
+                    <section class="reveal">
+                        <div class="mb-8">
+                            <i class="fas fa-microchip text-7xl text-[#6c71c4] ai-pulse"></i>
+                        </div>
+                        <h2 class="text-5xl md:text-7xl font-black text-[#586e75] mb-8">Future AI Integration Ideas</h2>
+                        <p class="text-xl md:text-2xl text-[#839496]">
+                            Exploring the next frontier of intelligent authoring assistance.
+                        </p>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: AI-Assisted Authoring: The Goal -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">AI-Assisted
+                            Authoring: The Goal</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto text-lg leading-relaxed">
+                            Our AI strategy is built around a single, clear objective:
+                            <strong class="text-[#268bd2]">Increase productivity by assisting with complex manual
+                                tasks.</strong>
+                        </p>
+
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-b-8 border-[#2aa198]">
+                                <h3 class="font-bold text-xl mb-4 text-[#2aa198]">Assisted Creation</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">Reducing the cognitive load of
+                                    searching for attributes and values by providing intelligent suggestions.</p>
+                            </div>
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-b-8 border-[#268bd2]">
+                                <h3 class="font-bold text-xl mb-4 text-[#268bd2]">Real-time Validation</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">Catching errors earlier in the process
+                                    with deep-link citations to editorial guidelines.</p>
+                            </div>
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-b-8 border-[#6c71c4]">
+                                <h3 class="font-bold text-xl mb-4 text-[#6c71c4]">Intelligent Research</h3>
+                                <p class="text-[#586e75] text-sm leading-relaxed">Summarizing thousands of pages of
+                                    medical research into actionable clinical knowledge.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-12 text-center reveal">
+                            <p class="text-[#839496] font-medium italic">"The AI doesn't author for you; it authors with
+                                you."</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: AI Concept Authoring Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            Concept Authoring</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Accelerating content creation with
+                            intelligent suggestions (based on <code>aiConceptCreationModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 900px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #fff; border-bottom: 1px solid #e5e5e5; padding: 15px;">
+                                <h3 class="modal-title"
+                                    style="margin: 0; color: #333; font-size: 18px; font-weight: 600;">
+                                    <i class="fa fa-magic" style="color: #667eea; margin-right: 10px;"></i>
+                                    Create Concept with AI
+                                </h3>
+                            </div>
+                            <div class="modal-body" style="background-color: #f5f5f5; padding: 20px;">
+                                <form id="ai-concept-form">
+                                    <div class="form-group">
+                                        <label
+                                            style="font-weight: bold; margin-bottom: 10px; display: block; color: #333;">Concept
+                                            Fully Specified Name (FSN) *</label>
+                                        <div style="position: relative;">
+                                            <input type="text" class="form-control" id="ai-concept-input" value=""
+                                                placeholder="Start typing..."
+                                                style="width: 100%; border-radius: 4px; border: 1px solid #ddd; padding: 10px 12px; font-size: 16px; color: #333;">
+                                            <div id="ai-concept-spinner"
+                                                style="display: none; position: absolute; right: 10px; top: 10px; color: #667eea;">
+                                                <i class="fa fa-spinner fa-spin fa-lg"></i>
+                                            </div>
+                                        </div>
+                                        <small style="color: #666; margin-top: 5px; display: block;">
+                                            Enter the FSN for your new concept. AI will generate appropriate
+                                            relationships based on SNOMED CT Editorial Guide.
+                                        </small>
+                                    </div>
+                                </form>
+
+                                <!-- Result Mockup -->
+                                <div id="ai-concept-result"
+                                    style="display: none; margin-top: 20px; background-color: #333; border: 1px solid #444; border-radius: 4px; overflow: hidden; font-family: 'Roboto', sans-serif; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                                    <!-- Toolbar -->
+                                    <div
+                                        style="background-color: #2b2b2b; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; color: #ccc;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa fa-pencil"></i> <span>Unsaved Concept</span>
+                                        </div>
+                                        <div style="display: flex; gap: 10px;">
+                                            <i class="fa fa-keyboard-o"></i>
+                                            <i class="fa fa-save" style="color: #a0a0a0;"></i>
+                                            <i class="fa fa-arrow-up" style="color: #4caf50;"></i>
+                                            <i class="fa fa-history"></i>
+                                            <i class="fa fa-times" style="color: #ff5722;"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- FSN Row -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; border-bottom: 1px solid #555; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-ellipsis-v"></i>
+                                        </div>
+                                        <div
+                                            style="background-color: #4caf50; color: white; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            <i class="fa fa-power-off"></i>
+                                        </div>
+                                        <div
+                                            style="background-color: #ddd; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            ci</div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #bbdefb; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            Abdominal angiostrongyliasis (disorder)</div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            FSN <i class="fa fa-caret-down ml-1"></i></div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            us:P</div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; display: flex; align-items: center;">
+                                            gb:P</div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- SYN Row -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; border-bottom: 1px solid #555; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-ellipsis-v"></i>
+                                        </div>
+                                        <div
+                                            style="background-color: #4caf50; color: white; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            <i class="fa fa-power-off"></i>
+                                        </div>
+                                        <div
+                                            style="background-color: #ddd; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            ci</div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #bbdefb; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            Abdominal angiostrongyliasis</div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            SYN <i class="fa fa-caret-down ml-1"></i></div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; margin-right: 2px; display: flex; align-items: center;">
+                                            us:P</div>
+                                        <div
+                                            style="background-color: #bbdefb; color: #333; padding: 5px 10px; display: flex; align-items: center;">
+                                            gb:P</div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Axiom Header -->
+                                    <div
+                                        style="background-color: #2b2b2b; padding: 8px 10px; color: #eee; display: flex; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa fa-ellipsis-v"></i> <i class="fa fa-arrows"></i>
+                                            <span>Axiom</span>
+                                        </div>
+                                        <div style="color: #ffca28;"><i class="fa fa-circle"></i></div>
+                                    </div>
+
+                                    <!-- Is a -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; border-bottom: 1px dashed #666; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="width: 180px; background-color: #fff9c4; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center; justify-content: space-between;">
+                                            Is a <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #bbdefb; color: #333; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+                                            Disease (disorder) <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i> <i
+                                                class="fa fa-arrows"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Finding site -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; border-bottom: 1px dashed #666; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="width: 180px; background-color: #fff9c4; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center; justify-content: space-between;">
+                                            Finding site <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #e1bee7; color: #333; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+                                            Abdominal structure (body structure) <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i> <i
+                                                class="fa fa-arrows"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pathological process -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; border-bottom: 1px dashed #666; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="width: 180px; background-color: #fff9c4; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center; justify-content: space-between;">
+                                            Pathological process <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #e1bee7; color: #333; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+                                            Parasitic process (qualifier value) <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i> <i
+                                                class="fa fa-arrows"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Causative agent -->
+                                    <div
+                                        style="display: flex; align-items: stretch; background-color: #424242; padding: 2px;">
+                                        <div style="padding: 5px 8px; color: #aaa; display: flex; align-items: center;">
+                                            <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="width: 180px; background-color: #fff9c4; color: #333; padding: 6px 10px; margin-right: 2px; display: flex; align-items: center; justify-content: space-between;">
+                                            Causative agent <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="flex-grow: 1; background-color: #e1bee7; color: #333; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+                                            Angiostrongylus (organism) <i class="fa fa-arrows"></i>
+                                        </div>
+                                        <div
+                                            style="padding: 5px 10px; color: #fff; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fa fa-minus"></i> <i class="fa fa-plus"></i> <i
+                                                class="fa fa-arrows"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer"
+                                style="background-color: #fff; border-top: 1px solid #e5e5e5; padding: 15px; text-align: right;">
+                                <button type="button"
+                                    style="background-color: #f5f5f5; border: 1px solid #ccc; color: #333; padding: 8px 16px; margin-right: 10px; border-radius: 4px;">Cancel</button>
+                                <button type="button" id="ai-create-btn"
+                                    style="background-color: #667eea; border: 1px solid #667eea; color: white; padding: 8px 16px; border-radius: 4px;">
+                                    <i class="fa fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Create Concept
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Realtime AI Validation -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">Realtime AI
+                            Validation</h2>
+                        <p class="text-center text-[#839496] mb-8 max-w-3xl mx-auto">Instant compliance checks against
+                            the <a href="https://docs.snomed.org/snomed-ct-specifications/snomed-ct-editorial-guide/"
+                                target="_blank" class="text-blue-600 underline decoration-blue-300">SNOMED Editorial
+                                Guide</a>.</p>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <!-- Concept Editor Mockup (3/4 width) -->
+                            <div class="lg:col-span-3">
+                                <div class="card-bg shadow-2xl overflow-hidden text-left border border-gray-200"
+                                    style="background-color: #fff; border-radius: 8px;">
+                                    <div
+                                        class="modal-header border-b border-gray-100 p-3 bg-gray-50 flex justify-between items-center">
+                                        <h3 class="text-sm font-bold text-gray-700 flex items-center">
+                                            <i class="fa fa-pencil text-gray-400 mr-2"></i> Unsaved Concept
+                                        </h3>
+                                        <div class="flex gap-3 text-gray-300 text-xs">
+                                            <i class="fa fa-save"></i> <i class="fa fa-undo"></i> <i
+                                                class="fa fa-times text-red-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-4 bg-[#f8f9fc] space-y-2">
+                                        <!-- FSN Row -->
+                                        <div class="flex items-center bg-[#424242] text-white p-1 rounded text-[11px]">
+                                            <div class="px-2 text-gray-500"><i class="fa fa-ellipsis-v"></i></div>
+                                            <div class="bg-green-600 p-1 px-2 mr-1 rounded-sm"><i
+                                                    class="fa fa-power-off"></i></div>
+                                            <div class="bg-gray-300 text-black p-1 px-2 mr-1 rounded-sm">ci</div>
+                                            <div
+                                                class="bg-[#c2e3f6] text-black p-1.5 px-3 flex-grow font-medium rounded-sm">
+                                                Acute viral pneumonia (disorder)</div>
+                                            <div
+                                                class="bg-[#c2e3f6] text-black p-1.5 px-2 mx-1 rounded-sm flex items-center">
+                                                FSN <i class="fa fa-caret-down ml-1"></i></div>
+                                            <div class="bg-[#c2e3f6] text-black p-1.5 px-2 rounded-sm">us:P</div>
+                                        </div>
+                                        <!-- Axiom Header -->
+                                        <div
+                                            class="bg-[#2b2b2b] text-white p-2 flex justify-between items-center text-[10px] mt-4 rounded-t-sm">
+                                            <div class="flex items-center gap-2 uppercase tracking-wider">
+                                                <i class="fa fa-ellipsis-v text-gray-500"></i> <i
+                                                    class="fa fa-arrows"></i>
+                                                <span>Axiom</span>
+                                            </div>
+                                            <div class="text-yellow-400"><i class="fa fa-circle"></i></div>
+                                        </div>
+                                        <!-- Is a Row -->
+                                        <div
+                                            class="flex items-center bg-[#424242] text-white p-1 text-[11px] border-b border-dashed border-gray-600">
+                                            <div class="px-2 text-gray-500"><i class="fa fa-arrows"></i></div>
+                                            <div
+                                                class="bg-[#fff9c4] text-black p-1.5 px-2 w-36 mr-1 flex justify-between rounded-sm">
+                                                Is a <i class="fa fa-arrows text-gray-400"></i></div>
+                                            <div
+                                                class="bg-[#c2e3f6] text-black p-1.5 px-2 flex-grow flex justify-between rounded-sm">
+                                                Viral pneumonia (disorder) <i class="fa fa-arrows text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <!-- Finding Site Row (Added by Animation) -->
+                                        <div id="val-finding-site"
+                                            class="opacity-0 flex items-center bg-[#424242] text-white p-1 text-[11px] border-b border-dashed border-gray-600 transition-opacity duration-500">
+                                            <div class="px-2 text-gray-500"><i class="fa fa-arrows"></i></div>
+                                            <div
+                                                class="bg-[#fff9c4] text-black p-1.5 px-2 w-36 mr-1 flex justify-between rounded-sm">
+                                                <span id="val-fs-attr"></span> <i
+                                                    class="fa fa-arrows text-gray-400"></i>
+                                            </div>
+                                            <div
+                                                class="bg-[#f3e5f5] text-black p-1.5 px-2 flex-grow flex justify-between rounded-sm">
+                                                <span id="val-fs-val"></span> <i class="fa fa-arrows text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <!-- Causative Agent Row (Added by Animation) -->
+                                        <div id="val-causative-agent"
+                                            class="opacity-0 flex items-center bg-[#424242] text-white p-1 text-[11px] transition-opacity duration-500 rounded-b-sm">
+                                            <div class="px-2 text-gray-500"><i class="fa fa-arrows"></i></div>
+                                            <div
+                                                class="bg-[#fff9c4] text-black p-1.5 px-2 w-36 mr-1 flex justify-between rounded-sm">
+                                                <span id="val-ca-attr"></span> <i
+                                                    class="fa fa-arrows text-gray-400"></i>
+                                            </div>
+                                            <div
+                                                class="bg-[#f3e5f5] text-black p-1.5 px-2 flex-grow flex justify-between rounded-sm">
+                                                <span id="val-ca-val"></span> <i class="fa fa-arrows text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Validation Results Panel (1/4 width) -->
+                            <div class="lg:col-span-1">
+                                <div class="card-bg p-8 rounded-2xl shadow-xl h-64 border-t-8 border-yellow-500 transition-all duration-700"
+                                    id="validation-panel">
+                                    <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-[#586e75]">
+                                        <i class="fa fa-clipboard-check text-blue-500"></i> AI Validation
+                                    </h3>
+                                    <div id="validation-status-container" class="space-y-4">
+                                        <!-- Error Message -->
+                                        <div class="flex items-start gap-3 p-4 bg-red-50 rounded-xl text-red-700 text-sm border border-red-100"
+                                            id="val-error">
+                                            <i class="fa fa-circle-xmark mt-1 flex-shrink-0"></i>
+                                            <div>
+                                                <strong class="block mb-1">Editorial Violation</strong>
+                                                Viral pneumonia requires a <span class="font-mono text-xs">Causative
+                                                    agent</span> relationship.
+                                            </div>
+                                        </div>
+                                        <!-- Suggestion Message -->
+                                        <div id="val-suggestion"
+                                            class="hidden opacity-0 bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-900 text-sm transition-opacity duration-500">
+                                            <div class="flex items-center gap-2 mb-3 font-bold text-blue-700">
+                                                <i class="fa fa-lightbulb text-yellow-500"></i> AI Recommendation
+                                            </div>
+                                            <p class="mb-4 text-xs leading-relaxed">Add <span
+                                                    class="font-semibold italic">Infectious agent</span> and <span
+                                                    class="font-semibold italic">Lung structure</span> to comply with
+                                                Guide Section 4. pneumonia modeling.</p>
+                                            <button id="val-apply-btn"
+                                                class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all">
+                                                <i class="fa fa-wand-sparkles mr-1"></i> Apply Auto-Fix
+                                            </button>
+                                        </div>
+                                        <!-- Success Message -->
+                                        <div id="val-success"
+                                            class="hidden opacity-0 flex items-start gap-4 p-5 bg-green-50 rounded-xl text-green-800 text-sm border border-green-100 transition-all duration-500">
+                                            <i class="fa fa-circle-check mt-1 text-green-600 text-lg"></i>
+                                            <div>
+                                                <strong class="text-base font-black">Compliant!</strong>
+                                                <p class="text-xs mt-1 text-green-700 font-medium">Concept matches all
+                                                    24 editorial rules for infective lung disorders.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: AI ECL Builder Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal visible">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            ECL Builder</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Natural language to Expression
+                            Constraint Language (based on <code>aiEclBuilderModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 800px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #fff; border-bottom: 1px solid #e5e5e5; padding: 15px;">
+                                <h4 class="modal-title"
+                                    style="margin: 0; color: #333; font-weight: 600; font-size: 18px;">
+                                    <i class="fa fa-magic" style="color: #337ab7; margin-right: 8px;"></i> AI-Powered
+                                    ECL Builder
+                                </h4>
+                            </div>
+                            <div class="modal-body" style="background-color: #fff; padding: 20px;">
+                                <!-- Step 1 -->
+                                <div class="panel panel-default"
+                                    style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f5f5f5; border-bottom: 1px solid #ddd; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: bold; color: #333;">Step 1: Add Concept
+                                            Variables</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <!-- Search Box Simulation -->
+                                        <div id="search-container" style="margin-bottom: 15px; position: relative;">
+                                            <input type="text" id="concept-search" placeholder="Search for a concept..."
+                                                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                            <div id="search-results"
+                                                style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-radius: 0 0 4px 4px; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                                <!-- Results injected by JS -->
+                                            </div>
+                                        </div>
+
+                                        <!-- Variables List -->
+                                        <div id="variables-list">
+                                            <!-- Variables injected by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Step 2 -->
+                                <div class="panel panel-default"
+                                    style="margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f5f5f5; border-bottom: 1px solid #ddd; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: bold; color: #333;">Step 2: Write Your
+                                            Formula</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <textarea id="query-input" class="form-control" rows="2"
+                                            style="width: 100%; border: 1px solid #ccc; padding: 8px; font-family: monospace; color: #333;"
+                                            placeholder="e.g., Descendants of A..."></textarea>
+                                    </div>
+                                </div>
+                                <!-- Result -->
+                                <div id="ecl-result" class="well well-sm"
+                                    style="display: none; background-color: #f5f5f5; border: 1px solid #e3e3e3; padding: 15px; font-family: monospace; color: #333; border-radius: 4px;">
+                                    <!-- Result injected by JS -->
+                                </div>
+                                <div id="generating-spinner" style="display: none; color: #00A4E4; font-weight: bold;">
+                                    <i class="fa fa-spinner fa-spin mr-2"></i> Generating ECL...
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Animation Logic for Slide 7
+            document.addEventListener('DOMContentLoaded', () => {
+                const searchInput = document.getElementById('concept-search');
+                const searchResults = document.getElementById('search-results');
+                const variablesList = document.getElementById('variables-list');
+                const queryInput = document.getElementById('query-input');
+                const eclResult = document.getElementById('ecl-result');
+                const spinner = document.getElementById('generating-spinner');
+
+                const steps = [
+                    // 1. Type "Diabetes"
+                    async () => await typeText(searchInput, "Diabetes"),
+                    // 2. Show results
+                    async () => {
+                        searchResults.innerHTML = `
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer border-b">Diabetes mellitus (disorder)</div>
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer">Diabetes mellitus screening (procedure)</div>
+                        `;
+                        searchResults.style.display = 'block';
+                        await wait(1000);
+                    },
+                    // 3. Select "Diabetes"
+                    async () => {
+                        searchResults.style.display = 'none';
+                        searchInput.value = '';
+                        addVariable('A', 'Diabetes mellitus (disorder)', '73211009');
+                        await wait(800);
+                    },
+                    // 4. Type "Retina"
+                    async () => await typeText(searchInput, "Retina"),
+                    // 5. Show results
+                    async () => {
+                        searchResults.innerHTML = `
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer border-b">Retina structure (body structure)</div>
+                            <div class="p-2 hover:bg-gray-100 cursor-pointer">Retinal finding (finding)</div>
+                        `;
+                        searchResults.style.display = 'block';
+                        await wait(1000);
+                    },
+                    // 6. Select "Retina"
+                    async () => {
+                        searchResults.style.display = 'none';
+                        searchInput.value = '';
+                        addVariable('B', 'Retina structure (body structure)', '5665001');
+                        await wait(800);
+                    },
+                    // 7. Type Query
+                    async () => await typeText(queryInput, "Descendants of A that have finding site B"),
+                    // 8. Generate
+                    async () => {
+                        spinner.style.display = 'block';
+                        await wait(1500);
+                        spinner.style.display = 'none';
+                        eclResult.innerHTML = '&lt;&lt; 73211009 |Diabetes mellitus| : 363698007 |Finding site| = &lt;&lt; 5665001 |Retina structure|';
+                        eclResult.style.display = 'block';
+                        eclResult.classList.add('ai-pulse');
+                    }
+                ];
+
+                async function runAnimation() {
+                    // Reset state
+                    variablesList.innerHTML = '';
+                    queryInput.value = '';
+                    eclResult.style.display = 'none';
+                    searchInput.value = '';
+
+                    for (const step of steps) {
+                        await step();
+                    }
+                }
+
+                // Helper functions
+                function wait(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                async function typeText(element, text) {
+                    const isInput = element.tagName === 'INPUT' || element.tagName === 'TEXTAREA';
+                    if (isInput) element.value = '';
+                    else element.textContent = '';
+
+                    for (let i = 0; i < text.length; i++) {
+                        if (isInput) element.value += text[i];
+                        else element.textContent += text[i];
+                        await wait(50 + Math.random() * 50);
+                    }
+                    await wait(500);
+                }
+
+                // Animation Logic for Slide 6 (AI Concept Authoring)
+                async function runConceptAnimation() {
+                    const conceptInput = document.getElementById('ai-concept-input');
+                    const conceptSpinner = document.getElementById('ai-concept-spinner');
+                    const conceptResult = document.getElementById('ai-concept-result');
+
+                    if (!conceptInput) return; // Guard clause
+
+                    // Reset
+                    conceptInput.value = '';
+                    conceptSpinner.style.display = 'none';
+                    conceptResult.style.display = 'none';
+
+                    await wait(1000);
+
+                    // Type FSN
+                    await typeText(conceptInput, "Abdominal angiostrongyliasis (disorder)");
+
+                    // Show Spinner
+                    conceptSpinner.style.display = 'block';
+                    await wait(1500);
+
+                    // Show Result
+                    conceptSpinner.style.display = 'none';
+                    conceptResult.style.display = 'block';
+                    conceptResult.classList.add('ai-pulse');
+                }
+
+                function addVariable(letter, name, id) {
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '10px';
+                    div.className = 'reveal visible'; // Animate in
+                    div.innerHTML = `
+                        <span style="font-weight: bold; color: #337ab7; font-size: 16px; margin-right: 8px;">${letter}</span>
+                        <span style="color: #333;">${name}</span>
+                        <code style="margin-left: 8px; background-color: #e8e8e8; color: #555; padding: 2px 6px; border-radius: 3px;">${id}</code>
+                    `;
+                    variablesList.appendChild(div);
+                }
+
+                // Animation Logic for Slide 8 (AI Concept Research)
+                async function runResearchAnimation() {
+                    const researchInput = document.getElementById('research-search-input');
+                    const researchSpinner = document.getElementById('research-spinner');
+                    const researchResults = document.getElementById('research-results');
+
+                    if (!researchInput) return; // Guard clause
+
+                    // Reset
+                    researchInput.value = '';
+                    researchSpinner.style.display = 'none';
+                    researchResults.style.display = 'none';
+
+                    await wait(1000);
+
+                    // Type search query
+                    await typeText(researchInput, "Myocarditis due to Kawasaki disease (disorder)");
+
+                    // Show Spinner
+                    researchSpinner.style.display = 'block';
+                    await wait(1500);
+
+                    // Show Results
+                    researchSpinner.style.display = 'none';
+                    researchResults.style.display = 'block';
+                    researchResults.classList.add('ai-pulse');
+                }
+
+                // Animation Logic for Slide 8 (AI Citation Generation)
+                async function runCitationAnimation() {
+                    const topic = document.getElementById('citation-topic');
+                    const summary = document.getElementById('citation-summary');
+                    const usecase = document.getElementById('citation-usecase');
+                    const reference = document.getElementById('citation-reference');
+                    const counter = document.getElementById('summary-counter');
+                    const btn = document.getElementById('generate-citation-btn');
+                    const spinner = document.getElementById('citation-spinner');
+                    const badge = document.getElementById('validation-badge');
+
+                    if (!topic) return;
+
+                    // Reset
+                    topic.value = '';
+                    summary.value = '';
+                    usecase.value = '';
+                    reference.textContent = '';
+                    counter.textContent = '0/255';
+                    badge.classList.add('hidden');
+                    btn.classList.remove('opacity-50', 'pointer-events-none');
+
+                    await wait(800);
+
+                    // Type Topic
+                    await typeText(topic, "Chronic Kidney Disease Management");
+                    await wait(500);
+
+                    // Type Summary and update counter
+                    const summaryText = "New concept for stage 3b CKD protocol";
+                    summary.value = '';
+                    for (let i = 0; i < summaryText.length; i++) {
+                        summary.value += summaryText[i];
+                        counter.textContent = `${summary.value.length}/255`;
+                        await wait(30 + Math.random() * 30);
+                    }
+                    await wait(500);
+
+                    // Type Use Case
+                    await typeText(usecase, "Need to standardize stage 3b interventions across clinical guidelines.");
+                    await wait(800);
+
+                    // "Click" Button
+                    btn.classList.add('scale-95', 'opacity-80');
+                    await wait(200);
+                    btn.classList.remove('scale-95', 'opacity-80');
+                    btn.classList.add('opacity-50', 'pointer-events-none');
+
+                    // Show Spinner
+                    spinner.classList.remove('hidden');
+                    await wait(2000);
+
+                    // Show Result
+                    spinner.classList.add('hidden');
+                    const citationContent = "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease. Kidney International 2024;105(4S):S1-S327.";
+                    await typeText(reference, citationContent);
+
+                    // Wrap in link
+                    reference.innerHTML = `<a href="https://kdigo.org/guidelines/ckd-evaluation-and-management/" target="_blank" class="text-blue-600 hover:underline decoration-blue-400 decoration-2 underline-offset-4 transition-all">${citationContent}</a>`;
+
+                    await wait(500);
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                }
+
+                // Animation Logic for Slide 6 (AI Realtime Validation)
+                async function runValidationAnimation() {
+                    const error = document.getElementById('val-error');
+                    const suggestion = document.getElementById('val-suggestion');
+                    const applyBtn = document.getElementById('val-apply-btn');
+                    const findingSite = document.getElementById('val-finding-site');
+                    const causativeAgent = document.getElementById('val-causative-agent');
+                    const success = document.getElementById('val-success');
+                    const panel = document.getElementById('validation-panel');
+
+                    // Typing targets
+                    const fsAttr = document.getElementById('val-fs-attr');
+                    const fsVal = document.getElementById('val-fs-val');
+                    const caAttr = document.getElementById('val-ca-attr');
+                    const caVal = document.getElementById('val-ca-val');
+
+                    if (!error) return;
+
+                    // Reset
+                    error.classList.remove('hidden');
+                    suggestion.classList.add('hidden');
+                    suggestion.classList.remove('opacity-100');
+                    suggestion.classList.add('opacity-0');
+
+                    findingSite.classList.add('opacity-0');
+                    findingSite.classList.remove('opacity-100');
+                    causativeAgent.classList.add('opacity-0');
+                    causativeAgent.classList.remove('opacity-100');
+
+                    fsAttr.textContent = '';
+                    fsVal.textContent = '';
+                    caAttr.textContent = '';
+                    caVal.textContent = '';
+
+                    success.classList.add('hidden');
+                    success.classList.remove('opacity-100');
+                    success.classList.add('opacity-0');
+                    panel.classList.replace('border-green-500', 'border-yellow-500');
+                    panel.classList.add('border-yellow-500');
+
+                    await wait(1500);
+
+                    // Show AI Suggestion
+                    suggestion.classList.remove('hidden');
+                    setTimeout(() => suggestion.classList.replace('opacity-0', 'opacity-100'), 10);
+                    await wait(1500);
+
+                    // "Click" Apply Fix (Visual feedback)
+                    applyBtn.classList.add('scale-95', 'opacity-80', 'bg-blue-800');
+                    await wait(300);
+                    applyBtn.classList.remove('scale-95', 'opacity-80', 'bg-blue-800');
+                    await wait(500);
+
+                    // SHOW finding site row
+                    findingSite.classList.remove('opacity-0');
+                    findingSite.classList.add('opacity-100');
+                    await wait(500);
+
+                    // TYPE finding site attribute
+                    await typeText(fsAttr, "Finding site");
+                    await wait(300);
+
+                    // TYPE lung structure
+                    await typeText(fsVal, "Lung structure (body structure)");
+                    await wait(1000);
+
+                    // SHOW causative agent row
+                    causativeAgent.classList.remove('opacity-0');
+                    causativeAgent.classList.add('opacity-100');
+                    await wait(500);
+
+                    // TYPE causative agent attribute
+                    await typeText(caAttr, "Causative agent");
+                    await wait(300);
+
+                    // TYPE infectious agent
+                    await typeText(caVal, "Infectious agent (organism)");
+                    await wait(1200);
+
+                    // Switch status to success
+                    error.classList.add('hidden');
+                    suggestion.classList.add('hidden');
+                    success.classList.remove('hidden');
+                    setTimeout(() => success.classList.replace('opacity-0', 'opacity-100'), 10);
+                    panel.classList.replace('border-yellow-500', 'border-green-500');
+                }
+
+                // Expose animations to global scope
+                window.runEclAnimation = runAnimation;
+                window.runConceptAnimation = runConceptAnimation;
+                window.runResearchAnimation = runResearchAnimation;
+                window.runCitationAnimation = runCitationAnimation;
+                window.runValidationAnimation = runValidationAnimation;
+            });
+        </script>
+
+
+        <!-- Slide 16: AI Concept Research Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            Concept Research</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Automated literature review (based
+                            on <code>aiResearchModal.html</code>).</p>
+
+                        <div class="modal-content"
+                            style="background-color: #fff; border-radius: 8px; overflow: hidden; max-width: 800px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: left;">
+                            <div class="modal-header"
+                                style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 15px;">
+                                <h3 class="modal-title"
+                                    style="margin: 0; color: #333; font-weight: 600; font-size: 18px; margin-bottom: 15px;">
+                                    <i class="fa fa-flask" style="color: #4a90e2; margin-right: 8px;"></i>
+                                    AI Clinical Research Assistant
+                                </h3>
+                                <div style="position: relative;">
+                                    <input type="text" id="research-search-input" placeholder="Enter concept name..."
+                                        style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid #dee2e6; border-radius: 4px; font-size: 14px;">
+                                    <div id="research-spinner"
+                                        style="display: none; position: absolute; right: 12px; top: 12px; color: #4a90e2;">
+                                        <i class="fa fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="research-results" class="modal-body"
+                                style="display: none; background-color: #fff; padding: 20px; max-height: 500px; overflow-y: auto;">
+                                <!-- Findings -->
+                                <div class="panel panel-default"
+                                    style="border: 1px solid #dee2e6; margin-bottom: 20px; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: 600; color: #333;">Research Findings</h5>
+                                    </div>
+                                    <div class="panel-body"
+                                        style="padding: 15px; color: #333; font-size: 14px; line-height: 1.6;">
+                                        <p style="margin-bottom: 10px;"><strong>Summary:</strong> Myocarditis due to
+                                            Kawasaki disease is a serious condition that can arise as a complication of
+                                            Kawasaki disease, an illness primarily affecting children that causes
+                                            inflammation of blood vessels. Leading to potential heart complications like
+                                            myocarditis.</p>
+
+                                        <p style="margin-bottom: 10px;"><strong>Clinical Evidence:</strong> Research
+                                            indicates that myocarditis can occur in children who suffer from Kawasaki
+                                            disease, presenting significant risks such as heart failure and arrhythmias.
+                                            Studies have shown a notable incidence rate of myocarditis as a result of
+                                            Kawasaki disease [2].</p>
+
+                                        <p style="margin-bottom: 10px;"><strong>Modeling Assessment:</strong> The SNOMED
+                                            CT model correctly defines myocarditis due to Kawasaki disease under the
+                                            broader category of diseases of the cardiovascular system, accurately
+                                            reflecting the pathology of myocarditis in this context.</p>
+
+                                        <p><strong>Recommendations:</strong> It is recommended to enhance the definition
+                                            of the condition with specific clinical criteria for diagnosis and
+                                            management strategies reflecting current guidelines.</p>
+                                    </div>
+                                </div>
+                                <!-- Citations -->
+                                <div class="panel panel-info"
+                                    style="border: 1px solid #b3d9ff; background-color: #f0f8ff; border-radius: 4px;">
+                                    <div class="panel-heading"
+                                        style="background-color: #d9edf7; border-bottom: 1px solid #b3d9ff; padding: 10px 15px;">
+                                        <h5 style="margin: 0; font-weight: 600; color: #31708f;">Citations & References
+                                            (2)</h5>
+                                    </div>
+                                    <div class="panel-body" style="padding: 15px;">
+                                        <div style="margin-bottom: 10px;">
+                                            <span
+                                                style="background-color: #4a90e2; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 8px;">[1]</span>
+                                            <span style="color: #333; font-size: 13px;">The New England Journal of
+                                                Medicine - "Kawasaki Disease"</span>
+                                        </div>
+                                        <div>
+                                            <span
+                                                style="background-color: #4a90e2; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 8px;">[2]</span>
+                                            <span style="color: #333; font-size: 13px;">PubMed - Search results for
+                                                "myocarditis Kawasaki disease incidence"</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: AI Citation Generation -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-[#586e75]">Future Feature: AI
+                            Citation Generation</h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Automated literature citation and
+                            validation for content request forms.</p>
+
+                        <div class="card-bg p-8 rounded-2xl shadow-xl max-w-4xl mx-auto text-left"
+                            style="background-color: #f8f9fc;">
+                            <div class="grid grid-cols-1 gap-6">
+                                <!-- Topic -->
+                                <div>
+                                    <label class="block text-sm font-bold text-red-600 mb-1">Topic</label>
+                                    <input type="text" id="citation-topic"
+                                        class="w-full p-2 border-b-2 border-gray-300 bg-transparent focus:border-blue-500 outline-none transition-colors text-gray-800"
+                                        readonly>
+                                </div>
+                                <!-- Topic Dropdown Mock -->
+                                <div class="relative -mt-4 text-right">
+                                    <i class="fas fa-caret-down text-gray-400"></i>
+                                </div>
+
+                                <!-- Summary -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="block text-sm font-bold text-red-600">Summary</label>
+                                        <span id="summary-counter" class="text-xs text-gray-400">0/255</span>
+                                    </div>
+                                    <input type="text" id="citation-summary"
+                                        class="w-full p-2 border-b-2 border-gray-300 bg-transparent focus:border-blue-500 outline-none transition-colors text-gray-800"
+                                        readonly>
+                                </div>
+
+                                <!-- Proposed Use Case -->
+                                <div>
+                                    <label class="block text-sm font-bold text-red-600 mb-1">Proposed Use Case</label>
+                                    <textarea id="citation-usecase" rows="2"
+                                        class="w-full p-2 border-b-2 border-gray-300 bg-transparent focus:border-blue-500 outline-none transition-colors text-gray-800 resize-none"
+                                        readonly></textarea>
+                                </div>
+
+                                <!-- Reference -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="block text-sm font-bold text-red-600">Reference</label>
+                                        <div id="validation-badge"
+                                            class="hidden animate-bounce bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200">
+                                            <i class="fas fa-check-circle mr-1"></i> Validated against request
+                                        </div>
+                                    </div>
+                                    <div class="relative">
+                                        <div id="citation-reference"
+                                            class="w-full p-2 border-b-2 border-gray-300 bg-transparent focus:border-blue-500 outline-none transition-colors text-gray-800 min-h-[3rem] text-sm leading-relaxed">
+                                        </div>
+                                        <div id="citation-spinner"
+                                            class="hidden absolute right-2 bottom-2 text-blue-500">
+                                            <i class="fas fa-magic fa-spin"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Other Mock Fields -->
+                                <div class="grid grid-cols-2 gap-4 opacity-50">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1">Definition</label>
+                                        <div class="border-b border-gray-200 py-1">&nbsp;</div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1">Notes</label>
+                                        <div class="border-b border-gray-200 py-1">&nbsp;</div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Button -->
+                                <div class="text-center mt-4">
+                                    <button id="generate-citation-btn"
+                                        class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition active:scale-95 hover:shadow-cyan-500/50">
+                                        <i class="fas fa-wand-sparkles mr-2"></i> Generate Citation with AI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Future AI Discovery -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center mb-4 text-[#586e75]">Future AI Discovery
+                        </h2>
+                        <p class="text-center text-[#839496] mb-12 max-w-3xl mx-auto">Collaborating with Content Team &
+                            Customers to identify high-value opportunities.</p>
+
+                        <div class="grid md:grid-cols-2 gap-12 items-center mb-12">
+                            <div class="card-bg p-8 rounded-2xl shadow-lg">
+                                <h3 class="font-bold text-2xl mb-6 text-[#00A4E4]">Discovery Process</h3>
+                                <ul class="space-y-4 text-[#586e75]">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-users mt-1 mr-3 text-[#326295]"></i>
+                                        <span><strong>Workshops with Content Team:</strong> Deep dive into daily
+                                            workflows to find repetitive, manual tasks.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-comments mt-1 mr-3 text-[#326295]"></i>
+                                        <span><strong>Customer Feedback Loop:</strong> Direct engagement with MS
+                                            customers to understand their pain points.</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-chart-line mt-1 mr-3 text-[#326295]"></i>
+                                        <span><strong>Data-Driven Prioritization:</strong> Focusing AI efforts where
+                                            they deliver the most efficiency.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="card-bg p-8 rounded-2xl shadow-lg border-l-4 border-[#6c71c4]">
+                                <h3 class="font-bold text-2xl mb-6 text-[#6c71c4]">Emerging Ideas</h3>
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">🤖 Automatic Citation in CRS</h4>
+                                        <p class="text-sm text-[#839496]">AI agents that automatically find and link
+                                            supporting literature for content request submissions.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">📦 Bulk Concept Creation</h4>
+                                        <p class="text-sm text-[#839496]">Generative AI to draft entire hierarchies or
+                                            sets of related concepts from a single prompt.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">💬 AI for Collaboration</h4>
+                                        <p class="text-sm text-[#839496]">Smart summarization of authoring discussions
+                                            and automated conflict resolution suggestions.</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75] mb-2">✅ Real-time Concept Validation</h4>
+                                        <p class="text-sm text-[#839496]">Instant feedback against the editorial guide
+                                            to ensure quality and compliance as you type.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Sign Off -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <div class="max-w-4xl mx-auto text-center">
+                    <section class="reveal">
+                        <div class="mb-8">
+                            <i class="fas fa-rocket text-6xl text-[#00A4E4] ai-pulse"></i>
+                        </div>
+                        <h2 class="text-4xl md:text-6xl font-black text-[#586e75] mb-8">Ready for the Future</h2>
+                        <p class="text-xl md:text-2xl text-[#839496] mb-12">
+                            Migrating to Angular 20 isn't just an upgrade.<br>
+                            It's the foundation for the next generation of SNOMED CT tooling.
+                        </p>
+
+                        <div class="inline-block p-8 card-bg rounded-2xl shadow-xl">
+                            <h3 class="text-2xl font-bold text-[#586e75] mb-4">Questions & Discussion</h3>
+                            <p class="text-[#839496]">Thank you for your time.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Slideshow Logic
+        const container = document.getElementById('slideshow-container');
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentSlideEl = document.getElementById('currentSlide');
+        const totalSlidesEl = document.getElementById('totalSlides');
+        const slideIndicator = document.getElementById('slideIndicator');
+        const progressBar = document.getElementById('progressBar');
+
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+
+        // Initialize
+        totalSlidesEl.textContent = totalSlides;
+
+        // Create indicator dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('slide-indicator-dot');
+            if (index === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(index));
+            slideIndicator.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.slide-indicator-dot');
+
+        function updateSlideState() {
+            // Update container transform
+            container.style.transform = `translateX(-${currentIndex * 100}vw)`;
+
+            // Update counters
+            currentSlideEl.textContent = currentIndex + 1;
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            // Update buttons
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === totalSlides - 1;
+
+            // Update progress bar
+            const progress = ((currentIndex + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Trigger animations for the current slide
+            const currentSlide = slides[currentIndex];
+            const reveals = currentSlide.querySelectorAll('.reveal');
+
+            // Reset animations in other slides (optional, but good for re-playing)
+            slides.forEach((slide, index) => {
+                if (index !== currentIndex) {
+                    const otherReveals = slide.querySelectorAll('.reveal');
+                    otherReveals.forEach(el => el.classList.remove('visible'));
+                }
+            });
+
+            // Small delay to allow transition to start
+            setTimeout(() => {
+                reveals.forEach(el => el.classList.add('visible'));
+
+                // Trigger AI Concept Authoring Animation if on Slide 13 (Index 12)
+                if (currentIndex === 12 && window.runConceptAnimation) {
+                    setTimeout(() => window.runConceptAnimation(), 500);
+                }
+
+                // Trigger AI Validation Animation if on Slide 14 (Index 13)
+                if (currentIndex === 13 && window.runValidationAnimation) {
+                    setTimeout(() => window.runValidationAnimation(), 500);
+                }
+
+                // Trigger ECL Animation if on Slide 15 (Index 14)
+                if (currentIndex === 14 && window.runEclAnimation) {
+                    window.runEclAnimation();
+                }
+
+                // Trigger Research Animation if on Slide 16 (Index 15)
+                if (currentIndex === 15 && window.runResearchAnimation) {
+                    setTimeout(() => window.runResearchAnimation(), 500);
+                }
+
+                // Trigger AI Citation Animation if on Slide 17 (Index 16)
+                if (currentIndex === 16 && window.runCitationAnimation) {
+                    setTimeout(() => window.runCitationAnimation(), 500);
+                }
+            }, 100);
+        }
+
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            currentIndex = index;
+            updateSlideState();
+        }
+
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentIndex - 1);
+        }
+
+        // Event Listeners
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Initial setup
+        updateSlideState();
+    </script>
+</body>
+
+</html>
