@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release Wizard — Self-Service Extension Releases</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #eee8d5;
+            color: #586e75;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #slideshow-container {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        .slide {
+            min-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .slide-content {
+            min-height: 100%;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .slide-content > * { flex-shrink: 0; }
+        .slide section { width: 100%; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #00A4E4, #326295);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-warm {
+            background: linear-gradient(45deg, #cb4b16, #b58900);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-bg {
+            background: radial-gradient(circle at 10% 20%, #eee8d5 0%, #d5cbb8 90.1%);
+        }
+
+        .card-bg {
+            background-color: #d5cbb8;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-bg:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -6px rgba(0,0,0,0.15), 0 6px 12px -3px rgba(0,0,0,0.1);
+        }
+
+        .nav-button {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00A4E4, #326295);
+            color: #fdf6e3;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(42, 161, 152, 0.4);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.6);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-button.prev { left: 2rem; }
+        .nav-button.next { right: 2rem; }
+
+        .slide-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(238, 232, 213, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            color: #657b83;
+        }
+
+        .slide-indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(147, 161, 161, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slide-indicator-dot.active {
+            background: linear-gradient(135deg, #00A4E4, #326295);
+            transform: scale(1.3);
+        }
+
+        .slide-indicator-dot:hover {
+            background: rgba(147, 161, 161, 0.8);
+            transform: scale(1.2);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            padding: 0.75rem 1.25rem;
+            background: rgba(238, 232, 213, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            border: 1px solid rgba(147, 161, 161, 0.3);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #657b83;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(147, 161, 161, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00A4E4, #326295);
+            transition: width 0.3s ease;
+        }
+
+        .snippet {
+            background-color: #eee8d5;
+            border: 1px solid #93a1a1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Phase pipeline animation */
+        .phase-node {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .phase-node.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .phase-line {
+            width: 0;
+            transition: width 0.6s ease;
+        }
+        .phase-line.visible {
+            width: 100%;
+        }
+
+        /* Build pipeline */
+        .pipe-step {
+            opacity: 0.3;
+            transition: all 0.4s ease;
+        }
+        .pipe-step.active {
+            opacity: 1;
+        }
+        .pipe-step.done {
+            opacity: 1;
+        }
+
+        @keyframes ping-once {
+            0% { transform: scale(1); opacity: 1; }
+            70% { transform: scale(1.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        .ping-once { animation: ping-once 1s ease-out forwards; }
+
+        @media print {
+            .nav-button, .slide-indicator, .slide-counter, .print-hidden { display: none !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            .card-bg { background: #ffffff !important; box-shadow: none !important; border: 1px solid #ccc; }
+            html, body { overflow: visible; height: auto; }
+            #slideshow-container { display: block; transform: none !important; }
+            .slide { min-width: 100%; width: 100%; height: auto; page-break-after: always; }
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <button id="prevBtn" class="nav-button prev print-hidden" aria-label="Previous slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <button id="nextBtn" class="nav-button next print-hidden" aria-label="Next slide">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Slide Counter -->
+    <div id="slideCounter" class="slide-counter print-hidden">
+        <span id="currentSlide">1</span> / <span id="totalSlides">--</span>
+    </div>
+
+    <!-- Slide Indicator Dots -->
+    <div id="slideIndicator" class="slide-indicator print-hidden"></div>
+
+    <!-- Branding Header -->
+    <div class="fixed top-0 left-0 p-6 z-50 pointer-events-none">
+        <div class="flex items-center">
+            <div class="w-48 shadow-sm">
+                <svg preserveAspectRatio="xMidYMid meet" viewBox="0 0 324 144" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+                    <g>
+                        <path d="M155.47 101.1a.31.31 0 0 0-.34-.35h-.67v-1.34H156c.7 0 1 .3 1 1v8.35a.31.31 0 0 0 .34.34h3.05a.31.31 0 0 0 .34-.34v-.71h1.42v1.39c0 .71-.3 1-1 1h-4.72c-.7 0-1-.29-1-1Z" fill="#434a55"></path>
+                        <path d="M183.1 102.35a2.64 2.64 0 0 1 2.44 1.22 4.78 4.78 0 0 1 0-.53v-2a.3.3 0 0 0-.34-.34h-.64v-1.3h1.5c.7 0 1 .3 1 1v8.39a.31.31 0 0 0 .34.35h.6v1.29h-1.45c-.69 0-1-.31-1-.84v-.41a2.78 2.78 0 0 1-2.59 1.44c-2.14 0-3.48-1.69-3.48-4.14s1.52-4.13 3.62-4.13Zm2.49 4.12c0-1.4-.74-2.81-2.25-2.81-1.24 0-2.27 1-2.27 2.83s.92 2.83 2.24 2.83c1.17 0 2.28-.83 2.28-2.85Z" fill="#434a55"></path>
+                        <path fill="#00a7e1" d="M144 0v144H0V0h144z"></path>
+                        <path d="M12.16 105.37a8.09 8.09 0 0 0 5.58 2.68c2.07 0 3.81-1.26 3.81-3.31 0-4.66-10.74-3.94-10.74-10.86 0-3.34 2.93-5.95 7.12-5.95 2.36 0 6.33 1.07 6.33 4.09v1.83h-2.9v-1c0-1.17-1.67-2-3.43-2-2.4 0-3.91 1.32-3.91 3 0 4.51 10.71 3.5 10.71 10.8 0 3.4-2.65 6.33-7.06 6.33a9.92 9.92 0 0 1-7.36-3.3Z" fill="#fefefe"></path>
+                        <path d="M25.58 107.83h1.36a.63.63 0 0 0 .69-.7V88.3h2.86l9.89 14.08c.82 1.2 1.86 3 1.86 3h.06a30.17 30.17 0 0 1-.22-3V90.32c0-1.42.6-2 2.05-2h3.15V91h-1.36a.61.61 0 0 0-.69.69v18.83h-2.84l-9.91-14.06c-.82-1.2-1.83-3-1.83-3h-.06s.19 1.79.19 3v12.06c0 1.42-.6 2-2 2h-3.2Z" fill="#fefefe"></path>
+                        <path d="M59.13 87.93a11.23 11.23 0 0 1 11.44 11.33 11.42 11.42 0 1 1-22.83 0 11.2 11.2 0 0 1 11.39-11.33Zm0 20a8.37 8.37 0 0 0 8.16-8.69 8.14 8.14 0 1 0-16.28 0c-.01 4.93 3.62 8.76 8.12 8.76Z" fill="#fefefe"></path>
+                        <path d="M70.53 107.83h1.07c.44 0 .66-.26.69-.7l1.52-18.83h3.24l5.23 11.78c.53 1.2 1.1 2.8 1.1 2.8h.06s.57-1.6 1.1-2.8l5.23-11.78H93l1.52 18.83c0 .44.25.7.69.7h1v2.7h-2.8c-1.42 0-1.92-.59-2-2l-.91-11.75c-.1-1.32-.07-3.27-.07-3.27h-.03s-.63 2.08-1.16 3.27l-4.51 9.77h-2.64l-4.51-9.77c-.53-1.16-1.19-3.3-1.19-3.3h-.06s0 2-.07 3.3l-.88 11.75c-.09 1.42-.6 2-2 2h-2.85Z" fill="#fefefe"></path>
+                        <path d="M98.08 91H96v-2.7h13.1c1.42 0 2 .6 2 2v2.8h-2.86v-1.4a.62.62 0 0 0-.7-.69h-6.33v7H109v2.71h-7.78v6.45a.64.64 0 0 0 .7.7h6.48a.63.63 0 0 0 .69-.7v-1.41H112v2.8c0 1.42-.6 2-2 2h-9.9c-1.42 0-2-.59-2-2Z" fill="#fefefe"></path>
+                        <path d="M115 91h-2v-2.7h9c6.76 0 11.23 4.07 11.23 11.09s-4.47 11.14-11.23 11.14h-5c-1.42 0-2-.59-2-2Zm3.85 16.82h2.89c4.95 0 8.19-3 8.19-8.44S126.67 91 121.76 91h-3.59v16.12a.64.64 0 0 0 .7.71Z" fill="#fefefe"></path>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slideshow Container -->
+    <div id="slideshow-container">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 1 — HERO
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <header class="hero-bg text-center py-16 md:py-20 px-4">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="inline-flex items-center gap-3 px-5 py-2 bg-[#d5cbb8] rounded-full border border-[#93a1a1] text-sm font-bold text-[#657b83] mb-8 reveal visible">
+                            <i class="fas fa-magic text-[#b58900]"></i>
+                            Managed Service · Self-Service Release Platform
+                        </div>
+                        <h1 class="text-5xl md:text-7xl font-black text-[#586e75] mb-6 reveal visible">
+                            The <span class="gradient-text">Release Wizard</span>
+                        </h1>
+                        <h2 class="text-xl md:text-2xl font-light text-[#839496] mb-10 reveal visible">
+                            A guided, self-service orchestrator for Managed Service extension releases —<br>
+                            from request to publication, without needing to be an expert.
+                        </h2>
+                        <div class="flex flex-wrap justify-center gap-4 reveal visible">
+                            <div class="flex items-center gap-2 px-4 py-2 card-bg rounded-full text-sm font-medium text-[#268bd2]">
+                                <i class="fas fa-layer-group"></i> 3-Phase Workflow
+                            </div>
+                            <div class="flex items-center gap-2 px-4 py-2 card-bg rounded-full text-sm font-medium text-[#2aa198]">
+                                <i class="fas fa-plug"></i> 4 Live Integrations
+                            </div>
+                            <div class="flex items-center gap-2 px-4 py-2 card-bg rounded-full text-sm font-medium text-[#859900]">
+                                <i class="fas fa-tasks"></i> 51 Delivery Tickets
+                            </div>
+                            <div class="flex items-center gap-2 px-4 py-2 card-bg rounded-full text-sm font-medium text-[#b58900]">
+                                <i class="fas fa-calendar"></i> Q2–Q3 2026
+                            </div>
+                        </div>
+                        <p class="text-sm text-[#93a1a1] mt-12">Use ← → arrow keys or buttons to navigate</p>
+                    </div>
+                </header>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 2 — THE PROBLEM
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-10 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-exclamation-triangle text-3xl text-[#cb4b16] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">The Problem: Releases Are Too Hard</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-3 gap-6 mb-8">
+                            <div class="card-bg p-6 rounded-2xl border-b-4 border-[#cb4b16]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-user-slash text-xl text-[#cb4b16]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Expert-Only Process</h3>
+                                <p class="text-sm text-[#839496]">Running a Managed Service extension release requires deep knowledge of SRS, Snowstorm, Jira, and RVF. NRC Release Leads cannot act independently without SI involvement at every step.</p>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-b-4 border-[#b58900]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-random text-xl text-[#b58900]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Inconsistent Execution</h3>
+                                <p class="text-sm text-[#839496]">The release process is documented in procedures and tribal knowledge. Steps are performed manually, in different orders, with varying checks — leading to inconsistencies and missed pre-conditions.</p>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-b-4 border-[#d33682]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-unlink text-xl text-[#d33682]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Fragmented Tooling</h3>
+                                <p class="text-sm text-[#839496]">Jira tickets, Snowstorm branches, SRS builds, and RVF reports all live in separate systems. Coordination requires manually context-switching and copy-pasting between at least four different tools.</p>
+                            </div>
+                        </div>
+
+                        <div class="p-6 card-bg rounded-2xl border-l-4 border-[#268bd2] flex flex-col md:flex-row items-start gap-6">
+                            <div class="bg-[#fdf6e3] w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-bullseye text-2xl text-[#268bd2]"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xl text-[#586e75] mb-2">The Goal</h3>
+                                <p class="text-[#839496] leading-relaxed">
+                                    Replace ad-hoc, expert-gated release coordination with a <strong class="text-[#586e75]">guided, step-locked wizard</strong> that enforces the correct sequence, automates checks, creates and updates Jira tickets, monitors builds in real time, and provides plain-language guidance — so that a non-expert NRC Release Lead can successfully execute a release end-to-end.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 3 — SOLUTION OVERVIEW / THREE PHASES
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-8 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-route text-3xl text-[#268bd2] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">The Release Wizard: Three Phases</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-3 gap-6 mb-8">
+                            <!-- Phase 1 -->
+                            <div id="phase1-card" class="phase-node card-bg p-6 rounded-2xl border-t-4 border-[#268bd2]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold text-lg">1</div>
+                                    <div>
+                                        <div class="text-[10px] uppercase tracking-wider text-[#93a1a1] font-bold">Phase 1</div>
+                                        <h3 class="font-bold text-lg text-[#268bd2]">Preparation</h3>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-4">NRC → SI Intake. Raise the Jira release ticket, verify country and dates, select the release type, validate the branch, run the automated pre-release audit, and assign the NRC Release Lead.</p>
+                                <ul class="space-y-1">
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#268bd2] w-3"></i> Release Request raised in Jira</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#268bd2] w-3"></i> SI Intake: country, dates, summary</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#268bd2] w-3"></i> Standard or Frequent release path</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#268bd2] w-3"></i> Automated 4-point pre-release audit</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#268bd2] w-3"></i> NRC Release Lead assigned</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 2 -->
+                            <div id="phase2-card" class="phase-node card-bg p-6 rounded-2xl border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold text-lg">2</div>
+                                    <div>
+                                        <div class="text-[10px] uppercase tracking-wider text-[#93a1a1] font-bold">Phase 2</div>
+                                        <h3 class="font-bold text-lg text-[#2aa198]">Process</h3>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-4">Checks & Builds. Infrastructure health verification, RTZ decision point, pre-release checklist sign-off, then initiation of the SRS build pipeline — monitored live via WebSocket.</p>
+                                <ul class="space-y-1">
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> SRS + Snowstorm health checks</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> RTZ update decision point</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Pre-release checklist confirmation</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Standard or Frequent build triggered</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Real-time build progress via WebSocket</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 3 -->
+                            <div id="phase3-card" class="phase-node card-bg p-6 rounded-2xl border-t-4 border-[#b58900]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-full bg-[#b58900] text-white flex items-center justify-center font-bold text-lg">3</div>
+                                    <div>
+                                        <div class="text-[10px] uppercase tracking-wider text-[#93a1a1] font-bold">Phase 3</div>
+                                        <h3 class="font-bold text-lg text-[#b58900]">Handover</h3>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-4">Cleanup & BAU. RVF validation results, SCTID versioning, production build, final publication, NRC notification, master project confirmation, and clean return-to-BAU state.</p>
+                                <ul class="space-y-1">
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#b58900] w-3"></i> RVF results surfaced in plain language</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#b58900] w-3"></i> SCTID versioning monitored live</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#b58900] w-3"></i> Production build triggered and monitored</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#b58900] w-3"></i> Build published, Jira ticket → Released</li>
+                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#b58900] w-3"></i> NRC notified, session cleared to BAU</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Animated flow connector -->
+                        <div class="relative flex items-center justify-center gap-0 mt-2">
+                            <div class="flex items-center gap-0 w-full max-w-2xl mx-auto">
+                                <div class="flex-1 text-center">
+                                    <span class="text-xs font-bold text-[#268bd2] uppercase tracking-wider">NRC Raises Request</span>
+                                </div>
+                                <div class="flex items-center gap-1 text-[#93a1a1]">
+                                    <div id="arrow1" class="phase-line h-0.5 bg-[#93a1a1] w-8"></div>
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                    <div class="w-12 text-center"><span class="text-xs font-bold text-[#2aa198] uppercase tracking-wider">SI Builds</span></div>
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                    <div class="w-12 text-center"><span class="text-xs font-bold text-[#b58900] uppercase tracking-wider">NRC Receives</span></div>
+                                </div>
+                                <div class="flex-1 text-center">
+                                    <span class="text-xs font-bold text-[#b58900] uppercase tracking-wider">Release Published</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 4 — PHASE 1 DEEP DIVE
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-8 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold text-lg mr-4">1</div>
+                            <h2 class="text-3xl font-bold text-[#586e75]">Phase 1: Preparation in Detail</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-2 gap-10 items-start">
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#268bd2]">
+                                    <div class="w-8 h-8 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">1</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">NRC Release Request</h4>
+                                        <p class="text-xs text-[#839496] mt-1">One button creates a structured Jira ticket with the correct fields, labels, and format. The ticket key is captured immediately for all subsequent updates.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#268bd2]">
+                                    <div class="w-8 h-8 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">2</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">SI Intake — Country & Summary</h4>
+                                        <p class="text-xs text-[#839496] mt-1">ISO 3166-1 validated country code, release month and year. Auto-formats the Jira ticket summary as <span class="snippet">CC | Month | Year | Release</span> and saves to state.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#268bd2]">
+                                    <div class="w-8 h-8 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">3</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">Release Type Selection</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Guided card selection between <strong>Standard Release</strong> (extended verification, multi-day pre-prod) and <strong>Frequent Release</strong> (accelerated, delta-focused). Routes the entire downstream workflow accordingly.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#268bd2]">
+                                    <div class="w-8 h-8 rounded-full bg-[#268bd2] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">4</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">Branch Config & Pre-Release Audit</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Branch path auto-suggested from country code, verified against Snowstorm. Dependency date auto-populated from branch metadata. Automated 4-point audit runs with animated checklist feedback.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pre-release audit mock -->
+                            <div class="bg-[#073642] rounded-2xl p-6 shadow-inner">
+                                <div class="text-[#93a1a1] text-xs uppercase tracking-widest mb-4 font-bold">Pre-Release Audit · Automated Checks</div>
+                                <div class="space-y-3">
+                                    <div id="audit1" class="flex items-center gap-3 bg-[#002b36] rounded-lg p-3 opacity-0 transition-all duration-500">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg w-5"></i>
+                                        <div>
+                                            <div class="text-white text-sm font-medium">Branch Exists</div>
+                                            <div class="text-[#93a1a1] text-xs font-mono">MAIN/SNOMEDCT-BE/BELREL → verified</div>
+                                        </div>
+                                    </div>
+                                    <div id="audit2" class="flex items-center gap-3 bg-[#002b36] rounded-lg p-3 opacity-0 transition-all duration-500">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg w-5"></i>
+                                        <div>
+                                            <div class="text-white text-sm font-medium">Refsets Populated</div>
+                                            <div class="text-[#93a1a1] text-xs font-mono">14 refsets · 0 empty · last modified 2025-12-01</div>
+                                        </div>
+                                    </div>
+                                    <div id="audit3" class="flex items-center gap-3 bg-[#002b36] rounded-lg p-3 opacity-0 transition-all duration-500">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg w-5"></i>
+                                        <div>
+                                            <div class="text-white text-sm font-medium">Dependency Date Aligned</div>
+                                            <div class="text-[#93a1a1] text-xs font-mono">dependencyPackage.effectiveTime matches 20250731</div>
+                                        </div>
+                                    </div>
+                                    <div id="audit4" class="flex items-center gap-3 bg-[#002b36] rounded-lg p-3 opacity-0 transition-all duration-500">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg w-5"></i>
+                                        <div>
+                                            <div class="text-white text-sm font-medium">No Blocking Tickets</div>
+                                            <div class="text-[#93a1a1] text-xs font-mono">JQL: project=MS AND labels=blocking AND status!=Done → 0</div>
+                                        </div>
+                                    </div>
+                                    <div id="audit-complete" class="opacity-0 transition-all duration-500 mt-4 p-3 rounded-lg bg-[#859900] bg-opacity-20 border border-[#859900] flex items-center gap-3">
+                                        <i class="fas fa-shield-alt text-[#859900]"></i>
+                                        <span class="text-[#859900] text-sm font-bold">All checks passed · Ready to proceed to Process Phase</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 5 — PHASE 2 & BUILD PIPELINE
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-8 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold text-lg mr-4">2</div>
+                            <h2 class="text-3xl font-bold text-[#586e75]">Phase 2: Process & Build Pipeline</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-2 gap-10 items-start">
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
+                                    <div class="w-8 h-8 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">5</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">Infrastructure Health Check</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Three parallel checks on entry to Phase 2: SRS API health, Snowstorm API health, and SRS WebSocket connectivity. All must pass before proceeding. Retry option on failure, with RAD escalation link.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
+                                    <div class="w-8 h-8 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">5</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">RTZ Decision Point</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Plain-language yes/no prompt: does this extension require RTZ updates before release? If yes, workflow blocks and directs the user to complete RTZ in the Authoring Platform first.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
+                                    <div class="w-8 h-8 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">6</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">Pre-Release Checklist</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Four manual confirmations required before build can start: authoring complete, classification run and saved, validation passes, all CRS requests resolved. Each item has a contextual help tooltip.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
+                                    <div class="w-8 h-8 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">7</div>
+                                    <div>
+                                        <h4 class="font-bold text-[#586e75]">Build Initiation (Standard or Frequent)</h4>
+                                        <p class="text-xs text-[#839496] mt-1">Calls <span class="snippet">SrsService.startStandardRelease()</span> or <span class="snippet">startFrequentRelease()</span> based on Phase 1 selection. Stores build ID, transitions Jira ticket, navigates to live build monitor.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Animated build pipeline -->
+                            <div class="bg-[#073642] rounded-2xl p-6 shadow-inner">
+                                <div class="text-[#93a1a1] text-xs uppercase tracking-widest mb-5 font-bold flex items-center gap-2">
+                                    <span id="pipe-status-label" class="text-[#2aa198]">Build Pipeline · Live Monitor</span>
+                                </div>
+                                <div class="relative">
+                                    <!-- vertical line -->
+                                    <div class="absolute left-5 top-4 bottom-4 w-0.5 bg-[#0d4a5e]"></div>
+                                    <div class="space-y-4">
+                                        <div id="pipe0" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#2aa198] flex items-center justify-center text-[#2aa198] z-10">
+                                                <i class="fas fa-rocket text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">Build Triggered</div>
+                                                <div class="text-[#586e75] text-xs font-mono">SRS Build ID: srs-2026-be-0041</div>
+                                            </div>
+                                        </div>
+                                        <div id="pipe1" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#268bd2] flex items-center justify-center text-[#268bd2] z-10">
+                                                <i class="fas fa-cogs text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">Pre-Production Build</div>
+                                                <div id="pipe1-detail" class="text-[#586e75] text-xs font-mono">QUEUED → RUNNING...</div>
+                                            </div>
+                                        </div>
+                                        <div id="pipe2" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#b58900] flex items-center justify-center text-[#b58900] z-10">
+                                                <i class="fas fa-clipboard-check text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">RVF Validation</div>
+                                                <div id="pipe2-detail" class="text-[#586e75] text-xs font-mono">Awaiting build completion...</div>
+                                            </div>
+                                        </div>
+                                        <div id="pipe3" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#6c71c4] flex items-center justify-center text-[#6c71c4] z-10">
+                                                <i class="fas fa-hashtag text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">SCTID Versioning</div>
+                                                <div id="pipe3-detail" class="text-[#586e75] text-xs font-mono">Awaiting RVF sign-off...</div>
+                                            </div>
+                                        </div>
+                                        <div id="pipe4" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#cb4b16] flex items-center justify-center text-[#cb4b16] z-10">
+                                                <i class="fas fa-industry text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">Production Build</div>
+                                                <div id="pipe4-detail" class="text-[#586e75] text-xs font-mono">Awaiting versioning...</div>
+                                            </div>
+                                        </div>
+                                        <div id="pipe5" class="pipe-step flex items-center gap-4 relative">
+                                            <div class="w-10 h-10 rounded-full bg-[#0d4a5e] border-2 border-[#859900] flex items-center justify-center text-[#859900] z-10">
+                                                <i class="fas fa-check-double text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-white text-sm font-medium">Published to Stable</div>
+                                                <div id="pipe5-detail" class="text-[#586e75] text-xs font-mono">RF2 packages archived</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 6 — INTEGRATIONS
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-10 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-plug text-3xl text-[#6c71c4] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">System Integrations</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div class="card-bg p-6 rounded-2xl border-l-4 border-[#268bd2]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="bg-[#fdf6e3] w-10 h-10 rounded-full flex items-center justify-center">
+                                        <i class="fab fa-jira text-xl text-[#268bd2]"></i>
+                                    </div>
+                                    <h3 class="font-bold text-lg text-[#268bd2]">Jira (REST API v3)</h3>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-3">Full lifecycle management of the MS release ticket. The wizard creates, transitions, comments on, and assigns the Jira ticket at every workflow step — providing a complete audit trail.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="snippet text-xs">createIssue</span>
+                                    <span class="snippet text-xs">transitionIssue</span>
+                                    <span class="snippet text-xs">addComment</span>
+                                    <span class="snippet text-xs">assignIssue</span>
+                                    <span class="snippet text-xs">searchIssues (JQL)</span>
+                                </div>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-l-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="bg-[#fdf6e3] w-10 h-10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-snowflake text-xl text-[#2aa198]"></i>
+                                    </div>
+                                    <h3 class="font-bold text-lg text-[#2aa198]">Snowstorm (Terminology Server)</h3>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-3">Branch verification, metadata discovery, refset population checks, and code system lookup. All Snowstorm calls are read-only — safe to run in dry-run mode without side effects.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="snippet text-xs">branchExists</span>
+                                    <span class="snippet text-xs">getBranchMetadata</span>
+                                    <span class="snippet text-xs">checkRefsetPopulation</span>
+                                    <span class="snippet text-xs">listCodeSystems</span>
+                                </div>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-l-4 border-[#cb4b16]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="bg-[#fdf6e3] w-10 h-10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-hammer text-xl text-[#cb4b16]"></i>
+                                    </div>
+                                    <h3 class="font-bold text-lg text-[#cb4b16]">SRS (SNOMED Release Service)</h3>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-3">Build triggering, status polling, and real-time log streaming via <strong>STOMP over SockJS WebSocket</strong>. Handles Standard and Frequent release paths, versioning, and final publication to stable channel.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="snippet text-xs">triggerBuild</span>
+                                    <span class="snippet text-xs">getBuildStatusStream</span>
+                                    <span class="snippet text-xs">publishBuild</span>
+                                    <span class="snippet text-xs">tagBuildAsPublished</span>
+                                </div>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-l-4 border-[#b58900]">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="bg-[#fdf6e3] w-10 h-10 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-id-badge text-xl text-[#b58900]"></i>
+                                    </div>
+                                    <h3 class="font-bold text-lg text-[#b58900]">IMS (Identity Management)</h3>
+                                </div>
+                                <p class="text-sm text-[#839496] mb-3">Session validation on load, role resolution for RBAC enforcement, and user display details for the header and assignment features. Redirect to IMS login on session expiry.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="snippet text-xs">validateSession</span>
+                                    <span class="snippet text-xs">getRoles</span>
+                                    <span class="snippet text-xs">getAccountDetails</span>
+                                    <span class="snippet text-xs">NRC_RELEASE_LEAD · SI_RELEASE_MANAGER</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 card-bg rounded-xl border-l-4 border-[#6c71c4] flex items-center gap-4">
+                            <i class="fas fa-wifi text-[#6c71c4] text-xl w-6"></i>
+                            <p class="text-sm text-[#586e75]"><strong>WebSocket integration (STOMP/SockJS)</strong> drives the live build log feed and progress indicators. SRS build status events arrive in real time without polling — auto-advancing the wizard to the next step on <span class="snippet">COMPLETE</span>.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 7 — SAFETY & RESILIENCE
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-10 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-shield-alt text-3xl text-[#859900] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">Safety, Resilience & Non-Expert UX</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-3 gap-6 mb-6">
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#859900]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-user-lock text-xl text-[#859900]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Role-Based Access</h3>
+                                <p class="text-sm text-[#839496] mb-3">Two roles derived from IMS: <strong>NRC_RELEASE_LEAD</strong> (Phases 1 & 3) and <strong>SI_RELEASE_MANAGER</strong> (Phases 2 & 4/5/6). Unauthorised actions show a plain-language explanation. Admin override available.</p>
+                                <div class="text-xs font-mono bg-[#eee8d5] rounded p-2 text-[#586e75]">Step gating enforced per role</div>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#b58900]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-flask text-xl text-[#b58900]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Dry Run Mode</h3>
+                                <p class="text-sm text-[#839496] mb-3">Available from the Phase 2 gate. All Jira and SRS writes are replaced with mock responses. Snowstorm calls still execute (read-only). A persistent amber banner reads <strong>"DRY RUN ACTIVE"</strong>. All log entries prefixed with <span class="snippet">[DRY RUN]</span>.</p>
+                                <div class="text-xs font-mono bg-[#eee8d5] rounded p-2 text-[#b58900]">Safe for onboarding & testing</div>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#268bd2]">
+                                <div class="bg-[#fdf6e3] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-redo text-xl text-[#268bd2]"></i>
+                                </div>
+                                <h3 class="font-bold text-lg text-[#586e75] mb-2">Session Recovery</h3>
+                                <p class="text-sm text-[#839496] mb-3">Workflow state persists to <span class="snippet">sessionStorage</span>. If the user refreshes or navigates away mid-release, the wizard offers to <strong>Resume</strong> (restores step) or <strong>Start Fresh</strong>. No release is ever silently lost.</p>
+                                <div class="text-xs font-mono bg-[#eee8d5] rounded p-2 text-[#586e75]">Survives accidental refresh</div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="card-bg p-5 rounded-xl border-l-4 border-[#cb4b16] flex gap-4">
+                                <i class="fas fa-exclamation-circle text-[#cb4b16] text-xl mt-1 w-5 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="font-bold text-[#586e75] mb-1">Global Error Boundary</h4>
+                                    <p class="text-xs text-[#839496]">All unhandled HTTP errors and WebSocket disconnections are caught, logged in red to the automation log, shown as a notification toast, and surfaced as a plain-language panel with a Retry button and a clearly-labelled <strong>"View in RAD (expert tool)"</strong> escalation link.</p>
+                                </div>
+                            </div>
+                            <div class="card-bg p-5 rounded-xl border-l-4 border-[#2aa198] flex gap-4">
+                                <i class="fas fa-terminal text-[#2aa198] text-xl mt-1 w-5 flex-shrink-0"></i>
+                                <div>
+                                    <h4 class="font-bold text-[#586e75] mb-1">Automation Log + Jira Sync Panel</h4>
+                                    <p class="text-xs text-[#839496]">Every action is timestamped and logged in the sidebar terminal widget (command / info / error severity). A separate Jira sync panel polls the release ticket every 30 seconds and surfaces any external status changes with a toast notification.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 8 — DELIVERY PLAN Q2 2026
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-8 border-b border-[#93a1a1] pb-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt text-3xl text-[#268bd2] mr-4"></i>
+                                <h2 class="text-3xl font-bold text-[#586e75]">Delivery Plan — Q2 2026</h2>
+                            </div>
+                            <span class="px-4 py-2 bg-[#268bd2] text-white rounded-full text-sm font-bold">34 tickets · Apr–Jun 2026</span>
+                        </header>
+
+                        <div class="grid md:grid-cols-4 gap-4 mb-6">
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#93a1a1]">
+                                <div class="text-2xl font-black text-[#268bd2] mb-1">15</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Foundation &amp; Services</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#2aa198]">
+                                <div class="text-2xl font-black text-[#2aa198] mb-1">9</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Phase 1 Workflow Steps</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#cb4b16]">
+                                <div class="text-2xl font-black text-[#cb4b16] mb-1">7</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Phase 2 Entry + Build Start</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#b58900]">
+                                <div class="text-2xl font-black text-[#b58900] mb-1">3</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Size-L Tickets</div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <!-- Foundation column -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">Application Foundation</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
+                                        <span class="text-xs text-[#586e75]">Angular Scaffold + Tailwind CSS</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
+                                        <span class="text-xs text-[#586e75]">ESLint + Prettier + Husky</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
+                                        <span class="text-xs text-[#586e75]">GitHub Actions CI Pipeline</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Environment Configuration Service</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">HTTP Client + Auth Interceptors</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">IMS Authentication + Session Guard</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">App Shell (Header, Breadcrumb, Sidebar)</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Automation Log + Progress Indicator</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Workflow State Service + Router</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Services column -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">Core Integrations</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Jira Service — API Client</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Jira Service — Release Ticket Schema</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Snowstorm — Branch Verification</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Snowstorm — Refset Population Check</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">SRS Service — API Client &amp; Auth</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">SRS Service — WebSocket Monitoring</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">SRS Service — Standard &amp; Frequent Flows</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Workflow steps column -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">Phase 1 + Phase 2 Entry</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 1: NRC Release Request Screen</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 2: SI Intake — Country &amp; Summary</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 3: Release Type Selection</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Step 4: Branch Input &amp; Pre-Release Audit</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Phase Gate: Preparation → Process</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 5: Infrastructure Health Check</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 6: Pre-Release Checks Panel</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Step 7: Start Standard/Frequent Release</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 9 — DELIVERY PLAN Q3 2026
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-8 border-b border-[#93a1a1] pb-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-check text-3xl text-[#b58900] mr-4"></i>
+                                <h2 class="text-3xl font-bold text-[#586e75]">Delivery Plan — Q3 2026</h2>
+                            </div>
+                            <span class="px-4 py-2 bg-[#b58900] text-white rounded-full text-sm font-bold">24 tickets · Jul–Sep 2026</span>
+                        </header>
+
+                        <div class="grid md:grid-cols-4 gap-4 mb-6">
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#cb4b16]">
+                                <div class="text-2xl font-black text-[#cb4b16] mb-1">7</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Phase 3 Build &amp; Handover</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#6c71c4]">
+                                <div class="text-2xl font-black text-[#6c71c4] mb-1">6</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Resilience &amp; Safety</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#859900]">
+                                <div class="text-2xl font-black text-[#859900] mb-1">2</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Cypress E2E Tests</div>
+                            </div>
+                            <div class="card-bg p-4 rounded-xl text-center border-b-2 border-[#268bd2]">
+                                <div class="text-2xl font-black text-[#268bd2] mb-1">3</div>
+                                <div class="text-xs text-[#839496] uppercase tracking-wide">Size-L Tickets</div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <!-- Build & Handover -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">Phases 3 — Build to Handover</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Step 8: Pre-Production Build Monitor</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Step 8: RVF Validation Results Display</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 9: SCTID Versioning Monitor</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Step 10: Production Build Trigger + Monitor</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 10: Post-Production RTZ Decision</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Step 11: Final Release &amp; Publication</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">NRC Notification &amp; Handover Screen</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
+                                        <span class="text-xs text-[#586e75]">Master Project Finalisation Prompt</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
+                                        <span class="text-xs text-[#586e75]">Return to BAU &amp; Session Termination</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resilience -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">Resilience, Safety &amp; UX</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Release Config Persistence &amp; Recovery</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Jira Ticket Real-Time Status Sync</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Snowstorm Code System Picker</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Error Boundary &amp; RAD Escalation</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Role-Based Access Control</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Dry Run Mode — Full Workflow Simulation</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testing -->
+                            <div>
+                                <div class="text-xs uppercase tracking-widest font-bold text-[#93a1a1] mb-3 pl-1">End-to-End Testing</div>
+                                <div class="space-y-2">
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
+                                        <span class="text-xs text-[#586e75]">Cypress E2E: Standard Release Happy Path</span>
+                                    </div>
+                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
+                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
+                                        <span class="text-xs text-[#586e75]">Cypress E2E: Frequent Release Happy Path</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 p-4 bg-[#073642] rounded-xl">
+                                    <div class="text-[#93a1a1] text-[10px] uppercase tracking-widest mb-3 font-bold">Test Coverage</div>
+                                    <ul class="space-y-2 text-xs text-[#839496]">
+                                        <li class="flex items-start gap-2"><i class="fas fa-check text-[#859900] mt-0.5 w-3"></i>All API calls stubbed via <span class="text-[#2aa198] font-mono">cy.intercept()</span></li>
+                                        <li class="flex items-start gap-2"><i class="fas fa-check text-[#859900] mt-0.5 w-3"></i>WebSocket progress simulated via <span class="text-[#2aa198] font-mono">cy.clock()</span></li>
+                                        <li class="flex items-start gap-2"><i class="fas fa-check text-[#859900] mt-0.5 w-3"></i>Automation log entries asserted at each step</li>
+                                        <li class="flex items-start gap-2"><i class="fas fa-check text-[#859900] mt-0.5 w-3"></i>Sidebar phase transitions verified</li>
+                                        <li class="flex items-start gap-2"><i class="fas fa-check text-[#859900] mt-0.5 w-3"></i>Frequent path asserts Standard SRS endpoints NOT called</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 10 — ARCHITECTURE & TECH STACK
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-10 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-layer-group text-3xl text-[#6c71c4] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">Architecture &amp; Technical Stack</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-3 gap-6 mb-6">
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#268bd2]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <i class="fab fa-angular text-3xl text-[#268bd2]"></i>
+                                    <h3 class="font-bold text-lg text-[#586e75]">Angular (Standalone)</h3>
+                                </div>
+                                <ul class="space-y-2 text-sm text-[#839496]">
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#268bd2] mt-1 text-xs w-3"></i>Standalone component architecture — no NgModules</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#268bd2] mt-1 text-xs w-3"></i>TypeScript strict mode throughout</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#268bd2] mt-1 text-xs w-3"></i>Typed service layer with <span class="snippet text-xs">Observable&lt;T&gt;</span> contracts</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#268bd2] mt-1 text-xs w-3"></i>Functional route guards (<span class="snippet text-xs">canActivate</span>)</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#268bd2] mt-1 text-xs w-3"></i>esbuild pipeline — fast hot-reload</li>
+                                </ul>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#2aa198]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <i class="fas fa-wind text-3xl text-[#2aa198]"></i>
+                                    <h3 class="font-bold text-lg text-[#586e75]">Tailwind CSS v4</h3>
+                                </div>
+                                <ul class="space-y-2 text-sm text-[#839496]">
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#2aa198] mt-1 text-xs w-3"></i>SNOMED International brand tokens as CSS custom properties</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#2aa198] mt-1 text-xs w-3"></i>Utility-first — no custom SCSS files</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#2aa198] mt-1 text-xs w-3"></i>Dark/light mode via Tailwind's <span class="snippet text-xs">dark:</span> variant</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#2aa198] mt-1 text-xs w-3"></i>PostCSS integration with esbuild</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#2aa198] mt-1 text-xs w-3"></i>Fira Code monospace for automation log</li>
+                                </ul>
+                            </div>
+
+                            <div class="card-bg p-6 rounded-2xl border-t-4 border-[#cb4b16]">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <i class="fas fa-broadcast-tower text-3xl text-[#cb4b16]"></i>
+                                    <h3 class="font-bold text-lg text-[#586e75]">Real-Time: RxJS + STOMP</h3>
+                                </div>
+                                <ul class="space-y-2 text-sm text-[#839496]">
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#cb4b16] mt-1 text-xs w-3"></i>STOMP over SockJS for SRS WebSocket</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#cb4b16] mt-1 text-xs w-3"></i>Subscribe to <span class="snippet text-xs">/topic/build.{buildId}</span></li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#cb4b16] mt-1 text-xs w-3"></i>Typed <span class="snippet text-xs">BuildStatusUpdate</span> model</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#cb4b16] mt-1 text-xs w-3"></i>Reconnection + cleanup on destroy</li>
+                                    <li class="flex items-start gap-2"><i class="fas fa-dot-circle text-[#cb4b16] mt-1 text-xs w-3"></i>Jira sync via 30s polling Observable</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- State management & service layer -->
+                        <div class="card-bg p-6 rounded-2xl border-l-4 border-[#6c71c4]">
+                            <h3 class="font-bold text-lg text-[#586e75] mb-4 flex items-center gap-3">
+                                <i class="fas fa-database text-[#6c71c4]"></i>
+                                WorkflowStateService — Central State Machine
+                            </h3>
+                            <div class="grid md:grid-cols-4 gap-4 text-sm">
+                                <div class="bg-[#eee8d5] rounded-lg p-3">
+                                    <div class="text-[10px] uppercase tracking-wide text-[#93a1a1] font-bold mb-2">Current State</div>
+                                    <code class="text-xs text-[#6c71c4] block">currentPhase (1–3)</code>
+                                    <code class="text-xs text-[#6c71c4] block">currentStep (string ID)</code>
+                                    <code class="text-xs text-[#6c71c4] block">completedSteps (Set)</code>
+                                </div>
+                                <div class="bg-[#eee8d5] rounded-lg p-3">
+                                    <div class="text-[10px] uppercase tracking-wide text-[#93a1a1] font-bold mb-2">Release Config</div>
+                                    <code class="text-xs text-[#6c71c4] block">country, releaseType</code>
+                                    <code class="text-xs text-[#6c71c4] block">branchPath, dates</code>
+                                    <code class="text-xs text-[#6c71c4] block">jiraTicketKey, srsReleaseId</code>
+                                </div>
+                                <div class="bg-[#eee8d5] rounded-lg p-3">
+                                    <div class="text-[10px] uppercase tracking-wide text-[#93a1a1] font-bold mb-2">Transition Guard</div>
+                                    <code class="text-xs text-[#6c71c4] block">Step only enters if</code>
+                                    <code class="text-xs text-[#6c71c4] block">all predecessors in</code>
+                                    <code class="text-xs text-[#6c71c4] block">completedSteps set</code>
+                                </div>
+                                <div class="bg-[#eee8d5] rounded-lg p-3">
+                                    <div class="text-[10px] uppercase tracking-wide text-[#93a1a1] font-bold mb-2">Persistence</div>
+                                    <code class="text-xs text-[#6c71c4] block">sessionStorage backed</code>
+                                    <code class="text-xs text-[#6c71c4] block">Resume dialog on</code>
+                                    <code class="text-xs text-[#6c71c4] block">partial state found</code>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 11 — PROTOTYPE WALKTHROUGH
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section class="reveal">
+                        <header class="mb-10 border-b border-[#93a1a1] pb-4 flex items-center">
+                            <i class="fas fa-desktop text-3xl text-[#2aa198] mr-4"></i>
+                            <h2 class="text-3xl font-bold text-[#586e75]">The Prototype: Release Wizard in Action</h2>
+                        </header>
+
+                        <div class="grid md:grid-cols-2 gap-10 items-center">
+                            <div class="space-y-6">
+                                <p class="text-lg text-[#586e75]">
+                                    The <strong>release-orchestrator-prototype.html</strong> is a working, clickable demonstration of the complete Release Wizard workflow — built entirely in vanilla HTML/Tailwind to validate UX before Angular implementation.
+                                </p>
+
+                                <div class="space-y-3">
+                                    <div class="flex items-start gap-3 card-bg p-4 rounded-xl">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75] text-sm">Full 3-Phase Navigation</h4>
+                                            <p class="text-xs text-[#839496]">Phase-locked sidebar progression from Preparation through Process to Handover, with live state reflected across all panels.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 card-bg p-4 rounded-xl">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75] text-sm">Simulated API Calls &amp; Animations</h4>
+                                            <p class="text-xs text-[#839496]">Progress indicators, animated audit checklists, simulated build pipelines with QUEUED → RUNNING → COMPLETE transitions, and versioning counters.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 card-bg p-4 rounded-xl">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75] text-sm">Automation Log Running in Real Time</h4>
+                                            <p class="text-xs text-[#839496]">Every wizard action appends a timestamped log entry with correct severity colours — matching the planned Angular LogService behaviour exactly.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 card-bg p-4 rounded-xl">
+                                        <i class="fas fa-check-circle text-[#859900] text-lg flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-[#586e75] text-sm">Validated by Stakeholders</h4>
+                                            <p class="text-xs text-[#839496]">The prototype is used to confirm UX flow and feature completeness with MS team stakeholders before Angular development begins — reducing delivery risk.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2">
+                                    <a href="release-orchestrator-prototype.html" target="_blank"
+                                        class="inline-flex items-center gap-3 px-6 py-4 bg-[#fdf6e3] hover:bg-[#eee8d5] text-[#009ed9] rounded-2xl border-2 border-[#009ed9] shadow-md transition-all duration-300 group">
+                                        <div class="bg-[#009ed9] text-white p-2 rounded-lg group-hover:scale-110 transition-transform">
+                                            <i class="fas fa-external-link-alt text-sm"></i>
+                                        </div>
+                                        <div class="flex flex-col items-start leading-tight">
+                                            <span class="text-[10px] uppercase font-bold tracking-wider opacity-60">Interactive Prototype</span>
+                                            <span class="text-sm font-black">Open Release Wizard Prototype</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Mockup of wizard UI -->
+                            <div class="bg-[#262626] rounded-2xl overflow-hidden shadow-2xl">
+                                <!-- Header -->
+                                <div class="bg-[#262626] px-4 py-3 flex items-center gap-3 border-b border-[#333]">
+                                    <div class="w-6 h-6 bg-[#009ed9] rounded flex items-center justify-center text-white text-xs font-bold">S</div>
+                                    <span class="text-white text-sm font-medium">Managed Service · Release Wizard</span>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-[#374151] flex items-center justify-center text-white text-xs font-bold">CS</div>
+                                    </div>
+                                </div>
+                                <!-- Sub-header -->
+                                <div class="bg-[#e7f3fd] px-4 py-2 flex items-center gap-2 text-[#009ed9] text-xs font-medium border-b border-[#d0e7f9]">
+                                    <i class="fas fa-home"></i>
+                                    <span class="text-[#6b7280]">/</span>
+                                    <span>Release Management</span>
+                                    <span class="text-[#6b7280]">/</span>
+                                    <span class="font-bold">Preparation Phase</span>
+                                </div>
+                                <!-- Body -->
+                                <div class="flex">
+                                    <!-- Sidebar -->
+                                    <div class="w-48 bg-white border-r border-[#e2e8f0] p-3 space-y-1">
+                                        <div class="p-2 rounded-lg border-l-4 border-[#009ed9] bg-[#e7f3fd]">
+                                            <div class="text-[10px] font-bold text-[#009ed9]">Phase 1</div>
+                                            <div class="text-xs text-[#374151]">Preparation</div>
+                                            <div class="text-[9px] text-[#6b7280]">NRC → SI Intake</div>
+                                        </div>
+                                        <div class="p-2 rounded-lg opacity-40">
+                                            <div class="text-[10px] font-bold text-[#6b7280]">Phase 2</div>
+                                            <div class="text-xs text-[#374151]">Process</div>
+                                            <div class="text-[9px] text-[#6b7280]">Checks &amp; Builds</div>
+                                        </div>
+                                        <div class="p-2 rounded-lg opacity-40">
+                                            <div class="text-[10px] font-bold text-[#6b7280]">Phase 3</div>
+                                            <div class="text-xs text-[#374151]">Handover</div>
+                                            <div class="text-[9px] text-[#6b7280]">Cleanup &amp; BAU</div>
+                                        </div>
+                                        <!-- Log terminal -->
+                                        <div class="mt-3 border border-dashed border-[#e2e8f0] rounded-lg p-2 bg-white">
+                                            <div class="text-[9px] text-[#009ed9] font-bold font-mono mb-1">⚡ Automation Log</div>
+                                            <div class="text-[8px] font-mono space-y-0.5">
+                                                <div class="text-[#009ed9]">&gt; Wizard initialised</div>
+                                                <div class="text-[#6b7280]">• Session loaded</div>
+                                                <div class="text-[#6b7280]">• IMS session OK</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Main content -->
+                                    <div class="flex-1 p-4 bg-[#f5f7f9]">
+                                        <div class="bg-white rounded-xl p-4 border border-[#e2e8f0] shadow-sm">
+                                            <div class="flex items-center gap-2 mb-3">
+                                                <i class="fas fa-paper-plane text-[#009ed9]"></i>
+                                                <span class="font-bold text-sm text-[#1f2937]">Raise Release Request</span>
+                                            </div>
+                                            <div class="text-xs text-[#6b7280] mb-3">Creates a Managed Service Release ticket in Jira with structured fields and labels.</div>
+                                            <div class="flex gap-2 mb-3">
+                                                <div class="flex-1 bg-[#f5f7f9] rounded p-2 border border-[#e2e8f0]">
+                                                    <div class="text-[9px] text-[#6b7280]">Release Origin</div>
+                                                    <div class="text-xs font-bold text-[#1f2937]">BAU <span class="text-[10px] bg-orange-100 text-orange-600 px-1 rounded">ACTIVE</span></div>
+                                                </div>
+                                                <div class="flex-1 bg-[#f5f7f9] rounded p-2 border border-[#e2e8f0]">
+                                                    <div class="text-[9px] text-[#6b7280]">Target Platform</div>
+                                                    <div class="text-xs font-bold text-[#1f2937]">Managed Service Int.</div>
+                                                </div>
+                                            </div>
+                                            <button class="w-full bg-[#009ed9] text-white text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-2">
+                                                <i class="fas fa-rocket"></i> Raise Release Request
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SLIDE 12 — SUMMARY & NEXT STEPS
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="slide">
+            <div class="slide-content" style="justify-content: center;">
+                <div class="max-w-5xl mx-auto px-4 text-center">
+                    <section class="reveal">
+                        <div class="inline-flex items-center gap-3 px-5 py-2 bg-[#d5cbb8] rounded-full border border-[#93a1a1] text-sm font-bold text-[#657b83] mb-8">
+                            <i class="fas fa-flag-checkered text-[#859900]"></i>
+                            Summary &amp; Next Steps
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-black text-[#586e75] mb-4">
+                            The <span class="gradient-text">Release Wizard</span> Delivers
+                        </h2>
+                        <p class="text-lg text-[#839496] mb-12 max-w-3xl mx-auto">
+                            A production-ready, self-service release orchestrator that guides non-expert users through the entire Managed Service extension release lifecycle — safely, consistently, and with a complete Jira audit trail.
+                        </p>
+
+                        <div class="grid md:grid-cols-4 gap-4 mb-12">
+                            <div class="card-bg p-5 rounded-2xl border-b-4 border-[#268bd2]">
+                                <div class="text-3xl font-black text-[#268bd2] mb-2">3</div>
+                                <div class="text-sm font-bold text-[#586e75]">Guided Phases</div>
+                                <div class="text-xs text-[#839496] mt-1">Preparation, Process, Handover</div>
+                            </div>
+                            <div class="card-bg p-5 rounded-2xl border-b-4 border-[#2aa198]">
+                                <div class="text-3xl font-black text-[#2aa198] mb-2">4</div>
+                                <div class="text-sm font-bold text-[#586e75]">Live Integrations</div>
+                                <div class="text-xs text-[#839496] mt-1">Jira · Snowstorm · SRS · IMS</div>
+                            </div>
+                            <div class="card-bg p-5 rounded-2xl border-b-4 border-[#cb4b16]">
+                                <div class="text-3xl font-black text-[#cb4b16] mb-2">51</div>
+                                <div class="text-sm font-bold text-[#586e75]">Delivery Tickets</div>
+                                <div class="text-xs text-[#839496] mt-1">Q2 &amp; Q3 2026 · max Size-L</div>
+                            </div>
+                            <div class="card-bg p-5 rounded-2xl border-b-4 border-[#859900]">
+                                <div class="text-3xl font-black text-[#859900] mb-2">0</div>
+                                <div class="text-sm font-bold text-[#586e75]">Expert Knowledge Required</div>
+                                <div class="text-xs text-[#839496] mt-1">For NRC Release Leads to execute</div>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-3 gap-4 text-left mb-10">
+                            <div class="card-bg p-5 rounded-xl border-l-4 border-[#268bd2]">
+                                <div class="text-xs uppercase tracking-widest text-[#93a1a1] font-bold mb-2">Now</div>
+                                <h4 class="font-bold text-[#586e75] mb-1">Prototype validated</h4>
+                                <p class="text-xs text-[#839496]">Working HTML prototype demonstrates the full workflow. Use to gather final stakeholder feedback and confirm step details before build.</p>
+                            </div>
+                            <div class="card-bg p-5 rounded-xl border-l-4 border-[#2aa198]">
+                                <div class="text-xs uppercase tracking-widest text-[#93a1a1] font-bold mb-2">Q2 2026</div>
+                                <h4 class="font-bold text-[#586e75] mb-1">Foundation + Phase 1 &amp; 2</h4>
+                                <p class="text-xs text-[#839496]">Angular scaffold, all service integrations, complete Preparation phase, and build initiation. 34 tickets targeting completion by end of June 2026.</p>
+                            </div>
+                            <div class="card-bg p-5 rounded-xl border-l-4 border-[#b58900]">
+                                <div class="text-xs uppercase tracking-widest text-[#93a1a1] font-bold mb-2">Q3 2026</div>
+                                <h4 class="font-bold text-[#586e75] mb-1">Build Monitor → Handover + Tests</h4>
+                                <p class="text-xs text-[#839496]">Full end-to-end pipeline, publication, handover, resilience features, RBAC, dry-run mode, and Cypress E2E coverage for both release paths.</p>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-[#93a1a1]">Release Wizard · Managed Service · SNOMED International</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end slideshow-container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('slideshow-container');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const progressBar = document.getElementById('progressBar');
+            const currentSlideEl = document.getElementById('currentSlide');
+            const totalSlidesEl = document.getElementById('totalSlides');
+            const indicator = document.getElementById('slideIndicator');
+
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            let currentIndex = 0;
+            let animationsRun = {};
+
+            totalSlidesEl.textContent = totalSlides;
+
+            // Build indicator dots
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('slide-indicator-dot');
+                dot.addEventListener('click', () => goToSlide(i));
+                indicator.appendChild(dot);
+            }
+
+            function updateSlideState() {
+                container.style.transform = `translateX(-${currentIndex * 100}vw)`;
+                progressBar.style.width = `${((currentIndex + 1) / totalSlides) * 100}%`;
+                currentSlideEl.textContent = currentIndex + 1;
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex === totalSlides - 1;
+
+                document.querySelectorAll('.slide-indicator-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+
+                // Trigger reveal on current slide
+                setTimeout(() => {
+                    const currentSlide = slides[currentIndex];
+                    currentSlide.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+
+                    // Scroll current slide to top
+                    currentSlide.scrollTop = 0;
+
+                    // Slide-specific animations (run once each)
+                    if (!animationsRun[currentIndex]) {
+                        animationsRun[currentIndex] = true;
+                        if (currentIndex === 2) runPhaseAnimation();
+                        if (currentIndex === 3) runAuditAnimation();
+                        if (currentIndex === 4) runPipelineAnimation();
+                    }
+                }, 100);
+            }
+
+            const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+            // Slide 3: Phase cards animate in
+            async function runPhaseAnimation() {
+                const cards = ['phase1-card', 'phase2-card', 'phase3-card'];
+                for (const id of cards) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.opacity = '1';
+                        el.style.transform = 'scale(1)';
+                        await wait(300);
+                    }
+                }
+            }
+
+            // Slide 4: Audit checklist animates in
+            async function runAuditAnimation() {
+                await wait(600);
+                const items = ['audit1', 'audit2', 'audit3', 'audit4'];
+                for (const id of items) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateX(0)';
+                        await wait(700);
+                    }
+                }
+                await wait(400);
+                const complete = document.getElementById('audit-complete');
+                if (complete) complete.style.opacity = '1';
+            }
+
+            // Slide 5: Build pipeline stages light up
+            async function runPipelineAnimation() {
+                await wait(500);
+                const steps = [
+                    { id: 'pipe0', detail: null, label: 'TRIGGERED' },
+                    { id: 'pipe1', detail: 'pipe1-detail', text: 'RUNNING · 47% complete...', delay: 1200 },
+                    { id: 'pipe2', detail: 'pipe2-detail', text: '1,842 assertions checked · 0 failures', delay: 1000 },
+                    { id: 'pipe3', detail: 'pipe3-detail', text: '124,592 components versioned', delay: 1200 },
+                    { id: 'pipe4', detail: 'pipe4-detail', text: 'Production Alpha → Production Build...', delay: 1000 },
+                    { id: 'pipe5', detail: 'pipe5-detail', text: 'Published · RF2 packages at s3://srs-releases/BE/', delay: 800 }
+                ];
+
+                for (const step of steps) {
+                    const el = document.getElementById(step.id);
+                    if (el) {
+                        el.classList.remove('pipe-step');
+                        el.classList.add('done');
+                        if (step.detail) {
+                            const d = document.getElementById(step.detail);
+                            if (d) d.textContent = step.text;
+                        }
+                    }
+                    await wait(step.delay || 800);
+                }
+
+                const label = document.getElementById('pipe-status-label');
+                if (label) {
+                    label.textContent = '✓ Build Pipeline · Complete';
+                    label.style.color = '#859900';
+                }
+            }
+
+            function goToSlide(index) {
+                if (index < 0 || index >= totalSlides) return;
+                currentIndex = index;
+                updateSlideState();
+            }
+
+            prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+            nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'Space') goToSlide(currentIndex + 1);
+                else if (e.key === 'ArrowLeft') goToSlide(currentIndex - 1);
+            });
+
+            updateSlideState();
+        });
+    </script>
+</body>
+</html>
