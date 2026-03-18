@@ -432,10 +432,9 @@
                                         <h3 class="font-bold text-lg text-[#2aa198]">Process</h3>
                                     </div>
                                 </div>
-                                <p class="text-sm text-[#839496] mb-4">Checks & Builds. Infrastructure health verification, RTZ decision point, pre-release checklist sign-off, then initiation of the SRS build pipeline — monitored live via WebSocket.</p>
+                                <p class="text-sm text-[#839496] mb-4">Checks & Builds. Infrastructure health verification, pre-release checklist sign-off, then initiation of the SRS build pipeline — monitored live via WebSocket.</p>
                                 <ul class="space-y-1">
                                     <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> SRS + Snowstorm health checks</li>
-                                    <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> RTZ update decision point</li>
                                     <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Pre-release checklist confirmation</li>
                                     <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Standard or Frequent build triggered</li>
                                     <li class="text-xs text-[#586e75] flex items-center gap-2"><i class="fas fa-check-circle text-[#2aa198] w-3"></i> Real-time build progress via WebSocket</li>
@@ -592,13 +591,6 @@
                                     <div>
                                         <h4 class="font-bold text-[#586e75]">Infrastructure Health Check</h4>
                                         <p class="text-xs text-[#839496] mt-1">Three parallel checks on entry to Phase 2: SRS API health, Snowstorm API health, and SRS WebSocket connectivity. All must pass before proceeding. Retry option on failure, with RAD escalation link.</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
-                                    <div class="w-8 h-8 rounded-full bg-[#2aa198] text-white flex items-center justify-center font-bold flex-shrink-0 text-sm">5</div>
-                                    <div>
-                                        <h4 class="font-bold text-[#586e75]">RTZ Decision Point</h4>
-                                        <p class="text-xs text-[#839496] mt-1">Plain-language yes/no prompt: does this extension require RTZ updates before release? If yes, workflow blocks and directs the user to complete RTZ in the Authoring Platform first.</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-4 card-bg p-4 rounded-xl border-l-4 border-[#2aa198]">
@@ -884,7 +876,7 @@
                                     </div>
                                     <div class="card-bg p-3 rounded-lg flex items-center gap-3">
                                         <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
-                                        <span class="text-xs text-[#586e75]">ESLint + Prettier + Husky</span>
+                                        <span class="text-xs text-[#586e75]">ESLint + Prettier</span>
                                     </div>
                                     <div class="card-bg p-3 rounded-lg flex items-center gap-3">
                                         <span class="w-5 h-5 rounded bg-[#93a1a1] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">S</span>
@@ -1050,10 +1042,6 @@
                                     <div class="card-bg p-3 rounded-lg flex items-center gap-3">
                                         <span class="w-5 h-5 rounded bg-[#268bd2] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">L</span>
                                         <span class="text-xs text-[#586e75]">Step 10: Production Build Trigger + Monitor</span>
-                                    </div>
-                                    <div class="card-bg p-3 rounded-lg flex items-center gap-3">
-                                        <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
-                                        <span class="text-xs text-[#586e75]">Step 10: Post-Production RTZ Decision</span>
                                     </div>
                                     <div class="card-bg p-3 rounded-lg flex items-center gap-3">
                                         <span class="w-5 h-5 rounded bg-[#b58900] text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0">M</span>
