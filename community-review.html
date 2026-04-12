@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Content Review — Interactive Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Mulish', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  [x-cloak] { display: none !important; }
+  .typing-cursor::after { content: '▋'; animation: blink 0.8s infinite; }
+  @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+  .fade-in { animation: fadeIn 0.3s ease-in; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
+  .slide-down { animation: slideDown 0.2s ease-out; }
+  @keyframes slideDown { from { opacity:0; max-height:0 } to { opacity:1; max-height:999px } }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+  /* Nav height matches IMS exactly */
+  nav.ims-nav { height: 50px; }
+</style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased" x-data="app()" x-init="init()">
+
+<!-- TOP NAV — matches identity-management-ui: bg-zinc-800, 50px height, Montserrat brand text -->
+<nav class="ims-nav bg-zinc-800 text-white shadow-md sticky top-0 z-50 flex items-center">
+  <div class="w-full px-4 sm:px-5 flex items-center justify-between h-full">
+
+    <!-- Left: logo + app name + breadcrumb -->
+    <div class="flex items-center gap-0 min-w-0">
+      <!-- SNOMED logo -->
+      <button @click="view='tasks'" class="flex items-center gap-3 hover:opacity-90 transition-opacity flex-shrink-0">
+        <img src="https://raw.githubusercontent.com/IHTSDO/identity-management-ui/main/public/logos/snomed-logo-small.png"
+          alt="SNOMED International"
+          class="h-7 w-auto"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <!-- Fallback text logo if image fails -->
+        <span style="display:none" class="items-center justify-center bg-sky-500 text-white text-xs font-bold font-heading px-2 py-0.5 rounded tracking-wide">SNOMED</span>
+        <span class="hidden sm:block text-sm font-heading font-semibold text-white tracking-wide">Community Content Review</span>
+      </button>
+
+      <!-- Breadcrumb (review page only) -->
+      <template x-if="view==='review'">
+        <div class="flex items-center gap-1.5 ml-3 min-w-0">
+          <span class="text-zinc-500 text-sm select-none">›</span>
+          <button @click="view='tasks'" class="text-zinc-400 hover:text-white text-xs transition-colors font-medium">Tasks</button>
+          <span class="text-zinc-500 text-sm select-none">›</span>
+          <span class="text-zinc-300 text-xs font-medium truncate max-w-28 sm:max-w-xs" x-text="currentTask.key"></span>
+        </div>
+      </template>
+    </div>
+
+    <!-- Right: actions + user -->
+    <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+
+      <!-- Open in Authoring UI (review page, desktop) -->
+      <template x-if="view==='review'">
+        <a :href="authoringUiTaskUrl(currentTask)" target="_blank" rel="noopener"
+          class="hidden sm:flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded transition-all">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-none stroke-current stroke-2 flex-shrink-0"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          Authoring UI
+        </a>
+      </template>
+
+      <!-- App launcher grid icon (matches IMS) -->
+      <button class="w-9 h-9 flex items-center justify-center rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors" title="Apps">
+        <svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+      </button>
+
+      <!-- Divider -->
+      <div class="w-px h-5 bg-zinc-600 mx-1"></div>
+
+      <!-- User badge (matches IMS initials circle) -->
+      <button class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-xs font-bold font-heading text-white select-none">JD</div>
+        <span class="hidden sm:block text-sm text-zinc-300 font-medium">Jane Doe</span>
+      </button>
+
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     TASK LIST VIEW
+══════════════════════════════════════════════════════════ -->
+<div x-show="view==='tasks'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 font-heading">Review Tasks</h1>
+    <p class="text-gray-500 text-sm mt-1">Tasks assigned to you or available to claim</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4 mb-5 shadow-sm">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search tasks or projects…" x-model="taskSearch"
+          class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500">
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <select x-model="taskFilter" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 bg-white">
+          <option value="all">All Tasks</option>
+          <option value="mine">My Tasks</option>
+          <option value="available">Available</option>
+        </select>
+        <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/30 bg-white">
+          <option>All Projects</option>
+          <option>MAIN/2025-01</option>
+          <option>NRC-UK</option>
+          <option>NRC-NL</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="grid grid-cols-3 gap-3 mb-5">
+    <div class="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm text-center">
+      <div class="text-2xl font-bold text-sky-500 font-heading">3</div>
+      <div class="text-xs text-gray-500 mt-0.5">Assigned to me</div>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm text-center">
+      <div class="text-2xl font-bold text-amber-500">8</div>
+      <div class="text-xs text-gray-500 mt-0.5">Available</div>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm text-center">
+      <div class="text-2xl font-bold text-green-600">12</div>
+      <div class="text-xs text-gray-500 mt-0.5">Completed this month</div>
+    </div>
+  </div>
+
+  <!-- Desktop table -->
+  <div class="hidden sm:block bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-left px-4 py-3 font-semibold text-gray-600">Task</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-600">Project</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-600">Author</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-600">Changes</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-600">Risk</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-600">Submitted</th>
+          <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <template x-for="task in filteredTasks" :key="task.key">
+          <tr class="hover:bg-gray-50 transition-colors cursor-pointer" @click="openTask(task)">
+            <td class="px-4 py-3.5">
+              <div class="font-medium text-gray-900" x-text="task.title"></div>
+              <div class="text-xs text-gray-400 mt-0.5" x-text="task.key"></div>
+            </td>
+            <td class="px-4 py-3.5 text-gray-500" x-text="task.project"></td>
+            <td class="px-4 py-3.5">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-bold" x-text="task.author.split(' ').map(n=>n[0]).join('')"></div>
+                <span class="text-gray-600 text-xs" x-text="task.author"></span>
+              </div>
+            </td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="font-semibold text-gray-700" x-text="task.changes"></span>
+            </td>
+            <td class="px-4 py-3.5 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <template x-if="task.highRisk > 0">
+                  <span class="inline-flex items-center gap-0.5 bg-red-100 text-red-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    <span x-text="task.highRisk"></span>
+                  </span>
+                </template>
+                <template x-if="task.medRisk > 0">
+                  <span class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span x-text="task.medRisk"></span>
+                  </span>
+                </template>
+                <template x-if="task.lowRisk > 0">
+                  <span class="inline-flex items-center gap-0.5 bg-green-100 text-green-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    <span x-text="task.lowRisk"></span>
+                  </span>
+                </template>
+              </div>
+            </td>
+            <td class="px-4 py-3.5 text-gray-500 text-xs" x-text="task.submitted"></td>
+            <td class="px-4 py-3.5">
+              <span :class="statusClass(task.status)" class="px-2 py-0.5 rounded-full text-xs font-medium" x-text="task.status"></span>
+            </td>
+            <td class="px-4 py-3.5 text-right">
+              <button @click.stop="openTask(task)" class="text-sky-500 hover:text-sky-600 font-medium text-xs px-3 py-1.5 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors font-heading">
+                Review →
+              </button>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="sm:hidden space-y-3">
+    <template x-for="task in filteredTasks" :key="task.key">
+      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm" @click="openTask(task)">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-gray-900 text-sm leading-tight" x-text="task.title"></div>
+            <div class="text-xs text-gray-400 mt-0.5" x-text="task.key + ' · ' + task.project"></div>
+          </div>
+          <span :class="statusClass(task.status)" class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0" x-text="task.status"></span>
+        </div>
+        <div class="flex items-center justify-between mt-3">
+          <div class="flex items-center gap-1">
+            <template x-if="task.highRisk > 0">
+              <span class="inline-flex items-center gap-0.5 bg-red-100 text-red-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span><span x-text="task.highRisk+' high'"></span>
+              </span>
+            </template>
+            <template x-if="task.medRisk > 0">
+              <span class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span x-text="task.medRisk+' med'"></span>
+              </span>
+            </template>
+            <template x-if="task.lowRisk > 0">
+              <span class="inline-flex items-center gap-0.5 bg-green-100 text-green-700 text-xs font-semibold px-1.5 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span><span x-text="task.lowRisk+' low'"></span>
+              </span>
+            </template>
+          </div>
+          <span class="text-xs text-gray-400" x-text="task.changes + ' concepts · ' + task.submitted"></span>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     REVIEW PAGE VIEW
+══════════════════════════════════════════════════════════ -->
+<div x-show="view==='review'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+  <!-- Task header -->
+  <div class="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-5 shadow-sm fade-in">
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <h1 class="text-lg sm:text-xl font-bold text-gray-900 leading-tight font-heading" x-text="currentTask.title"></h1>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-gray-500">
+          <span x-text="currentTask.key"></span>
+          <span>·</span>
+          <span x-text="currentTask.project"></span>
+          <span>·</span>
+          <span>Author: <span class="text-gray-700 font-medium" x-text="currentTask.author"></span></span>
+          <span>·</span>
+          <span>Submitted <span x-text="currentTask.submitted"></span></span>
+        </div>
+        <div class="flex items-center gap-2 mt-2">
+          <span class="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Classification: Current
+          </span>
+          <span class="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+            Branch: MAIN/2025-01/PROJ-123
+          </span>
+        </div>
+      </div>
+      <!-- Progress -->
+      <div class="sm:text-right">
+        <div class="text-2xl font-bold text-sky-500 font-heading" x-text="reviewedCount + '/' + currentTask.changes"></div>
+        <div class="text-xs text-gray-500">concepts reviewed</div>
+        <div class="mt-2 w-full sm:w-32 bg-gray-200 rounded-full h-1.5">
+          <div class="bg-sky-500 rounded-full h-1.5 transition-all duration-500" :style="'width:'+Math.round(reviewedCount/currentTask.changes*100)+'%'"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Analysis Panel -->
+  <div class="bg-gradient-to-br from-zinc-800 to-zinc-600 text-white rounded-xl p-4 sm:p-5 mb-5 shadow-sm fade-in">
+
+    <!-- Panel header -->
+    <div class="flex items-center gap-2 mb-3">
+      <svg viewBox="0 0 24 24" class="w-4 h-4 fill-current opacity-80 flex-shrink-0"><path d="M12 2a10 10 0 110 20A10 10 0 0112 2zm0 2a8 8 0 100 16A8 8 0 0012 4zm-1 11h2v2h-2v-2zm0-8h2v6h-2V7z"/></svg>
+      <span class="text-xs font-semibold uppercase tracking-wider opacity-80 font-heading">AI Analysis</span>
+      <!-- Generation timestamp -->
+      <template x-if="aiAnalysisState === 'complete' || aiAnalysisState === 'stale'">
+        <span class="ml-1 text-xs text-white/40 font-medium" x-text="'Generated ' + aiGeneratedAt"></span>
+      </template>
+      <template x-if="aiAnalysisState === 'pending'">
+        <span class="ml-1 text-xs text-white/40 italic">Generating…</span>
+      </template>
+      <!-- Stale badge -->
+      <template x-if="aiAnalysisState === 'stale'">
+        <span class="inline-flex items-center gap-1 text-xs bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full font-medium">
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          Stale
+        </span>
+      </template>
+      <!-- Regenerate + model -->
+      <div class="ml-auto flex items-center gap-3 flex-shrink-0">
+        <button @click="regenerateAnalysis()"
+          :class="aiAnalysisState === 'stale' ? 'text-amber-300 hover:text-amber-100' : 'text-white/50 hover:text-white'"
+          class="text-xs transition-colors flex items-center gap-1 font-medium">
+          <svg viewBox="0 0 24 24" class="w-3 h-3 fill-none stroke-current stroke-2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          Regenerate
+        </button>
+        <span class="text-xs text-white/30 hidden sm:block">claude-sonnet-4-6</span>
+      </div>
+    </div>
+
+    <!-- Stale warning -->
+    <template x-if="aiAnalysisState === 'stale'">
+      <div class="mb-3 flex items-start gap-2 bg-amber-400/10 border border-amber-400/25 rounded-lg px-3 py-2 text-xs text-amber-200 fade-in">
+        <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <span>The author has made changes since this analysis was generated — results may not reflect the current branch. Click <strong>Regenerate</strong> to refresh.</span>
+      </div>
+    </template>
+
+    <!-- Pending skeleton -->
+    <template x-if="aiAnalysisState === 'pending'">
+      <div class="space-y-2 animate-pulse fade-in">
+        <div class="h-3 bg-white/10 rounded w-full"></div>
+        <div class="h-3 bg-white/10 rounded w-5/6"></div>
+        <div class="h-3 bg-white/10 rounded w-4/5"></div>
+        <div class="h-3 bg-white/10 rounded w-3/4 mt-1"></div>
+      </div>
+    </template>
+
+    <!-- Summary text (complete or stale) -->
+    <template x-if="aiAnalysisState !== 'pending'">
+      <div class="text-sm leading-relaxed text-white/90" x-text="aiSummaryText"></div>
+    </template>
+
+    <!-- Footer stats -->
+    <template x-if="(aiAnalysisState === 'complete' || aiAnalysisState === 'stale') && aiSummaryText">
+      <div class="mt-3 pt-3 border-t border-white/15 flex flex-wrap gap-3 text-xs text-white/50">
+        <span>📋 <span x-text="currentTask.changes"></span> concepts</span>
+        <span>⏱ ~<span x-text="currentTask.estMins"></span> min</span>
+        <span>🔴 <span x-text="currentTask.highRisk"></span> high · 🟡 <span x-text="currentTask.medRisk"></span> med · 🟢 <span x-text="currentTask.lowRisk"></span> low</span>
+      </div>
+    </template>
+  </div>
+
+  <!-- Change Groups -->
+  <div class="space-y-4">
+    <template x-for="group in changeGroups" :key="group.id">
+      <div class="bg-white border rounded-xl shadow-sm overflow-hidden" :class="group.riskBorder">
+
+        <!-- Group header -->
+        <button class="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 transition-colors" @click="group.open = !group.open">
+          <div class="flex items-center gap-2.5 flex-1 min-w-0">
+            <span :class="group.riskBadge" class="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0" x-text="group.riskLabel"></span>
+            <span class="font-semibold text-gray-900 text-sm" x-text="group.title"></span>
+            <span class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0" x-text="group.concepts.length + ' concepts'"></span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <template x-if="group.allApproved">
+              <span class="text-xs text-green-600 font-medium flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Approved
+              </span>
+            </template>
+            <template x-if="!group.allApproved">
+              <button @click.stop="approveGroup(group)" class="text-xs bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg font-medium transition-colors">
+                Approve all
+              </button>
+            </template>
+            <svg :class="group.open ? 'rotate-180' : ''" class="w-4 h-4 text-gray-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </button>
+
+        <!-- Pattern subgroups -->
+        <template x-if="group.open">
+          <div class="border-t border-gray-100 divide-y divide-gray-100 slide-down">
+            <template x-for="pattern in group.patterns" :key="pattern.id">
+              <div>
+                <!-- Pattern header -->
+                <button class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 transition-colors" @click="pattern.open = !pattern.open">
+                  <svg class="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                  <span class="text-sm text-gray-700 flex-1 min-w-0">
+                    <span class="font-medium" x-text="pattern.label"></span>
+                    <span class="text-gray-400 ml-1.5" x-text="'(' + pattern.concepts.length + ' concepts)'"></span>
+                  </span>
+                  <template x-if="pattern.allApproved">
+                    <span class="text-xs text-green-600 font-medium flex items-center gap-1 flex-shrink-0">
+                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Done
+                    </span>
+                  </template>
+                  <template x-if="!pattern.allApproved">
+                    <button @click.stop="approvePattern(group, pattern)" class="text-xs text-sky-500 hover:underline flex-shrink-0 font-medium">Approve pattern</button>
+                  </template>
+                  <svg :class="pattern.open ? 'rotate-180' : ''" class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ml-1 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+
+                <!-- Concept list within pattern -->
+                <template x-if="pattern.open">
+                  <div class="divide-y divide-gray-100">
+                    <template x-for="concept in pattern.concepts" :key="concept.id">
+                      <div class="flex items-center gap-3 px-4 py-3">
+                        <!-- Concept identity -->
+                        <div class="flex-1 min-w-0">
+                          <div class="text-sm font-medium text-gray-800 truncate" x-text="concept.fsn"></div>
+                          <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="text-xs text-gray-400 font-mono" x-text="concept.sctid"></span>
+                            <span class="text-gray-300">·</span>
+                            <span class="text-xs text-gray-400 truncate" x-text="concept.hierarchy"></span>
+                          </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                          <a :href="authoringUiConceptUrl(currentTask, concept)" target="_blank" rel="noopener"
+                            class="hidden sm:inline-flex items-center gap-1 text-xs text-gray-400 hover:text-sky-500 transition-colors font-medium"
+                            title="Open in Authoring UI">
+                            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-none stroke-current stroke-2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>Review</span>
+                          </a>
+                          <button @click="toggleApprove(concept)"
+                            :class="concept.decision==='APPROVED'
+                              ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
+                              : 'bg-white text-gray-500 border-gray-200 hover:border-green-400 hover:text-green-600'"
+                            class="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium border transition-colors">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                            <span x-text="concept.decision==='APPROVED' ? 'Approved' : 'Approve'"></span>
+                          </button>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </template>
+  </div>
+
+  <!-- Complete Review -->
+  <div class="mt-6 bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm fade-in">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <div class="font-semibold text-gray-900">Complete Review</div>
+        <div class="text-sm text-gray-500 mt-0.5">
+          <span x-text="reviewedCount"></span> of <span x-text="currentTask.changes"></span> concepts reviewed.
+          <template x-if="unreviewedHighRisk > 0">
+            <span class="text-red-600 font-medium"> <span x-text="unreviewedHighRisk"></span> high-risk item(s) still need review.</span>
+          </template>
+          <template x-if="unreviewedHighRisk === 0 && reviewedCount < currentTask.changes">
+            <span class="text-amber-600 font-medium"> Some concepts not yet reviewed.</span>
+          </template>
+          <template x-if="reviewedCount >= currentTask.changes">
+            <span class="text-green-600 font-medium"> All concepts reviewed.</span>
+          </template>
+        </div>
+      </div>
+      <button @click="completeReview()"
+        :disabled="unreviewedHighRisk > 0"
+        :class="unreviewedHighRisk > 0 ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600' : 'bg-zinc-800 hover:bg-zinc-700 text-white'"
+        class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors flex-shrink-0">
+        Mark Review Complete →
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Complete modal -->
+<template x-if="showCompleteModal">
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 fade-in">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h2 class="text-lg font-bold text-center text-gray-900 mb-2">Complete Review?</h2>
+      <p class="text-sm text-gray-500 text-center mb-6">This will mark the task as <strong>Review Complete</strong> in authoring-services. The author will be notified.</p>
+      <div class="flex gap-3">
+        <button @click="showCompleteModal=false" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+        <button @click="confirmComplete()" class="flex-1 px-4 py-2.5 bg-zinc-800 text-white rounded-xl text-sm font-semibold hover:bg-zinc-700 transition-colors">Confirm</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Success toast -->
+<template x-if="showToast">
+  <div class="fixed bottom-4 right-4 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-2xl fade-in flex items-center gap-2 z-50" x-text="toastMsg">
+  </div>
+</template>
+
+<script>
+function app() {
+  return {
+    view: 'tasks',
+    taskSearch: '',
+    taskFilter: 'all',
+    currentTask: null,
+    changeGroups: [],
+    aiSummaryText: '',
+    aiAnalysisState: 'pending',   // 'pending' | 'complete' | 'stale' | 'failed'
+    aiGeneratedAt: '',
+    showCompleteModal: false,
+    showToast: false,
+    toastMsg: '',
+
+    tasks: [
+      {
+        key: 'MAIN-2025-1234', title: 'Add finding site attribute to cardiology disorders',
+        project: 'MAIN/2025-01', author: 'Mark Chen', submitted: '2 days ago',
+        changes: 47, highRisk: 2, medRisk: 11, lowRisk: 34, status: 'Available', mine: false, estMins: 6
+      },
+      {
+        key: 'MAIN-2025-1189', title: 'New concepts: rare congenital heart conditions',
+        project: 'MAIN/2025-01', author: 'Sara Okonkwo', submitted: '3 days ago',
+        changes: 12, highRisk: 12, medRisk: 0, lowRisk: 0, status: 'In Review', mine: true, estMins: 4
+      },
+      {
+        key: 'NRC-UK-887', title: 'GP episode of care description updates (en-GB)',
+        project: 'NRC-UK', author: 'James Whitfield', submitted: '1 day ago',
+        changes: 103, highRisk: 0, medRisk: 4, lowRisk: 99, status: 'Available', mine: false, estMins: 9
+      },
+      {
+        key: 'MAIN-2025-1201', title: 'Inactivate duplicate musculoskeletal finding concepts',
+        project: 'MAIN/2025-01', author: 'Priya Nair', submitted: '5 days ago',
+        changes: 8, highRisk: 8, medRisk: 0, lowRisk: 0, status: 'In Review', mine: true, estMins: 4
+      },
+      {
+        key: 'NRC-NL-412', title: 'Dutch preferred terms for laboratory procedures',
+        project: 'NRC-NL', author: 'Erik van der Berg', submitted: '4 hours ago',
+        changes: 220, highRisk: 0, medRisk: 0, lowRisk: 220, status: 'Available', mine: false, estMins: 3
+      },
+    ],
+
+    get filteredTasks() {
+      return this.tasks.filter(t => {
+        const q = this.taskSearch.toLowerCase();
+        const matchSearch = !q || t.title.toLowerCase().includes(q) || t.key.toLowerCase().includes(q);
+        const matchFilter = this.taskFilter === 'all' || (this.taskFilter === 'mine' && t.mine) || (this.taskFilter === 'available' && t.status === 'Available');
+        return matchSearch && matchFilter;
+      });
+    },
+
+    get reviewedCount() {
+      let n = 0;
+      for (const g of this.changeGroups)
+        for (const p of g.patterns)
+          for (const c of p.concepts)
+            if (c.decision === 'APPROVED') n++;
+      return n;
+    },
+
+    get unreviewedHighRisk() {
+      const hg = this.changeGroups.find(g => g.riskLabel === 'HIGH');
+      if (!hg) return 0;
+      let n = 0;
+      for (const p of hg.patterns)
+        for (const c of p.concepts)
+          if (c.decision !== 'APPROVED') n++;
+      return n;
+    },
+
+    statusClass(s) {
+      if (s === 'In Review') return 'bg-blue-100 text-blue-700';
+      if (s === 'Available') return 'bg-amber-100 text-amber-700';
+      if (s === 'Complete') return 'bg-green-100 text-green-700';
+      return 'bg-gray-100 text-gray-600';
+    },
+
+    openTask(task) {
+      this.currentTask = task;
+      this.view = 'review';
+      this.buildChangeGroups();
+      this.startAiSummary();
+    },
+
+    buildChangeGroups() {
+      this.changeGroups = [
+        {
+          id: 'high', riskLabel: 'HIGH', title: 'High Risk Changes',
+          riskBorder: 'border-red-200', riskBadge: 'bg-red-100 text-red-700',
+          open: true, allApproved: false,
+          patterns: [
+            {
+              id: 'h1', open: false, allApproved: false,
+              label: 'New concept — Clinical finding hierarchy',
+              concepts: [
+                {
+                  id: 'c1', decision: 'UNREVIEWED',
+                  fsn: 'Acute myocarditis due to autoimmune disease (disorder)',
+                  sctid: '1237485903', hierarchy: 'Clinical finding → Heart disease'
+                },
+                {
+                  id: 'c2', decision: 'UNREVIEWED',
+                  fsn: 'Chronic myocarditis due to autoimmune disease (disorder)',
+                  sctid: '1237485904', hierarchy: 'Clinical finding → Heart disease'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'med', riskLabel: 'MEDIUM', title: 'Medium Risk Changes',
+          riskBorder: 'border-amber-200', riskBadge: 'bg-amber-100 text-amber-700',
+          open: false, allApproved: false,
+          patterns: [
+            {
+              id: 'm1', open: false, allApproved: false,
+              label: 'Finding site [attribute] added to existing disorder concepts',
+              concepts: [
+                {
+                  id: 'c3', decision: 'UNREVIEWED',
+                  fsn: 'Aortic valve stenosis (disorder)',
+                  sctid: '60573004', hierarchy: 'Clinical finding → Heart disease → Valve disease'
+                },
+                {
+                  id: 'c4', decision: 'UNREVIEWED',
+                  fsn: 'Mitral valve regurgitation (disorder)',
+                  sctid: '48724000', hierarchy: 'Clinical finding → Heart disease → Valve disease'
+                },
+                {
+                  id: 'c5', decision: 'UNREVIEWED',
+                  fsn: 'Tricuspid valve stenosis (disorder)',
+                  sctid: '111287006', hierarchy: 'Clinical finding → Heart disease → Valve disease'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'low', riskLabel: 'LOW', title: 'Low Risk Changes',
+          riskBorder: 'border-green-200', riskBadge: 'bg-green-100 text-green-700',
+          open: false, allApproved: false,
+          patterns: [
+            {
+              id: 'l1', open: false, allApproved: false,
+              label: 'Synonym added — US English preferred term variant',
+              concepts: [
+                {
+                  id: 'c6', decision: 'UNREVIEWED',
+                  fsn: 'Myocardial infarction (disorder)',
+                  sctid: '22298006', hierarchy: 'Clinical finding → Heart disease'
+                },
+                {
+                  id: 'c7', decision: 'UNREVIEWED',
+                  fsn: 'Angina pectoris (disorder)',
+                  sctid: '194828000', hierarchy: 'Clinical finding → Heart disease'
+                }
+              ]
+            },
+            {
+              id: 'l2', open: false, allApproved: false,
+              label: 'Preferred term corrected — minor typographic update',
+              concepts: [
+                {
+                  id: 'c8', decision: 'UNREVIEWED',
+                  fsn: 'Hypertensive heart disease without heart failure (disorder)',
+                  sctid: '39727004', hierarchy: 'Clinical finding → Hypertensive disease'
+                }
+              ]
+            }
+          ]
+        }
+      ];
+    },
+
+    startAiSummary() {
+      // Simulate: analysis was pre-generated server-side when task moved to IN_REVIEW.
+      // Angular would GET /review-intelligence/tasks/{key}/analysis — we mock the states here.
+      this.aiSummaryText = '';
+      this.aiAnalysisState = 'pending';
+      this.aiGeneratedAt = '';
+
+      // Simulate a brief "fetching from DB" delay (would be ~200ms in production)
+      setTimeout(() => {
+        // Simulate 200 OK — analysis retrieved from DB
+        this.aiAnalysisState = 'complete';
+        this.aiGeneratedAt = '4 minutes ago';
+        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-risk) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-risk synonym and preferred term updates in en-US and en-GB. The medium-risk attribute additions are highly consistent and appear suitable for pattern-level review rather than individual concept review.`;
+      }, 800);
+    },
+
+    regenerateAnalysis() {
+      this.aiAnalysisState = 'pending';
+      this.aiSummaryText = '';
+      this.aiGeneratedAt = '';
+      this.toast('Regenerating analysis…');
+      // Simulate POST /review-intelligence/tasks/{key}/analysis/regenerate → 202 → poll
+      setTimeout(() => {
+        this.aiAnalysisState = 'complete';
+        this.aiGeneratedAt = 'just now';
+        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-risk) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-risk synonym and preferred term updates in en-US and en-GB.`;
+        this.toast('Analysis regenerated');
+      }, 2000);
+    },
+
+    approveGroup(group) {
+      for (const p of group.patterns) {
+        for (const c of p.concepts) c.decision = 'APPROVED';
+        p.allApproved = true;
+      }
+      group.allApproved = true;
+      this.toast('Group approved');
+    },
+
+    approvePattern(group, pattern) {
+      for (const c of pattern.concepts) c.decision = 'APPROVED';
+      pattern.allApproved = true;
+      group.allApproved = group.patterns.every(p => p.allApproved);
+      this.toast('Pattern approved (' + pattern.concepts.length + ' concepts)');
+    },
+
+    toggleApprove(concept) {
+      concept.decision = concept.decision === 'APPROVED' ? 'UNREVIEWED' : 'APPROVED';
+      // Update parent pattern/group approved state
+      for (const g of this.changeGroups) {
+        for (const p of g.patterns) {
+          if (p.concepts.includes(concept)) {
+            p.allApproved = p.concepts.every(c => c.decision === 'APPROVED');
+            g.allApproved = g.patterns.every(p2 => p2.allApproved);
+          }
+        }
+      }
+      if (concept.decision === 'APPROVED') this.toast('Concept approved');
+    },
+
+    completeReview() {
+      this.showCompleteModal = true;
+    },
+
+    confirmComplete() {
+      this.showCompleteModal = false;
+      this.toast('Review marked complete — author notified');
+      setTimeout(() => { this.view = 'tasks'; }, 1800);
+    },
+
+    toast(msg) {
+      this.toastMsg = '✓ ' + msg;
+      this.showToast = true;
+      setTimeout(() => { this.showToast = false; }, 2500);
+    },
+
+    // Construct authoring-ui deep-link URLs
+    // Pattern: https://authoring.ihtsdotools.org/authoring-ui/#/projects/{projectKey}/tasks/{taskKey}/review
+    authoringUiTaskUrl(task) {
+      if (!task) return '#';
+      const baseUrl = 'https://authoring.ihtsdotools.org/authoring-ui';
+      const [projectKey, taskKey] = this.splitTaskKey(task.key);
+      return `${baseUrl}/#/projects/${projectKey}/tasks/${taskKey}/review`;
+    },
+
+    // Concept-level deep-link: same URL + concept anchor so authoring-ui can scroll to it
+    // Pattern: .../#/projects/{projectKey}/tasks/{taskKey}/review?conceptId={sctid}
+    authoringUiConceptUrl(task, concept) {
+      if (!task || !concept) return '#';
+      const baseUrl = 'https://authoring.ihtsdotools.org/authoring-ui';
+      const [projectKey, taskKey] = this.splitTaskKey(task.key);
+      return `${baseUrl}/#/projects/${projectKey}/tasks/${taskKey}/review?conceptId=${concept.sctid}`;
+    },
+
+    // Helper: split "MAIN-2025-1234" into ["MAIN-2025", "MAIN-2025-1234"]
+    // Real implementation would use task.projectKey and task.key from the API response
+    splitTaskKey(key) {
+      const parts = key.split('-');
+      const taskKey = key;
+      const projectKey = parts.length > 2 ? parts.slice(0, parts.length - 1).join('-') : parts[0];
+      return [projectKey, taskKey];
+    },
+
+    init() {}
+  }
+}
+</script>
+</body>
+</html>
