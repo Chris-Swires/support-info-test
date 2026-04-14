@@ -156,7 +156,7 @@ tailwind.config = {
           <th class="text-left px-4 py-3 font-semibold text-gray-600">Project</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-600">Author</th>
           <th class="text-center px-4 py-3 font-semibold text-gray-600">Changes</th>
-          <th class="text-center px-4 py-3 font-semibold text-gray-600">Risk</th>
+          <th class="text-center px-4 py-3 font-semibold text-gray-600">Impact</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-600">Submitted</th>
           <th class="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
           <th class="px-4 py-3"></th>
@@ -458,7 +458,7 @@ tailwind.config = {
         <div class="text-sm text-gray-500 mt-0.5">
           <span x-text="reviewedCount"></span> of <span x-text="currentTask.changes"></span> concepts reviewed.
           <template x-if="unreviewedHighRisk > 0">
-            <span class="text-red-600 font-medium"> <span x-text="unreviewedHighRisk"></span> high-risk item(s) still need review.</span>
+            <span class="text-red-600 font-medium"> <span x-text="unreviewedHighRisk"></span> high-impact item(s) still need review.</span>
           </template>
           <template x-if="unreviewedHighRisk === 0 && reviewedCount < currentTask.changes">
             <span class="text-amber-600 font-medium"> Some concepts not yet reviewed.</span>
@@ -590,7 +590,7 @@ function app() {
     buildChangeGroups() {
       this.changeGroups = [
         {
-          id: 'high', riskLabel: 'HIGH', title: 'High Risk Changes',
+          id: 'high', riskLabel: 'HIGH', title: 'High Impact Changes',
           riskBorder: 'border-red-200', riskBadge: 'bg-red-100 text-red-700',
           open: true, allApproved: false,
           patterns: [
@@ -613,7 +613,7 @@ function app() {
           ]
         },
         {
-          id: 'med', riskLabel: 'MEDIUM', title: 'Medium Risk Changes',
+          id: 'med', riskLabel: 'MEDIUM', title: 'Medium Impact Changes',
           riskBorder: 'border-amber-200', riskBadge: 'bg-amber-100 text-amber-700',
           open: false, allApproved: false,
           patterns: [
@@ -641,7 +641,7 @@ function app() {
           ]
         },
         {
-          id: 'low', riskLabel: 'LOW', title: 'Low Risk Changes',
+          id: 'low', riskLabel: 'LOW', title: 'Low Impact Changes',
           riskBorder: 'border-green-200', riskBadge: 'bg-green-100 text-green-700',
           open: false, allApproved: false,
           patterns: [
@@ -689,7 +689,7 @@ function app() {
         // Simulate 200 OK — analysis retrieved from DB
         this.aiAnalysisState = 'complete';
         this.aiGeneratedAt = '4 minutes ago';
-        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-risk) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-risk synonym and preferred term updates in en-US and en-GB. The medium-risk attribute additions are highly consistent and appear suitable for pattern-level review rather than individual concept review.`;
+        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-impact) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-impact synonym and preferred term updates in en-US and en-GB. The medium-impact attribute additions are highly consistent and appear suitable for pattern-level review rather than individual concept review.`;
       }, 800);
     },
 
@@ -702,7 +702,7 @@ function app() {
       setTimeout(() => {
         this.aiAnalysisState = 'complete';
         this.aiGeneratedAt = 'just now';
-        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-risk) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-risk synonym and preferred term updates in en-US and en-GB.`;
+        this.aiSummaryText = `This task adds clinical detail to 47 cardiovascular disorder concepts across three change tiers. The most significant changes are 2 new concepts in the Clinical finding hierarchy representing autoimmune myocarditis variants — these require careful logical modelling review. The bulk of changes (11 medium-impact) apply the "Finding site" attribute to valve disease disorders that currently lack it, following an established editorial pattern approved in the 2024-Q3 modelling guidance. The remaining 34 changes are low-impact synonym and preferred term updates in en-US and en-GB.`;
         this.toast('Analysis regenerated');
       }, 2000);
     },
