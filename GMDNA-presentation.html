@@ -1025,7 +1025,194 @@
       </div>
     </div>
 
-    <!-- ===== SLIDE 12: NEXT STEPS ===== -->
+    <!-- ===== SLIDE 12: VISUAL COMPARISON ===== -->
+    <div class="slide" style="background:#eee8d5">
+      <div class="slide-content max-w-6xl mx-auto" style="padding-top: 6rem;">
+        <section>
+          <div class="reveal">
+            <span class="tag tag-blue mb-3">Visual Overview</span>
+            <h2 class="text-4xl font-bold mb-1">Two Options at a Glance</h2>
+            <div class="divider" style="width:80px; margin-bottom:1.5rem;"></div>
+          </div>
+          <div class="reveal" style="transition-delay:0.1s">
+            <p class="text-base mb-5" style="color:#657b83">Think of SNOMED CT and GMDN as two separate <strong>device libraries</strong>. Some devices appear in both. The question is: what do we want a clinician to see when they search?</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-8">
+
+            <!-- OPTION A -->
+            <div class="reveal" style="transition-delay:0.2s">
+              <div class="card-bg rounded-2xl p-5">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style="background:#326295">A</div>
+                  <h3 class="font-bold text-base">Import Everything, Leave Both Active</h3>
+                </div>
+
+                <!-- Diagram A -->
+                <div class="rounded-xl p-4 mb-3" style="background:#eee8d5">
+                  <!-- International library -->
+                  <div class="rounded-lg p-3 mb-2" style="border: 2px solid #326295; background:rgba(50,98,149,0.06)">
+                    <div class="text-xs font-bold mb-2 flex items-center gap-1" style="color:#326295">
+                      <i class="fas fa-database" style="font-size:0.7rem"></i> SNOMED CT International
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(50,98,149,0.1); color:#326295">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Cardiac pacemaker
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(50,98,149,0.1); color:#326295">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Urinary catheter
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(50,98,149,0.1); color:#326295">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Infusion pump
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Plus sign -->
+                  <div class="text-center text-lg font-black my-1" style="color:#93a1a1">+</div>
+                  <!-- GMDN library -->
+                  <div class="rounded-lg p-3 mb-3" style="border: 2px solid #00A4E4; background:rgba(0,164,228,0.06)">
+                    <div class="text-xs font-bold mb-2 flex items-center gap-1" style="color:#00A4E4">
+                      <i class="fas fa-database" style="font-size:0.7rem"></i> GMDN Extension (31,092 terms)
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Cardiac pacemaker, implantable
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Catheter, urinary, single-use
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> + 31,089 more…
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Arrow -->
+                  <div class="flex justify-center mb-2">
+                    <div class="flex flex-col items-center">
+                      <div style="width:2px; height:16px; background:linear-gradient(#93a1a1,#586e75)"></div>
+                      <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #586e75"></div>
+                    </div>
+                  </div>
+                  <!-- Result box -->
+                  <div class="rounded-lg p-3" style="border: 2px solid #93a1a1; background:white">
+                    <div class="text-xs font-bold mb-2" style="color:#586e75">
+                      <i class="fas fa-search mr-1"></i> Clinician searches "cardiac pacemaker"
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(50,98,149,0.08)">
+                        <i class="fas fa-circle" style="font-size:0.4rem; color:#326295"></i>
+                        <span style="color:#326295">Cardiac pacemaker</span>
+                        <span class="ml-auto text-xs" style="color:#93a1a1">SNOMED Intl.</span>
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.08)">
+                        <i class="fas fa-circle" style="font-size:0.4rem; color:#00A4E4"></i>
+                        <span style="color:#00A4E4">Cardiac pacemaker, implantable</span>
+                        <span class="ml-auto text-xs" style="color:#93a1a1">GMDN</span>
+                      </div>
+                    </div>
+                    <div class="mt-2 flex items-center gap-1 text-xs" style="color:#cb4b16">
+                      <i class="fas fa-exclamation-circle" style="font-size:0.7rem"></i>
+                      Two results for the same device type
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-xl px-3 py-2 text-xs flex items-start gap-2" style="background:rgba(203,75,22,0.08)">
+                  <i class="fas fa-minus-circle mt-0.5 flex-shrink-0" style="color:#cb4b16; font-size:0.75rem"></i>
+                  <span style="color:#657b83">Clinicians may see two entries for the same device and have to choose — which could cause confusion or inconsistent coding.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- OPTION B -->
+            <div class="reveal" style="transition-delay:0.3s">
+              <div class="card-bg rounded-2xl p-5">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style="background:#2aa198">B</div>
+                  <h3 class="font-bold text-base">Import GMDN, Retire the International Duplicates</h3>
+                </div>
+
+                <!-- Diagram B -->
+                <div class="rounded-xl p-4 mb-3" style="background:#eee8d5">
+                  <!-- International library with retired items -->
+                  <div class="rounded-lg p-3 mb-2" style="border: 2px solid #326295; background:rgba(50,98,149,0.06)">
+                    <div class="text-xs font-bold mb-2 flex items-center gap-1" style="color:#326295">
+                      <i class="fas fa-database" style="font-size:0.7rem"></i> SNOMED CT International
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(147,161,161,0.15); color:#93a1a1; text-decoration:line-through">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Cardiac pacemaker
+                        <span class="ml-auto no-underline" style="text-decoration:none; font-style:italic; font-size:0.65rem">retired</span>
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(147,161,161,0.15); color:#93a1a1; text-decoration:line-through">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Urinary catheter
+                        <span class="ml-auto no-underline" style="text-decoration:none; font-style:italic; font-size:0.65rem">retired</span>
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(50,98,149,0.1); color:#326295">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Infusion pump
+                        <span class="ml-auto" style="font-style:italic; font-size:0.65rem">no GMDN match</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Plus sign -->
+                  <div class="text-center text-lg font-black my-1" style="color:#93a1a1">+</div>
+                  <!-- GMDN library -->
+                  <div class="rounded-lg p-3 mb-3" style="border: 2px solid #00A4E4; background:rgba(0,164,228,0.06)">
+                    <div class="text-xs font-bold mb-2 flex items-center gap-1" style="color:#00A4E4">
+                      <i class="fas fa-database" style="font-size:0.7rem"></i> GMDN Extension (31,092 terms)
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Cardiac pacemaker, implantable
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> Catheter, urinary, single-use
+                      </div>
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.1); color:#00A4E4">
+                        <i class="fas fa-circle" style="font-size:0.4rem"></i> + 31,089 more…
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Arrow -->
+                  <div class="flex justify-center mb-2">
+                    <div class="flex flex-col items-center">
+                      <div style="width:2px; height:16px; background:linear-gradient(#93a1a1,#586e75)"></div>
+                      <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #586e75"></div>
+                    </div>
+                  </div>
+                  <!-- Result box -->
+                  <div class="rounded-lg p-3" style="border: 2px solid #2aa198; background:white">
+                    <div class="text-xs font-bold mb-2" style="color:#586e75">
+                      <i class="fas fa-search mr-1"></i> Clinician searches "cardiac pacemaker"
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2 rounded px-2 py-1 text-xs" style="background:rgba(0,164,228,0.08)">
+                        <i class="fas fa-circle" style="font-size:0.4rem; color:#00A4E4"></i>
+                        <span style="color:#00A4E4">Cardiac pacemaker, implantable</span>
+                        <span class="ml-auto text-xs" style="color:#93a1a1">GMDN</span>
+                      </div>
+                    </div>
+                    <div class="mt-2 flex items-center gap-1 text-xs" style="color:#2aa198">
+                      <i class="fas fa-check-circle" style="font-size:0.7rem"></i>
+                      One clear result — no ambiguity
+                    </div>
+                  </div>
+                </div>
+
+                <div class="rounded-xl px-3 py-2 text-xs flex items-start gap-2" style="background:rgba(42,161,152,0.08)">
+                  <i class="fas fa-plus-circle mt-0.5 flex-shrink-0" style="color:#2aa198; font-size:0.75rem"></i>
+                  <span style="color:#657b83">Cleaner for clinicians — one concept per device. The retired International concepts are still preserved historically and can be traced to their GMDN replacements.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===== SLIDE 13: NEXT STEPS ===== -->
+
     <div class="slide hero-bg">
       <div class="slide-content max-w-5xl mx-auto" style="padding-top: 7rem;">
         <section>
@@ -1147,7 +1334,7 @@
       for (let i = 0; i < totalSlides; i++) {
         const dot = document.createElement('div');
         dot.className = 'slide-indicator-dot' + (i === 0 ? ' active' : '');
-        dot.title = ['Title', 'What is GMDN?', 'GMDN Structure', 'GMDN/SNOMED Collaboration', 'Project Overview', 'Core Architecture', 'Description Modelling', 'OWL Axioms & Status', 'Language Refsets & RF2', 'Import Strategy: Full Extension', 'Import Strategy: Inactivate Duplicates', 'Next Steps'][i] || '';
+        dot.title = ['Title', 'What is GMDN?', 'GMDN Structure', 'GMDN/SNOMED Collaboration', 'Project Overview', 'Core Architecture', 'Description Modelling', 'OWL Axioms & Status', 'Language Refsets & RF2', 'Option A: Full Extension', 'Option B: Inactivate Duplicates', 'Options: Visual Comparison', 'Next Steps'][i] || '';
         dot.addEventListener('click', () => { currentSlide = i; updateSlideshow(); });
         slideIndicator.appendChild(dot);
       }
