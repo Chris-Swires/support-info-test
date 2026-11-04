@@ -1,0 +1,204 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>UK Extension Hosting Decision</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;700;800;900&display=swap">
+<style>
+/* Layout: one navy hex-pattern banner carrying the decision, then three scannable bands: the cost, what we tried, why, what unblocks it. */
+:root{
+  --navy:#003865; --clinical:#00A9E0; --gold:#FFC600;
+  --bg:#F4F6F8; --card:#FFFFFF; --ink:#101820; --muted:#596270; --line:#D9DEE4;
+  --red:#C8362F; --red-soft:#FBEDEC; --amber:#B97F00; --amber-soft:#FDF5E1; --green:#00805F; --green-soft:#E6F4EF;
+  --chip-grey:#EEF1F4;
+  --font:'Mulish','Trebuchet MS',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1620; --card:#12212E; --ink:#E9EEF3; --muted:#9AA8B6; --line:#24384A;
+  --red:#FF7A70; --red-soft:#3A1C1C; --amber:#FFC94D; --amber-soft:#382C10; --green:#4FD1A5; --green-soft:#12352C;
+  --chip-grey:#1C2F3F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1620; --card:#12212E; --ink:#E9EEF3; --muted:#9AA8B6; --line:#24384A;
+  --red:#FF7A70; --red-soft:#3A1C1C; --amber:#FFC94D; --amber-soft:#382C10; --green:#4FD1A5; --green-soft:#12352C;
+  --chip-grey:#1C2F3F; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;font-size:15px}
+.in{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Banner */
+.hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#002a4d 0%,var(--navy) 45%,#00527f 100%);color:#fff}
+.hero svg.hex{position:absolute;inset:0;width:100%;height:100%;opacity:.10;pointer-events:none}
+.hero .in{position:relative;padding-block:36px 44px;display:grid;gap:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.top img{width:56px;height:56px;border-radius:3px;display:block}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9fdcf3}
+.hero h1{margin:0;font-weight:300;font-size:clamp(28px,4.6vw,46px);line-height:1.12;letter-spacing:-.01em;text-wrap:balance;max-width:21ch}
+.hero h1 b{font-weight:800;color:#fff}
+.hero p.lede{margin:0;font-size:clamp(16px,1.9vw,19px);font-weight:400;color:#d6e6f2;max-width:62ch;text-wrap:pretty}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:#002a4d;font-weight:900;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:99px;justify-self:start}
+
+/* Big numbers */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:-26px;position:relative}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 22px 20px;display:grid;gap:6px;align-content:start;box-shadow:0 6px 20px rgba(0,40,77,.08)}
+.stat .n{font-size:clamp(38px,5vw,54px);font-weight:900;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .n small{font-size:.42em;font-weight:800;letter-spacing:0;margin-left:2px}
+.stat .k{font-weight:800;font-size:15px}
+.stat .d{color:var(--muted);font-size:14px}
+.red{color:var(--red)} .amber{color:var(--amber)} .green{color:var(--green)}
+
+section{padding-block:40px 0}
+h2{margin:0 0 6px;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--clinical)}
+.h2sub{margin:0 0 20px;font-size:clamp(20px,2.4vw,26px);font-weight:700;line-height:1.25;text-wrap:balance;max-width:40ch}
+
+/* What we tried: a real sequence */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;counter-reset:s;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.steps li{padding:18px 16px 18px;display:grid;gap:8px;align-content:start;border-right:1px solid var(--line);position:relative;counter-increment:s}
+.steps li:last-child{border-right:0}
+.steps .num{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.steps .num::before{content:"Step " counter(s)}
+.steps .t{font-weight:800;font-size:15px;line-height:1.3}
+.steps .r{font-size:13.5px;color:var(--muted)}
+.chip{justify-self:start;font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;font-variant-numeric:tabular-nums}
+.chip.red{background:var(--red-soft)} .chip.amber{background:var(--amber-soft)} .chip.grey{background:var(--chip-grey);color:var(--muted)}
+.steps li::after{content:"";position:absolute;left:0;right:0;top:0;height:4px}
+.steps li.s-red::after{background:var(--red)} .steps li.s-amber::after{background:var(--amber)} .steps li.s-grey::after{background:var(--line)}
+
+/* Why */
+.why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.why div{display:grid;gap:6px;align-content:start;border-top:3px solid var(--navy);padding-top:14px}
+:root[data-theme="dark"] .why div{border-top-color:var(--clinical)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .why div{border-top-color:var(--clinical)}}
+.why h3{margin:0;font-size:17px;font-weight:800;line-height:1.3}
+.why p{margin:0;color:var(--muted);font-size:14.5px}
+
+/* Path back */
+.path{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}
+.card h3{margin:0 0 12px;font-size:16px;font-weight:800}
+.fixes{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.fixes li{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;align-items:start}
+.tag{justify-self:start;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap;margin-top:2px}
+.tag.q{background:var(--green-soft);color:var(--green)} .tag.m{background:var(--amber-soft);color:var(--amber)} .tag.l{background:var(--chip-grey);color:var(--muted)}
+.fixes b{display:block;font-size:14.5px}
+.fixes span{color:var(--muted);font-size:13.5px}
+.next{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:n}
+.next li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;font-size:14.5px;counter-increment:n}
+.next li::before{content:counter(n);width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}
+:root[data-theme="dark"] .next li::before{background:var(--clinical);color:#002a4d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .next li::before{background:var(--clinical);color:#002a4d}}
+.card.ask{background:var(--navy);border-color:var(--navy);color:#fff}
+.card.ask h3{color:var(--gold)}
+.card.ask .next li::before{background:var(--gold);color:#002a4d}
+
+footer{padding-block:36px 40px;color:var(--muted);font-size:12.5px}
+footer .in{display:flex;flex-wrap:wrap;gap:6px 18px;border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--clinical);font-weight:700}
+
+@media (max-width:900px){
+  .steps{grid-template-columns:minmax(0,1fr)}
+  .steps li{border-right:0;border-bottom:1px solid var(--line);padding-top:20px}
+  .steps li:last-child{border-bottom:0}
+  .path{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:720px){
+  .stats,.why{grid-template-columns:minmax(0,1fr)}
+  .stats{margin-top:-20px}
+}
+</style>
+
+<header class="hero">
+  <svg class="hex" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><pattern id="h" width="56" height="64" patternUnits="userSpaceOnUse" patternTransform="scale(1.4)">
+      <path d="M28 2 L52 16 L52 44 L28 58 L4 44 L4 16 Z" fill="none" stroke="#fff" stroke-width="1.4"/>
+    </pattern></defs>
+    <rect width="1200" height="300" fill="url(#h)"/>
+  </svg>
+  <div class="in">
+    <div class="top">
+      <div class="eyebrow">UKTEST-3 &middot; UK Extension hosting &middot; Executive summary</div>
+      <img src="data:image/png;base64,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" alt="SNOMED International">
+    </div>
+    <span class="badge">Decision</span>
+    <h1>The UK Extension will run on <b>its own Snowstorm server</b>.</h1>
+    <p class="lede">Putting it on the shared server slows every existing extension, and extra hardware did not fix it. Moving it back onto the shared server needs Snowstorm changes to the semantic index and the Elasticsearch search layer.</p>
+  </div>
+</header>
+
+<main>
+  <div class="in">
+    <div class="stats">
+      <div class="stat">
+        <div class="n red">+148<small>%</small></div>
+        <div class="k">Slower for the Netherlands extension</div>
+        <div class="d">when the UK Extension was loaded. The platform overall slowed by 24%.</div>
+      </div>
+      <div class="stat">
+        <div class="n red">8<small>&times;</small></div>
+        <div class="k">Infrastructure cost tested</div>
+        <div class="d">Doubling memory and CPU still left the platform 7% slower than before the UK was added.</div>
+      </div>
+      <div class="stat">
+        <div class="n amber">+56<small>%</small></div>
+        <div class="k">Still slower after tuning</div>
+        <div class="d">Netherlands with the UK, compared with the same tuned setup without it.</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>What we tried</h2>
+      <p class="h2sub">Each fix narrowed the gap. None closed it.</p>
+      <ol class="steps">
+        <li class="s-red"><span class="num"></span><span class="t">Load the UK Extension</span><span class="chip red">Platform +24%</span><span class="r">Every extension slowed. Netherlands worst at +148%.</span></li>
+        <li class="s-red"><span class="num"></span><span class="t">Double memory and CPU</span><span class="chip red">Still +7%</span><span class="r">About 8&times; the infrastructure cost, and still slower than before.</span></li>
+        <li class="s-amber"><span class="num"></span><span class="t">Change the search index</span><span class="chip amber">Platform +11%</span><span class="r">Netherlands improved to +32%. Two others stayed about 31% slower.</span></li>
+        <li class="s-amber"><span class="num"></span><span class="t">Tune further</span><span class="chip amber">Within 4&ndash;7%</span><span class="r">The three slowest extensions came close to their old speed. Like for like, Netherlands is still 56% slower.</span></li>
+        <li class="s-grey"><span class="num"></span><span class="t">Add memory again</span><span class="chip grey">No gain</span><span class="r">Changed results by 2% or less. Hardware is not the bottleneck.</span></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Why it happens</h2>
+      <p class="h2sub">The slowdown comes from how Snowstorm searches, not from the size of the server.</p>
+      <div class="why">
+        <div><h3>Every search carries a growing list</h3><p>Each edit to an extension adds to a list that Snowstorm sends with every search. On extension branches that list is never cleared.</p></div>
+        <div><h3>All extensions share one search index</h3><p>The UK Extension's large content and edit history sit in the same indexes as every other country's, so its weight slows everyone.</p></div>
+        <div><h3>It gets worse with time</h3><p>The cost grows with every edit, not with traffic. A shared server would keep getting slower as the UK and others keep authoring.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The path back to one server</h2>
+      <p class="h2sub">Snowstorm work on the semantic index and Elasticsearch layer comes first.</p>
+      <div class="path">
+        <div class="card">
+          <h3>Snowstorm improvements needed</h3>
+          <ul class="fixes">
+            <li><span class="tag q">Quick win</span><div><b>Cache branch search rules</b><span>Stop rebuilding the same list on every request.</span></div></li>
+            <li><span class="tag m">Medium</span><div><b>Store the list inside Elasticsearch</b><span>Use Elasticsearch terms lookup instead of sending the list with each search.</span></div></li>
+            <li><span class="tag m">Medium</span><div><b>Tune the semantic index and queries</b><span>Build on the index changes that already brought the biggest gains.</span></div></li>
+            <li><span class="tag l">Longer term</span><div><b>Redesign how versions are hidden</b><span>Remove the ever-growing list, or give heavy extensions their own index.</span></div></li>
+          </ul>
+        </div>
+        <div class="card ask">
+          <h3>Next steps</h3>
+          <ol class="next">
+            <li>Stand up the UK Extension on its own Snowstorm server.</li>
+            <li>Fund and prioritise the Snowstorm improvements with the Snowstorm maintainers.</li>
+            <li>Agree the bar for sharing a server: every extension within an agreed margin of its own baseline.</li>
+            <li>Re-run the full performance suite after each change, then revisit consolidation.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="in">
+    <span>Source: UKTEST-3 K6 performance runs, 26 Aug &ndash; 1 Oct 2026, up to 14 extensions.</span>
+    <a href="https://claude.ai/artifact/Y9tAYv5BSF4VojveJMNsem" target="_blank" rel="noopener">Full findings</a>
+    <a href="https://snomed.atlassian.net/browse/UKTEST-3" target="_blank" rel="noopener">UKTEST-3</a>
+  </div>
+</footer>
+
+</body></html>
