@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorter, clearer Jira tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Roboto',system-ui,sans-serif;background:#eee8d5;color:#586e75;-webkit-font-smoothing:antialiased}
+#progress{position:fixed;top:0;left:0;height:4px;width:0;background:linear-gradient(90deg,#00A4E4,#326295);z-index:50;transition:width .6s ease}
+#logo{position:fixed;top:18px;left:22px;z-index:40;display:flex;align-items:center;gap:12px}
+#logo img{width:52px;height:52px;border-radius:4px}
+#logo span{font-size:.8rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#93a1a1}
+#counter{position:fixed;top:24px;right:28px;z-index:40;font-size:.9rem;font-weight:500;color:#93a1a1;font-variant-numeric:tabular-nums}
+#counter b{color:#326295}
+#deck{display:flex;height:100vh;transition:transform .6s cubic-bezier(.65,0,.35,1)}
+.slide{flex:0 0 100vw;height:100vh;overflow-y:auto;position:relative}
+.content{min-height:100%;max-width:1180px;margin:0 auto;padding:6.5rem 5.5rem 5.5rem;display:flex;flex-direction:column;justify-content:center}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+.slide.active .reveal{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}.d6{transition-delay:.6s}
+.tag{display:inline-block;align-self:flex-start;padding:.35rem .9rem;border-radius:999px;background:rgba(0,164,228,.12);color:#326295;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem}
+.time{float:right;font-weight:500;color:#93a1a1;letter-spacing:.04em;margin-left:.6rem}
+h1{font-size:clamp(2.4rem,5vw,4.2rem);font-weight:900;line-height:1.05;color:#073642;letter-spacing:-.02em}
+h2{font-size:clamp(1.8rem,3.2vw,2.7rem);font-weight:900;line-height:1.12;color:#073642;letter-spacing:-.01em}
+.grad{background:linear-gradient(90deg,#00A4E4,#326295);-webkit-background-clip:text;background-clip:text;color:transparent}
+.divider{width:72px;height:4px;border-radius:2px;background:linear-gradient(90deg,#00A4E4,#326295);margin:1.2rem 0 1.6rem}
+.lead{font-size:1.2rem;line-height:1.6;color:#657b83;max-width:52rem}
+.lead b{color:#073642}
+.grid{display:grid;gap:1.1rem}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:#fdf6e3;border:1px solid #d5cbb8;border-radius:14px;padding:1.3rem 1.4rem;box-shadow:0 2px 0 #d5cbb8}
+.card h3{font-size:1.05rem;font-weight:700;color:#073642;margin-bottom:.45rem;display:flex;align-items:center;gap:.55rem}
+.card p,.card li{font-size:.95rem;line-height:1.55;color:#657b83}
+.card ul{padding-left:1.1rem}.card li{margin:.2rem 0}
+.card.accent{background:linear-gradient(135deg,#00A4E4,#326295);border:none;color:#fff;box-shadow:0 8px 24px rgba(50,98,149,.25)}
+.card.accent h3,.card.accent p,.card.accent li{color:#fff}
+.card.warn{border-left:5px solid #cb4b16}
+.card.good{border-left:5px solid #2aa198}
+.card.blue{border-left:5px solid #00A4E4}
+.ico{width:22px;height:22px;flex:none}
+.stat{text-align:left}
+.stat .n{font-size:clamp(2.2rem,4vw,3.3rem);font-weight:900;line-height:1;letter-spacing:-.02em}
+.stat .l{font-size:.9rem;line-height:1.45;color:#657b83;margin-top:.5rem}
+.red{color:#dc322f}.orange{color:#cb4b16}.teal{color:#2aa198}.blue{color:#326295}.navy{color:#073642}
+.chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:2rem}
+.chip{padding:.5rem 1rem;border-radius:999px;background:#fdf6e3;border:1px solid #d5cbb8;font-size:.88rem;font-weight:500;color:#586e75}
+.chip b{color:#073642}
+.verdict{font-size:1.35rem;line-height:1.5;font-weight:300;color:#073642;margin-top:1.4rem;max-width:58rem}
+.verdict b{font-weight:700}
+.note{font-size:.82rem;color:#93a1a1;margin-top:1.1rem;line-height:1.5}
+/* stage timeline */
+.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-top:.4rem}
+.stg{background:#fdf6e3;border:1px solid #d5cbb8;border-radius:12px;padding:.9rem .8rem;position:relative}
+.stg .k{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#93a1a1}
+.stg .t{font-size:.95rem;font-weight:700;color:#073642;margin:.3rem 0 .25rem;line-height:1.25}
+.stg .s{font-size:.8rem;color:#657b83;line-height:1.4}
+.stg.hw{border-top:4px solid #cb4b16}.stg.sw{border-top:4px solid #2aa198}.stg.base{border-top:4px solid #93a1a1}.stg.uk{border-top:4px solid #dc322f}
+.legend{display:flex;gap:1.2rem;font-size:.8rem;color:#657b83;margin-top:.8rem;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:.4rem;vertical-align:-1px}
+/* bar charts */
+.bars{display:flex;flex-direction:column;gap:.55rem}
+.bar{display:grid;grid-template-columns:200px 1fr 120px;align-items:center;gap:.8rem}
+.bar .lab{font-size:.9rem;font-weight:500;color:#073642;text-align:right;line-height:1.25}
+.bar .lab small{display:block;font-weight:400;color:#93a1a1;font-size:.74rem}
+.bar .track{height:30px;background:rgba(213,203,184,.45);border-radius:6px;position:relative;overflow:visible}
+.bar .fill{height:100%;border-radius:6px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1) .3s}
+.bar .val{font-size:.95rem;font-weight:700;color:#073642;font-variant-numeric:tabular-nums}
+.bar .val small{font-weight:500;font-size:.8rem;margin-left:.3rem}
+.base-line{position:absolute;top:-6px;bottom:-6px;border-left:2px dashed #586e75;opacity:.55}
+.f-base{background:#93a1a1}.f-bad{background:#dc322f}.f-hw{background:#cb4b16}.f-sw{background:#2aa198}.f-blue{background:linear-gradient(90deg,#00A4E4,#326295)}
+/* small multiples */
+.mini{background:#fdf6e3;border:1px solid #d5cbb8;border-radius:14px;padding:1.1rem 1.2rem}
+.mini h3{font-size:1rem;font-weight:700;color:#073642;margin-bottom:.7rem;display:flex;justify-content:space-between;align-items:baseline}
+.mini h3 span{font-size:.8rem;font-weight:700}
+.mini .bar{grid-template-columns:78px 1fr 58px;gap:.5rem}
+.mini .bar .lab{font-size:.76rem;font-weight:500}
+.mini .bar .track{height:20px}
+.mini .bar .val{font-size:.8rem}
+/* steps */
+.steps{counter-reset:s;display:grid;gap:.8rem}
+.step{display:grid;grid-template-columns:46px 1fr auto;gap:1rem;align-items:center;background:#fdf6e3;border:1px solid #d5cbb8;border-radius:12px;padding:.9rem 1.2rem}
+.step .num{counter-increment:s;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00A4E4,#326295);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}
+.step .num::before{content:counter(s)}
+.step h3{font-size:1rem;font-weight:700;color:#073642}
+.step p{font-size:.88rem;color:#657b83;line-height:1.45;margin-top:.15rem}
+.pill{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.3rem .7rem;border-radius:999px;white-space:nowrap}
+.p-now{background:rgba(42,161,152,.15);color:#1f7a73}.p-next{background:rgba(0,164,228,.13);color:#326295}.p-later{background:rgba(147,161,161,.2);color:#586e75}
+/* hero */
+.hero h1{margin-top:.4rem}
+.hero .sub{font-size:1.3rem;font-weight:300;color:#657b83;margin-top:1.2rem;max-width:46rem;line-height:1.5}
+.hexbg{display:block;position:absolute;inset:0;width:100%;height:100%;opacity:.07;pointer-events:none}
+/* list with icons */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:.8rem;align-items:stretch}
+.arrow{display:flex;align-items:center;color:#93a1a1;font-size:1.6rem}
+/* nav */
+.nav{position:fixed;top:50%;transform:translateY(-50%);width:60px;height:60px;border-radius:50%;border:1px solid #d5cbb8;background:#fdf6e3;color:#326295;cursor:pointer;z-index:40;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(7,54,66,.1);transition:transform .2s,opacity .2s}
+.nav:hover{transform:translateY(-50%) scale(1.06)}
+.nav:disabled{opacity:.3;cursor:default;transform:translateY(-50%)}
+#prev{left:18px}#next{right:18px}
+.nav svg{width:22px;height:22px}
+#dots{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(253,246,227,.92);border:1px solid #d5cbb8;z-index:40}
+#dots button{width:10px;height:10px;border-radius:50%;border:none;background:#d5cbb8;cursor:pointer;transition:all .3s}
+#dots button.on{background:#326295;width:26px;border-radius:5px}
+#hint{position:fixed;bottom:22px;right:28px;font-size:.75rem;color:#93a1a1;z-index:40}
+@media (max-width:900px){
+  .content{padding:5.5rem 1.4rem 5rem}
+  .g2,.g3,.g4,.stages,.flow{grid-template-columns:1fr}
+  .arrow{transform:rotate(90deg);justify-content:center}
+  .bar{grid-template-columns:110px 1fr 84px}
+  .nav{display:none}#hint{display:none}
+  .step{grid-template-columns:40px 1fr}.step .pill{grid-column:2;justify-self:start}
+}
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  #deck{display:block;transform:none!important}
+  .slide{height:auto;min-height:100vh;page-break-after:always;overflow:visible}
+  .reveal{opacity:1;transform:none}
+  .bar .fill{transition:none}
+  .nav,#dots,#progress,#counter,#hint{display:none}
+}
+
+.lbl{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.28rem .7rem;border-radius:999px}
+.lbl.ai-l{background:rgba(220,50,47,.12);color:#b52a27}
+.lbl.ai-d{background:rgba(203,75,22,.14);color:#a63c10}
+.lbl.hu{background:rgba(42,161,152,.15);color:#1f7a73}
+.card a{color:#326295;text-decoration:none;border-bottom:1px solid rgba(50,98,149,.3)}
+.card.accent a{color:#fff}
+.tix{margin-top:.7rem;background:#fff;border:1px solid #d5cbb8;border-radius:10px;padding:.9rem 1rem}
+.tix .tt{font-weight:700;color:#073642;font-size:.98rem;margin-bottom:.5rem}
+.tix p,.tix li{font-size:.88rem}
+.tix p{margin-top:.35rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82em;background:rgba(213,203,184,.4);padding:.05rem .3rem;border-radius:4px}
+.eg{margin-top:.5rem;font-style:italic;font-size:.85rem!important;color:#93a1a1!important}
+pre.tpl{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.5;color:#586e75;background:#fff;border:1px solid #d5cbb8;border-radius:10px;padding:1rem 1.1rem;white-space:pre-wrap;margin-top:.3rem}
+pre.tpl b{color:#326295}
+</style>
+<style>
+/* --- deck additions --- */
+.chip svg,.card h3 svg{flex:none}
+.big{font-size:clamp(2rem,3.4vw,2.8rem);font-weight:900;line-height:1;letter-spacing:-.02em}
+.small{font-size:.82rem;color:#93a1a1}
+.ref{font-size:.75rem;color:#93a1a1;font-weight:500}
+.card.accent .ref{color:rgba(255,255,255,.75)}
+.card.amber{border-left:5px solid #b58900}
+.ctr{text-align:center}
+.ctr h3{justify-content:center}
+.sys{display:flex;flex-direction:column;align-items:center;text-align:center}
+.sys h3{justify-content:center}
+.arrow2{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;color:#326295;font-size:.72rem;font-weight:700;text-align:center;letter-spacing:.03em;min-width:7.5rem}
+.arrow2 .a{font-size:1.6rem;color:#93a1a1;line-height:1}
+.back{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.9rem;font-size:.92rem;font-weight:500;color:#1f7a73}
+/* status columns */
+.col h3{font-size:.8rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.col ul{list-style:none;padding:0}
+.col li{padding:.45rem 0;border-bottom:1px dashed #d5cbb8}
+.col li:last-child{border-bottom:none}
+.col li .when{display:block;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#93a1a1;margin-bottom:.1rem}
+/* monthly gantt */
+.gantt{display:grid;grid-template-columns:13.5rem 4.2rem repeat(18,minmax(0,1fr));grid-auto-rows:minmax(1.9rem,auto);gap:7px 0;align-items:center;font-size:.85rem}
+.gantt .yr{font-size:.75rem;font-weight:800;text-align:center;color:#326295;border-bottom:2px solid rgba(50,98,149,.3);margin:0 3px;padding-bottom:2px;letter-spacing:.06em}
+.gantt .mo{font-size:.64rem;font-weight:600;text-align:center;color:#93a1a1;text-transform:uppercase}
+.gantt .mo.now{color:#fff;background:#2aa198;border-radius:4px}
+.gantt .lb{grid-column:1;font-weight:500;color:#073642;padding-right:.6rem}
+.gantt .gb{height:1.55rem;border-radius:6px;color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;padding:0 .55rem;white-space:nowrap;overflow:hidden;position:relative;z-index:2}
+.gantt .ms{display:flex;align-items:center;gap:.5rem;white-space:nowrap;font-size:.78rem;font-weight:700;color:#073642;padding-left:.35rem;position:relative;z-index:2}
+.gantt .dia{display:inline-block;width:14px;height:14px;transform:rotate(45deg);border-radius:2px;flex:none}
+.gantt .today{align-self:stretch;justify-self:center;width:2px;background:repeating-linear-gradient(180deg,#2aa198 0 6px,transparent 6px 10px);z-index:1}
+.b-old{background:#93a1a1}.b-pivot{background:#b58900}.b-new{background:linear-gradient(90deg,#00A4E4,#326295)}.b-beta{background:#2aa198}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-top:1rem}
+.key{background:#fdf6e3;border:1px solid #d5cbb8;border-radius:12px;padding:.75rem .9rem}
+.key .k{font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#326295}
+.key .t{font-size:.95rem;font-weight:700;color:#073642;margin-top:.2rem;line-height:1.3}
+.key.beta{border-bottom:4px solid #2aa198}.key.prod{border-bottom:4px solid #326295}
+@media (max-width:900px){.gantt{font-size:.7rem;grid-template-columns:8rem 2.5rem repeat(18,minmax(0,1fr))}.keys{grid-template-columns:1fr 1fr}.arrow2{transform:none}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="logo"><img src="data:image/png;base64,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" alt="SNOMED International"><span>Jira ticket quality</span></div>
+<div id="counter"><b id="cur">1</b> / <span id="tot">--</span></div>
+
+<main id="deck">
+<!-- 1 TITLE -->
+<section class="slide" data-title="Title">
+<svg class="hexbg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><pattern id="hx" width="56" height="64" patternUnits="userSpaceOnUse" patternTransform="scale(1.6)"><path d="M28 2 L52 16 L52 44 L28 58 L4 44 L4 16 Z" fill="none" stroke="#326295" stroke-width="1.2"/></pattern></defs><rect width="1200" height="800" fill="url(#hx)"/></svg>
+<div class="content hero">
+  <span class="tag reveal">Agenda item · Ways of working</span>
+  <h1 class="reveal d1">Shorter, clearer<br><span class="grad">Jira tickets</span></h1>
+  <p class="sub reveal d2">AI makes tickets easy to write and hard to read. Let's agree a simple standard so every ticket is concise, clear and ready to act on.</p>
+  <div class="chips reveal d3">
+    <span class="chip"><b>18</b> recent tickets reviewed</span>
+    <span class="chip"><b>Sep – Nov 2026</b> sample</span>
+    <span class="chip"><b>1</b> proposed template</span>
+    <span class="chip"><b>~15 min</b> discussion</span>
+  </div>
+</div>
+</section>
+
+<!-- 2 THE PROBLEM -->
+<section class="slide" data-title="The problem">
+<div class="content">
+  <span class="tag reveal">The problem <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">We use AI to expand a ticket,<br>then AI to <span class="grad">shrink it again</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="flow">
+    <div class="card warn reveal d2"><h3>1 · Creator</h3><p>Gives AI a few lines of notes. Gets back 600–1,000 words with headings, options, risks and code. Assigns it without cutting it down.</p></div>
+    <div class="arrow reveal d2">→</div>
+    <div class="card warn reveal d3"><h3>2 · Recipient</h3><p>Can't tell what's actually needed. Pastes it into AI and asks for a summary, or reads for five minutes to find the ask.</p></div>
+    <div class="arrow reveal d3">→</div>
+    <div class="card warn reveal d4"><h3>3 · Result</h3><p>Two rounds of AI to send a three-line message. The detail that matters is hidden, and nobody is sure which parts were checked.</p></div>
+  </div>
+  <p class="verdict reveal d5">The issue isn't AI. It's <b>unreviewed AI output being assigned to someone else to deal with.</b></p>
+</div>
+</section>
+
+<!-- 3 WHAT WE FOUND -->
+<section class="slide" data-title="What we found">
+<div class="content">
+  <span class="tag reveal">What we found <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">AI-style tickets are <span class="grad">about 8× longer</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g3" style="margin-bottom:1.6rem">
+    <div class="stat reveal d2"><div class="n red">~620</div><div class="l">median words in the 12 AI-style tickets</div></div>
+    <div class="stat reveal d3"><div class="n teal">~80</div><div class="l">median words in the 6 human-written tickets</div></div>
+    <div class="stat reveal d4"><div class="n orange">1 of 12</div><div class="l">AI-style tickets that said AI was used</div></div>
+  </div>
+  <div class="bars reveal d4" data-max="1050" data-base="200">
+    <div class="bar"><div class="lab">INFRA-18319<small>nginx DNS at startup</small></div><div class="track"><div class="fill f-bad" data-v="1002"></div></div><div class="val">1,002<small>words</small></div></div>
+    <div class="bar"><div class="lab">MAP-1789<small>Debian packaging fix</small></div><div class="track"><div class="fill f-bad" data-v="1001"></div></div><div class="val">1,001<small>words</small></div></div>
+    <div class="bar"><div class="lab">MAINT-3179<small>Branch permissions</small></div><div class="track"><div class="fill f-bad" data-v="826"></div></div><div class="val">826<small>words</small></div></div>
+    <div class="bar"><div class="lab">MAINT-3154<small>Rebase merge review</small></div><div class="track"><div class="fill f-bad" data-v="803"></div></div><div class="val">803<small>words</small></div></div>
+    <div class="bar"><div class="lab">INFRA-18192<small>QA Stats 404</small></div><div class="track"><div class="fill f-hw" data-v="608"></div></div><div class="val">608<small>words</small></div></div>
+    <div class="bar"><div class="lab">RAP-287<small>PreProduction builds</small></div><div class="track"><div class="fill f-sw" data-v="129"></div></div><div class="val">129<small>words</small></div></div>
+    <div class="bar"><div class="lab">INFRA-18344<small>TestRail MySQL upgrade</small></div><div class="track"><div class="fill f-sw" data-v="44"></div></div><div class="val">44<small>words</small></div></div>
+  </div>
+  <div class="legend reveal d5"><span><i style="background:#dc322f"></i>Likely AI-generated (style signals)</span><span><i style="background:#cb4b16"></i>AI-generated (declared on the ticket)</span><span><i style="background:#2aa198"></i>Human-written</span><span>┆ dashed line = proposed 200-word guide</span></div>
+  <p class="note reveal d5">Sample: 18 tickets created Sep–Nov 2026 across INFRA, MAINT, MAP, MLDS, PIP, RAP, SCTB and SSD. "Likely AI" is judged from style (many headings, horizontal rules, option lists, heavy bold, 250+ words), so treat it as an estimate. Description text only, comments excluded.</p>
+</div>
+</section>
+
+<!-- 4 EXAMPLE 1 -->
+<section class="slide" data-title="Example: INFRA-18319">
+<div class="content">
+  <span class="tag reveal">Example 1 <span class="time">· 1.5 min</span></span>
+  <h2 class="reveal d1">The first paragraph <span class="grad">was the ticket</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g2">
+    <div class="card reveal d2">
+      <span class="lbl ai-l">Likely AI-generated</span>
+      <h3 style="margin-top:.6rem"><a href="https://snomed.atlassian.net/browse/INFRA-18319">INFRA-18319</a> · Stop nginx needing DNS at startup</h3>
+      <ul>
+        <li><b>1,002 words</b>, 14 headings, 3 code blocks</li>
+        <li>Sections: Summary, Incident, Root cause, Proposed change, Optional follow-ups, Implementation steps, Testing, Acceptance criteria, Risks, References</li>
+        <li>Opens with a short human-written paragraph, then repeats it as an AI "Summary" and "Incident" section</li>
+      </ul>
+    </div>
+    <div class="card good reveal d3">
+      <span class="lbl hu">Rewritten · 70 words</span>
+      <div class="tix">
+        <div class="tt">nginx: don't need DNS at startup, and restart on failure</div>
+        <p><b>Why:</b> On 13 Nov a libc6 security update restarted nginx and networkd together. nginx couldn't resolve its upstream during the brief DNS gap, so prod-cis and prod-us-request stayed down until restarted by hand.</p>
+        <p><b>Done when:</b></p>
+        <ul><li>Upstreams resolve at request time, not at startup</li><li>systemd restarts nginx if it fails to start</li><li>Tested by restarting nginx with DNS unavailable</li></ul>
+      </div>
+    </div>
+  </div>
+  <p class="verdict reveal d4">Implementation detail, config snippets and risks are useful, but they belong <b>in a comment or linked page</b>, not in the description the assignee reads first.</p>
+</div>
+</section>
+
+<!-- 5 EXAMPLE 2 -->
+<section class="slide" data-title="Example: MAP-1789">
+<div class="content">
+  <span class="tag reveal">Example 2 <span class="time">· 1.5 min</span></span>
+  <h2 class="reveal d1">A 1,000-word ticket for <span class="grad">a three-line fix</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g2">
+    <div class="card reveal d2">
+      <span class="lbl ai-l">Likely AI-generated</span>
+      <h3 style="margin-top:.6rem"><a href="https://snomed.atlassian.net/browse/MAP-1789">MAP-1789</a> · mapping-rest — Debian packaging fix</h3>
+      <ul>
+        <li><b>1,001 words</b>, 13 headings, 12 code blocks</li>
+        <li>Includes the full config of a different service as "the gold standard", a side note, a three-way comparison table and four numbered changes</li>
+        <li>The actual ask is in the second paragraph of the summary</li>
+      </ul>
+    </div>
+    <div class="card good reveal d3">
+      <span class="lbl hu">Rewritten · 75 words</span>
+      <div class="tix">
+        <div class="tt">mapping-rest: package fails to install on a fresh host</div>
+        <p><b>Why:</b> <code>apt install mapping-rest</code> aborts. The .deb ships no supervisor config, and preinst/postinst call <code>supervisorctl</code> unguarded under <code>sh -e</code>.</p>
+        <p><b>Done when:</b></p>
+        <ul><li>Package ships <code>/etc/supervisor/conf.d/mapping-rest.conf</code></li><li>supervisorctl calls in preinst/postinst can't abort the install</li><li>Clean install and upgrade both succeed</li></ul>
+        <p><b>Reference:</b> classification-service/src/deb does this correctly. Full analysis attached.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 6 GOOD AND BAD PRACTICE -->
+<section class="slide" data-title="What good looks like">
+<div class="content">
+  <span class="tag reveal">Lessons from the sample <span class="time">· 1.5 min</span></span>
+  <h2 class="reveal d1">Honest labelling helps. <span class="grad">Empty templates don't.</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g2">
+    <div class="card good reveal d2">
+      <span class="lbl ai-d">AI-generated (declared)</span>
+      <h3 style="margin-top:.6rem"><a href="https://snomed.atlassian.net/browse/INFRA-18192">INFRA-18192</a> · QA Stats deep links return 404</h3>
+      <p>Starts with a banner saying it was written with AI and <b>not yet verified</b> by a developer. Marks each piece of evidence as <i>verified</i> or <i>inferred</i>, and lists open items.</p>
+      <p style="margin-top:.5rem"><b>Worth copying:</b> the label and the verified/inferred split.<br><b>Still to fix:</b> 608 words. The problem and the fix fit in one screen.</p>
+    </div>
+    <div class="card warn reveal d3">
+      <span class="lbl hu">Human-written, template only</span>
+      <h3 style="margin-top:.6rem"><a href="https://snomed.atlassian.net/browse/PIP-1353">PIP-1353</a> · RVF: Evaluate duckdb-engine feature from AU</h3>
+      <p>Uses Summary / Context / Acceptance criteria headings, but each one repeats the title: "Evaluate the duckdb-engine feature from AU locally."</p>
+      <p style="margin-top:.5rem"><b>Lesson:</b> a template only helps if each section answers its question. Short is fine; <b>empty</b> isn't.</p>
+    </div>
+  </div>
+  <div class="card blue reveal d4" style="margin-top:1.1rem"><p><b>Short human tickets work well when they say why.</b> <a href="https://snomed.atlassian.net/browse/RAP-287">RAP-287</a> (129 words) gives what happened, why it matters and a numbered proposal. That's the bar.</p></div>
+</div>
+</section>
+
+<!-- 7 ESSENTIALS -->
+<section class="slide" data-title="Essentials">
+<div class="content">
+  <span class="tag reveal">Best practice <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">What a good ticket <span class="grad">must contain</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g4">
+    <div class="card reveal d2"><h3>1 · Title</h3><p>Component + what's wrong or needed. Readable in a board column.</p><p class="eg">"mapping-rest: package fails to install on a fresh host"</p></div>
+    <div class="card reveal d3"><h3>2 · Why</h3><p>One or two sentences: the problem, who it affects and how urgent it is.</p></div>
+    <div class="card reveal d4"><h3>3 · Done when</h3><p>Three to five testable bullets. This is what the assignee will build and check against.</p></div>
+    <div class="card reveal d5"><h3>4 · Links</h3><p>Related tickets, logs, Confluence pages, PRs. Link to them instead of pasting them in.</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:1.1rem">
+    <div class="card good reveal d5"><h3>Add only when it helps</h3><ul><li>Steps to reproduce (bugs)</li><li>Constraints or deadlines</li><li>A suggested approach, kept short</li></ul></div>
+    <div class="card warn reveal d6"><h3>Leave out of the description</h3><ul><li>Long root-cause analysis and code listings: use a comment or attachment</li><li>Several alternative options: pick one, or ask a question</li><li>Repeating the title as the summary</li></ul></div>
+  </div>
+</div>
+</section>
+
+<!-- 8 TEMPLATE -->
+<section class="slide" data-title="Proposed template">
+<div class="content">
+  <span class="tag reveal">Proposal <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">One template, <span class="grad">under 200 words</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g2">
+    <div class="card reveal d2">
+      <h3>Description template</h3>
+<pre class="tpl"><b>Why</b>
+&lt;1–2 sentences: problem, impact, urgency&gt;
+
+<b>Done when</b>
+- &lt;testable outcome&gt;
+- &lt;testable outcome&gt;
+- &lt;testable outcome&gt;
+
+<b>Links</b>
+&lt;tickets, logs, pages, PRs&gt;
+
+<b>Notes</b> (optional)
+&lt;steps to reproduce, constraints&gt;
+
+<b>AI use</b>
+&lt;None / AI-drafted, reviewed by NAME&gt;</pre>
+    </div>
+    <div class="card accent reveal d3">
+      <h3>Prompt to give your AI tool</h3>
+      <p style="font-family:ui-monospace,Menlo,monospace;font-size:.86rem;line-height:1.55">"Write a Jira ticket using this template: Why, Done when, Links, Notes. Keep it under 200 words. Write for an engineer who already knows the system. Don't include alternative options, background history or code unless I ask. Put any detailed analysis in a separate comment."</p>
+      <p style="margin-top:.8rem;font-size:.85rem;opacity:.9">Most of the length comes from the prompt, so let's give the AI the template up front.</p>
+    </div>
+  </div>
+  <p class="note reveal d4">Could be set as the default description in Jira for INFRA, MAINT, PIP and RAP so it appears on every new ticket.</p>
+</div>
+</section>
+
+<!-- 9 OWNERSHIP -->
+<section class="slide" data-title="Ownership">
+<div class="content">
+  <span class="tag reveal">Taking responsibility <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">If you assign it, <span class="grad">you wrote it</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="grid g2">
+    <div class="card blue reveal d2"><h3>Creators</h3><ul><li>Read the whole ticket before assigning it</li><li>Cut anything you wouldn't have typed yourself</li><li>Check facts the AI inferred, or mark them as unverified</li><li>Fill in the <b>AI use</b> line</li></ul></div>
+    <div class="card blue reveal d3"><h3>Recipients</h3><ul><li>It's fine to send a ticket back as "unclear, please shorten"</li><li>Ask for the "Done when" if it's missing</li><li>Don't quietly rewrite it with AI. Raise it so the creator learns</li></ul></div>
+  </div>
+  <div class="grid g3" style="margin-top:1.1rem">
+    <div class="card good reveal d4"><h3>Quick test</h3><p>Could the assignee start work after reading for <b>one minute</b>?</p></div>
+    <div class="card good reveal d5"><h3>Board refinement</h3><p>Spot-check new tickets against the template at refinement or triage.</p></div>
+    <div class="card good reveal d6"><h3>Lead by example</h3><p>Leads and seniors use the template first. Others will copy what they see.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- 10 DECISIONS -->
+<section class="slide" data-title="Decisions">
+<div class="content">
+  <span class="tag reveal">To agree today <span class="time">· 2 min</span></span>
+  <h2 class="reveal d1">Decisions <span class="grad">for this meeting</span></h2>
+  <div class="divider reveal d1"></div>
+  <div class="steps">
+    <div class="step reveal d2"><div class="num"></div><div><h3>Adopt the four-part template</h3><p>Why · Done when · Links · Notes, plus an AI-use line.</p></div><span class="pill p-now">Agree today</span></div>
+    <div class="step reveal d3"><div class="num"></div><div><h3>Aim for 200 words or fewer in the description</h3><p>A guide, not a hard limit. Put detailed analysis in comments or linked pages.</p></div><span class="pill p-now">Agree today</span></div>
+    <div class="step reveal d4"><div class="num"></div><div><h3>Label AI-drafted tickets and name the reviewer</h3><p>Creators stay responsible for what they assign.</p></div><span class="pill p-now">Agree today</span></div>
+    <div class="step reveal d5"><div class="num"></div><div><h3>Make "send it back" normal</h3><p>Recipients can return unclear tickets without it being awkward.</p></div><span class="pill p-now">Agree today</span></div>
+    <div class="step reveal d6"><div class="num"></div><div><h3>Set the default description and review in a month</h3><p>Pilot in INFRA and MAINT, then repeat this sample to compare.</p></div><span class="pill p-later">Next month</span></div>
+  </div>
+</div>
+</section>
+</main>
+
+
+<button class="nav" id="prev" aria-label="Previous slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+<button class="nav" id="next" aria-label="Next slide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></button>
+<nav id="dots" aria-label="Slides"></nav>
+<div id="hint">← → or swipe</div>
+
+<script>
+(function(){
+  var deck=document.getElementById('deck'),slides=[].slice.call(document.querySelectorAll('.slide')),
+      dots=document.getElementById('dots'),prog=document.getElementById('progress'),
+      cur=document.getElementById('cur'),prev=document.getElementById('prev'),next=document.getElementById('next'),i=0;
+  document.getElementById('tot').textContent=slides.length;
+  slides.forEach(function(s,k){var b=document.createElement('button');b.setAttribute('aria-label','Slide '+(k+1)+': '+s.dataset.title);b.title=s.dataset.title;b.onclick=function(){go(k)};dots.appendChild(b)});
+  // size bars
+  document.querySelectorAll('.bars').forEach(function(g){
+    var max=+g.dataset.max,base=g.dataset.base;
+    g.querySelectorAll('.fill').forEach(function(f){f.dataset.w=(100*f.dataset.v/max).toFixed(1)+'%'});
+    var bl=base||(g.querySelector('.f-base')||{}).dataset;
+    var bv=base?+base:(bl&&bl.v?+bl.v:null);
+    if(g.dataset.base||g.closest('.mini')){g.querySelectorAll('.track').forEach(function(t){var d=document.createElement('div');d.className='base-line';d.style.left=(100*bv/max)+'%';t.appendChild(d)})}
+  });
+  function fill(s,on){s.querySelectorAll('.fill').forEach(function(f){f.style.width=on?f.dataset.w:'0'})}
+  function go(n){
+    n=Math.max(0,Math.min(slides.length-1,n));
+    slides[i].classList.remove('active');fill(slides[i],false);
+    i=n;deck.style.transform='translateX('+(-100*i)+'vw)';
+    slides[i].classList.add('active');slides[i].scrollTop=0;fill(slides[i],true);
+    cur.textContent=i+1;prog.style.width=(100*(i+1)/slides.length)+'%';
+    [].forEach.call(dots.children,function(d,k){d.classList.toggle('on',k===i)});
+    prev.disabled=i===0;next.disabled=i===slides.length-1;
+    var h='#slide-'+(i+1);if(location.hash!==h){try{history.replaceState(null,'',h)}catch(e){}}
+  }
+  prev.onclick=function(){go(i-1)};next.onclick=function(){go(i+1)};
+  document.addEventListener('keydown',function(e){
+    if(['ArrowRight','PageDown',' '].indexOf(e.key)>-1){e.preventDefault();go(i+1)}
+    else if(['ArrowLeft','PageUp'].indexOf(e.key)>-1){e.preventDefault();go(i-1)}
+    else if(e.key==='Home'){go(0)}else if(e.key==='End'){go(slides.length-1)}
+  });
+  var tx=null,ty=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(i+(dx<0?1:-1));tx=null},{passive:true});
+  window.addEventListener('resize',function(){deck.style.transition='none';go(i);setTimeout(function(){deck.style.transition=''},50)});
+  function fromHash(){var m=/^#slide-(\d+)$/.exec(location.hash);return m?(+m[1]-1):0}
+  window.addEventListener('hashchange',function(){var n=fromHash();if(n!==i)go(n)});
+  window.addEventListener('beforeprint',function(){slides.forEach(function(s){fill(s,true)})});
+  go(fromHash());
+})();
+</script>
+</body>
+</html>
